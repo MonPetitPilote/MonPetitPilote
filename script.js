@@ -457,7 +457,7 @@ window.addEventListener('click', (e) => {
 });
 
 // Initialisations globales
-initialSelectCourse();
+initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
 verifierStatutDuGrandPrix();
