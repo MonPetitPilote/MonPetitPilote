@@ -13,36 +13,37 @@ if (typeof firebase !== 'undefined') {
     var db = firebase.firestore();
 }
 
-// Base de données des pilotes F1 2026
+// Base de données des pilotes F1 2026 avec statut de performance équitable
+// Catégories : "favori" (Top Teams), "outsider" (Milieu), "fond" (Fin de grille)
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", cote: 1.2, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", cote: 3.5, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", cote: 1.5, img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", cote: 1.4, img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
-  {nom: "Lando Norris", ecurie: "McLaren", cote: 1.3, img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
-  {nom: "Oscar Piastri", ecurie: "McLaren", cote: 1.6, img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
-  {nom: "George Russell", ecurie: "Mercedes", cote: 1.8, img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", cote: 2.0, img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", cote: 2.5, img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", cote: 4.0, img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
-  {nom: "Pierre Gasly", ecurie: "Alpine", cote: 3.0, img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", cote: 4.5, img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
-  {nom: "Carlos Sainz", ecurie: "Williams", cote: 2.8, img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
-  {nom: "Alex Albon", ecurie: "Williams", cote: 3.5, img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", cote: 4.0, img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", cote: 5.5, img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", cote: 3.8, img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", cote: 5.0, img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
-  {nom: "Oliver Bearman", ecurie: "Haas", cote: 4.0, img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
-  {nom: "Esteban Ocon", ecurie: "Haas", cote: 3.8, img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", cote: 5.0, img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", cote: 4.2, img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
+  {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
+  {nom: "Lando Norris", ecurie: "McLaren", statut: "favori", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
+  {nom: "George Russell", ecurie: "Mercedes", statut: "favori", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", statut: "outsider", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
+  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
+  {nom: "Alex Albon", ecurie: "Williams", statut: "outsider", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "fond", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", statut: "fond", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", statut: "fond", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "fond", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
+  {nom: "Oliver Bearman", ecurie: "Haas", statut: "fond", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
+  {nom: "Esteban Ocon", ecurie: "Haas", statut: "fond", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
 
 const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
 const grille = document.getElementById('grille-pronos');
 
-// 1. Génération automatique du Top 10 avec case Coup de Poker
+// 1. Génération de la grille (Top 10) avec l'option Coup de Poker
 if (grille) {
     for (let i = 1; i <= 10; i++) {
         const ligne = document.createElement('div');
@@ -64,9 +65,8 @@ if (grille) {
         optionVide.text = "Sélectionner un pilote...";
         select.appendChild(optionVide);
 
-        // NOUVEAUTÉ 3 : CASE COUP DE POKER ⭐
         const pokerContainer = document.createElement('label');
-        pokerContainer.title = "Coup de Poker : Cochez pour doubler vos points sur cette ligne si le prono est exact ! (1 max)";
+        pokerContainer.title = "Coup de Poker ⭐ : coche pour doubler tes points sur cette ligne (1 max)";
         pokerContainer.style.cursor = 'pointer';
         pokerContainer.style.fontSize = '1.1rem';
         pokerContainer.innerHTML = `<input type="checkbox" name="coup-poker" class="check-poker" value="${i}" style="margin-right:3px;">⭐`;
@@ -94,7 +94,7 @@ if (grille) {
         grille.appendChild(ligne);
     }
 
-    // Gérer la limite d'un seul Coup de Poker coché à la fois
+    // Force la coche d'une SEULE case coup de poker au maximum
     grille.addEventListener('change', (e) => {
         if (e.target.classList.contains('check-poker')) {
             const checkboxes = document.querySelectorAll('.check-poker');
@@ -103,12 +103,12 @@ if (grille) {
     });
 }
 
-// Initialisation globale
+// Lancement au démarrage de la page
 initialiserPolePosition();
 mettreAJourListes();
 initialiserEcuriesTopFlop();
 
-// 2. Remplissage et gestion des listes Pilotes + Cotes
+// 2. SYSTEME DE COTES EQUITABLE ET BALANCE
 function mettreAJourListes() {
     const tousLesSelects = document.querySelectorAll('.select-pilote');
     if (tousLesSelects.length === 0) return;
@@ -118,7 +118,7 @@ function mettreAJourListes() {
     tousLesSelects.forEach(select => {
         const valeurActuelle = select.value;
         const idSelect = select.id;
-        const positionNumerique = parseInt(idSelect.split('-')[1]);
+        const position = parseInt(idSelect.split('-')[1]); // Récupère le chiffre de 1 à 10
 
         select.innerHTML = '<option value="">Sélectionner un pilote...</option>';
 
@@ -127,17 +127,33 @@ function mettreAJourListes() {
                 const opt = document.createElement('option');
                 opt.value = p.nom;
                 
-                let coteCalculee = p.cote; 
-                if (positionNumerique === 1) {
-                    coteCalculee = p.cote * p.cote * 10;
-                    if (p.nom === "Fernando Alonso") coteCalculee = 100.0;
-                } else {
-                    coteCalculee = (p.cote * 3.5) / (positionNumerique * 0.6);
+                let cote = 1.5;
+
+                // Calcul équitable basé sur le statut et la cohérence de la place visée
+                if (p.statut === "favori") {
+                    if (position === 1) cote = 1.3;
+                    else if (position <= 3) cote = 1.1;
+                    else if (position <= 6) cote = 1.8;
+                    else cote = 2.5 + (position * 0.1); // Un favori descend rarement en P10, mais la cote reste raisonnable pour éviter les tricheries
+                } 
+                else if (p.statut === "outsider") {
+                    if (position === 1) {
+                        cote = 35.0; 
+                        if (p.nom === "Fernando Alonso") cote = 100.0; // Le clin d'œil légendaire
+                    } 
+                    else if (position <= 3) cote = 10.0;
+                    else if (position <= 6) cote = 3.5;
+                    else cote = 1.6; // Très logique qu'il soit en fin de top 10
+                } 
+                else if (p.statut === "fond") {
+                    if (position === 1) cote = 120.0;
+                    else if (position <= 3) cote = 60.0;
+                    else if (position <= 6) cote = 18.0;
+                    else if (position <= 8) cote = 5.0;
+                    else cote = 1.3; // Sa place habituelle (P9 ou P10), donc petite cote logique
                 }
 
-                if (coteCalculee < 1.1) coteCalculee = 1.1;
-
-                opt.text = `${p.nom} (${p.ecurie}) - Cote: x${coteCalculee.toFixed(1)}`;
+                opt.text = `${p.nom} (${p.ecurie}) - Cote: x${cote.toFixed(1)}`;
                 if (p.nom === valeurActuelle) opt.selected = true;
                 select.appendChild(opt);
             }
@@ -145,7 +161,7 @@ function mettreAJourListes() {
     });
 }
 
-// 3. Remplissage menu Pole Position
+// 3. Initialisation de la Pole Position (Samedi)
 function initialiserPolePosition() {
     const selectPole = document.getElementById('select-pole');
     if (!selectPole) return;
@@ -158,7 +174,7 @@ function initialiserPolePosition() {
     });
 }
 
-// 4. Remplissage menus Écuries
+// 4. Initialisation des Écuries
 function initialiserEcuriesTopFlop() {
     const selectsEcurie = document.querySelectorAll('.select-ecurie');
     selectsEcurie.forEach(select => {
@@ -177,23 +193,21 @@ const btnAleatoire = document.getElementById('btn-aleatoire');
 if (btnAleatoire) {
     btnAleatoire.addEventListener('click', () => {
         const tousLesSelects = document.querySelectorAll('.select-pilote');
-        // Mélanger la liste complète des pilotes
         const pilotesMelanges = [...pilotesData].sort(() => 0.5 - Math.random());
         
         tousLesSelects.forEach((select, index) => {
             select.value = pilotesMelanges[index].nom;
-            // Déclencher artificiellement l'affichage de l'image de la voiture
             const img = select.parentElement.querySelector('.img-monoplace');
             if (img) {
                 img.src = pilotesMelanges[index].img;
                 img.style.display = 'block';
             }
         });
-        mettreAJourListes(); // Rafraîchir les cotes et les blocages de listes
+        mettreAJourListes();
     });
 }
 
-// 6. Validation et envoi Firebase
+// 6. Enregistrement final des données vers Firebase Firestore
 const btnValider = document.getElementById('btn-valider');
 if (btnValider) {
     btnValider.addEventListener('click', () => {
@@ -205,51 +219,21 @@ if (btnValider) {
 
         const poleman = document.getElementById('select-pole').value;
         if (!poleman) {
-            alert("⚠️ Veuillez pronostiquer le Poleman du samedi !");
+            alert("⚠️ N'oublie pas de choisir le Poleman du samedi !");
             return;
         }
 
         const tousLesSelects = document.querySelectorAll('.select-pilote');
         const choixPilotes = Array.from(tousLesSelects).map(s => s.value);
         if (choixPilotes.includes("")) {
-            alert(`⚠️ Top 10 incomplet !`);
+            alert(`⚠️ Ton Top 10 est incomplet !`);
             return;
         }
 
-        // Trouver quelle ligne (P1 à P10) a reçu l'étoile Coup de Poker
         const checkPokerCocha = document.querySelector('.check-poker:checked');
         const positionCoupPoker = checkPokerCocha ? parseInt(checkPokerCocha.value) : null;
 
         const top1 = document.getElementById('ecurie-top-1').value;
         const top2 = document.getElementById('ecurie-top-2').value;
         const flop1 = document.getElementById('ecurie-flop-1').value;
-        const flop2 = document.getElementById('ecurie-flop-2').value;
-
-        if (!top1 || !top2 || !flop1 || !flop2) {
-            alert("⚠️ Section Écuries incomplète !");
-            return;
-        }
-
-        const pseudo = prompt("Saisis ton pseudo pour valider :");
-        if (!pseudo) return;
-
-        const donneesPronostic = {
-            pseudo: pseudo,
-            course: courseSelect ? courseSelect.value : "Inconnu",
-            poleman: poleman,
-            classementPilotes: choixPilotes,
-            ligneCoupPoker: positionCoupPoker, // Indique quelle ligne (1 à 10) double ses points
-            ecuriesTop: [top1, top2],
-            ecuriesFlop: [flop1, flop2],
-            date: new Date()
-        };
-
-        if (typeof db !== 'undefined') {
-            db.collection("pronostics").add(donneesPronostic)
-            .then(() => { alert(`🏆 Bravo ${pseudo} ! Tes pronos complets ont été enregistrés !`); })
-            .catch((err) => { alert("❌ Erreur de base de données."); });
-        } else {
-            alert(`🏆 Mode démo : Bravo ${pseudo}, validé localement !`);
-        }
-    });
-}
+        const flop2 = document.
