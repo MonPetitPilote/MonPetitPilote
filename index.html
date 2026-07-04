@@ -32,4 +32,72 @@
             <label for="select-course">🏁 Choisir le Grand Prix :</label>
             <select id="select-course">
                 <option value="2026/1">Grand Prix de Bahreïn (GP 01)</option>
-                <option value="2026/2">Grand Prix d'Arabie Sa
+                <option value="2026/2">Grand Prix d'Arabie Saoudite (GP 02)</option>
+                <option value="2026/3">Grand Prix d'Australie (GP 03)</option>
+                <option value="2026/4">Grand Prix du Japon (GP 04)</option>
+                <option value="2026/5">Grand Prix de Chine (GP 05)</option>
+                <option value="2026/6">Grand Prix de Miami (GP 06)</option>
+                <option value="2026/7">Grand Prix d'Émilie-Romagne (GP 07)</option>
+                <option value="2026/8">Grand Prix de Monaco (GP 08)</option>
+                <option value="2026/9" selected>Grand Prix de Grande-Bretagne (GP 09 - Silverstone)</option>
+                <option value="2026/10">Grand Prix d'Autriche (GP 10)</option>
+            </select>
+        </div>
+
+        <div class="main-layout" style="display: block;">
+            
+            <div class="colonne">
+                <h2 id="titre-grille">🏆 TON TOP 10 PILOTES :</h2>
+                <p style="font-size: 0.85rem; color: #aaa; margin-top:-10px; margin-bottom:15px;">
+                    Coche la case ⭐ sur la ligne de ton choix pour activer ton unique <strong>Coup de Poker</strong> !
+                </p>
+                
+                <div id="grille-pronos"></div>
+                
+                <button id="btn-aleatoire" style="margin-top:15px; width:100%; padding:10px; background:#f1c40f; color:#111; font-weight:bold; border:none; border-radius:4px; cursor:pointer;">
+                    🎲 COMPLÉTER MON TOP 10 ALÉATOIREMENT
+                </button>
+            </div>
+
+            <div class="colonne" style="margin-top: 30px;">
+                <h2>⏱️ QUALIFICATIONS & ÉCURIES :</h2>
+                
+                <div class="bonus-box" style="background:#1b2436; padding:15px; border-radius:6px; margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">⏱️ Poleman du Samedi :</label>
+                    <select id="select-pole" style="width:100%; padding:8px; border-radius:4px; background:#111622; color:white; border:1px solid #3b4b6b;"></select>
+                </div>
+
+                <div class="bonus-box" style="background:#1b2436; padding:15px; border-radius:6px; margin-bottom:15px;">
+                    <h3 style="margin-top:0; color:#4cd137;">🚀 Écuries au TOP (Gains de places attendus) :</h3>
+                    <label>Top Écurie 1 :</label>
+                    <select id="ecurie-top-1" class="select-ecurie" style="width:100%; padding:8px; margin-bottom:10px; border-radius:4px; background:#111622; color:white; border:1px solid #3b4b6b;"></select>
+                    <label>Top Écurie 2 :</label>
+                    <select id="ecurie-top-2" class="select-ecurie" style="width:100%; padding:8px; border-radius:4px; background:#111622; color:white; border:1px solid #3b4b6b;"></select>
+                </div>
+
+                <div class="bonus-box" style="background:#1b2436; padding:15px; border-radius:6px; margin-bottom:20px;">
+                    <h3 style="margin-top:0; color:#ff3f3f;">📉 Écuries au FLOP (Pertes de places ou abandons) :</h3>
+                    <label>Flop Écurie 1 :</label>
+                    <select id="ecurie-flop-1" class="select-ecurie" style="width:100%; padding:8px; margin-bottom:10px; border-radius:4px; background:#111622; color:white; border:1px solid #3b4b6b;"></select>
+                    <label>Flop Écurie 2 :</label>
+                    <select id="ecurie-flop-2" class="select-ecurie" style="width:100%; padding:8px; border-radius:4px; background:#111622; color:white; border:1px solid #3b4b6b;"></select>
+                </div>
+
+                <button id="btn-valider" style="width:100%; padding:15px; background:#E10600; color:white; font-size:1.1rem; font-weight:bold; border:none; border-radius:6px; cursor:pointer; box-shadow:0 4px 15px rgba(225,6,0,0.4);">
+                    🏁 VALIDER MES PRONOSTICS
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
+    <script src="script.js"></script>
+</body>
+</html>
