@@ -1,6 +1,6 @@
-// Configuration Firebase
+// Configuration Firebase de MonPetitPilote
 const firebaseConfig = {
-  apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
+    apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
     authDomain: "monpetitpilote.firebaseapp.com",
     projectId: "monpetitpilote",
     storageBucket: "monpetitpilote.firebasestorage.app",
@@ -8,6 +8,12 @@ const firebaseConfig = {
     appId: "1:267371118460:web:af95dad6fa4368fdffaef9",
     measurementId: "G-TY047XHDXW"
 };
+
+// Initialisation correcte pour le format de ton script
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ... (Reste de ton code pilotesData, grille, boutons, etc. sans rien changer)
 
 if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
