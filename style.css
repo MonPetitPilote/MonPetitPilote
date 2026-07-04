@@ -10,7 +10,7 @@ body {
 }
 
 .container {
-    max-width: 650px;
+    max-width: 1000px; /* Élargi pour les 2 colonnes */
     width: 100%;
     background: #1a2235;
     padding: 25px;
@@ -20,9 +20,12 @@ body {
 
 h1 {
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin-bottom: 25px;
     letter-spacing: 1px;
+    color: #FFFFFF;
+    border-bottom: 2px solid #E10600;
+    padding-bottom: 10px;
 }
 
 h2 {
@@ -30,6 +33,29 @@ h2 {
     color: #cccccc;
     margin-top: 25px;
     margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+/* Layout 2 colonnes */
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Sur écran d'ordinateur ou tablette paysage, on passe en côte à côte */
+@media (min-width: 768px) {
+    .main-layout {
+        flex-direction: row;
+    }
+    .colonne-gauche {
+        flex: 1.4;
+    }
+    .colonne-droite {
+        flex: 1;
+        border-left: 1px solid #3b4b6b;
+        padding-left: 25px;
+    }
 }
 
 .section-course {
@@ -41,7 +67,7 @@ h2 {
 label {
     font-size: 0.8rem;
     font-weight: bold;
-    color: #E10600; /* Rouge F1 */
+    color: #E10600;
 }
 
 select {
@@ -55,7 +81,6 @@ select {
     width: 100%;
 }
 
-/* Alignement des lignes P01 à P22 */
 .ligne-pilote {
     display: flex;
     align-items: center;
@@ -72,7 +97,7 @@ select {
     font-weight: bold;
     padding: 6px 10px;
     border-radius: 4px;
-    min-width: 40px;
+    min-width: 35px;
     text-align: center;
     font-size: 0.9rem;
 }
@@ -83,13 +108,11 @@ select {
 }
 
 .img-monoplace {
-    height: 25px;
-    max-width: 100px;
+    height: 22px;
+    max-width: 90px;
     object-fit: contain;
-    transition: all 0.2s ease;
 }
 
-/* Bouton Valider F1 */
 #btn-valider {
     width: 100%;
     background-color: #E10600;
@@ -100,10 +123,54 @@ select {
     font-weight: bold;
     border-radius: 6px;
     cursor: pointer;
-    margin-top: 25px;
+    margin-top: 20px;
     transition: background 0.2s;
 }
 
 #btn-valider:hover {
     background-color: #b80500;
+}
+
+/* SECTION SCORE / CLASSEMENT */
+.tableau-scores {
+    background: #111622;
+    border-radius: 8px;
+    border: 1px solid #3b4b6b;
+    overflow: hidden;
+}
+
+.entete-scores, .ligne-joueur {
+    display: grid;
+    grid-template-columns: 50px 1fr 70px;
+    padding: 12px;
+    font-size: 0.95rem;
+    align-items: center;
+}
+
+.entete-scores {
+    background: #222c43;
+    font-weight: bold;
+    color: #E10600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.ligne-joueur {
+    border-bottom: 1px solid #1a2235;
+}
+
+.ligne-joueur:last-child {
+    border-bottom: none;
+}
+
+.pos-podium {
+    font-weight: bold;
+    color: #e10600;
+}
+
+.score-points {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 10px;
+    color: #4cd137; /* Vert F1 pour les points */
 }
