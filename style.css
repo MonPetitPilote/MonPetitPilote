@@ -8,7 +8,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1200px; /* Légèrement élargi pour un meilleur confort double-colonne */
     margin: 0 auto;
     padding: 20px;
 }
@@ -28,6 +28,28 @@ h2 {
     border-left: 4px solid #E10600;
     padding-left: 10px;
     margin-bottom: 20px;
+}
+
+/* STRUCTURE LAYOUT DOUBLE COLONNE D'ORIGINE */
+.main-layout {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.colonne-gauche {
+    flex: 2;
+    min-width: 320px;
+}
+
+.colonne-droite {
+    flex: 1;
+    min-width: 280px;
+    background: #161d2a;
+    padding: 20px;
+    border-radius: 8px;
+    height: fit-content;
+    border: 1px solid #232c3d;
 }
 
 /* BLOC ESPACE MEMBRE DYNAMIQUE */
@@ -60,7 +82,7 @@ h2 {
     background: #111622; 
     color: white;
     flex: 1;
-    min-width: 140px;
+    min-width: 130px;
 }
 
 .btn-auth {
@@ -89,25 +111,19 @@ h2 {
     color: #00d2d3;
 }
 
-/* FORMULAIRE & SÉLECTION DE LA COURSE */
-.selection-box {
-    background: #161d2a;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.selection-box select {
-    flex: 1;
+/* OPTIONS SÉLECTION */
+.section-course select, .select-ecurie {
+    width: 100%;
     padding: 10px;
     background: #111622;
     border: 1px solid #3b4b6b;
     color: white;
     border-radius: 4px;
     font-size: 1rem;
+}
+
+.select-ecurie {
+    flex: 1;
 }
 
 /* GRILLE DU TOP 10 PILOTES */
@@ -145,8 +161,66 @@ h2 {
     object-fit: contain;
 }
 
-/* Éléments annexes */
 label {
     font-size: 0.9rem;
     color: #ccc;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* BOUTON GENERAL VALIDER */
+#btn-valider {
+    width: 100%; 
+    padding: 15px; 
+    background: #E10600; 
+    color: white; 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(225,6,0,0.3);
+    transition: 0.2s;
+}
+
+#btn-valider:hover {
+    background: #b80500;
+}
+
+/* CLASSEMENT SCORES D'ORIGINE */
+.tableau-scores {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.entete-scores, .ligne-joueur {
+    display: grid;
+    grid-template-columns: 50px 1fr 70px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.entete-scores {
+    font-weight: bold;
+    color: #aaa;
+    border-bottom: 1px solid #3b4b6b;
+}
+
+.ligne-joueur {
+    background: #1f293d;
+    align-items: center;
+}
+
+.pos-podium {
+    font-weight: bold;
+}
+
+.score-points {
+    text-align: right;
+    font-weight: bold;
+    color: #4cd137;
 }
