@@ -11,11 +11,14 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
+// Initialisation au format Compat (indispensable avec tes scripts HTML)
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Base de données des pilotes F1 2026
+// ==========================================
+// 2. BASE DE DONNÉES DES PILOTES F1 2026
+// ==========================================
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
@@ -45,73 +48,63 @@ const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
 const grille = document.getElementById('grille-pronos');
 const selectCourse = document.getElementById('select-course');
 
+// Utilisateur actuellement connecté
 let utilisateurActuel = null;
 
 // ==========================================
-// 2. GESTION DES RECHARGEMENTS ET ÉTATS AUTH
+// 3. GESTION DE L'AUTHENTIFICATION (CONNEXION)
 // ==========================================
-auth.onAuthStateChanged((user) => {
-    const zoneDeconnecte = document.getElementById('auth-deconnecte');
-    const zoneConnecte = document.getElementById('auth-connecte');
-    const nomUserSpan = document.getElementById('nom-utilisateur');
 
+// Écouteur magique qui détecte si quelqu'un se connecte ou se déconnecte
+auth.onAuthStateChanged((user) => {
     if (user) {
         utilisateurActuel = user;
-        if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
-        if(zoneConnecte) zoneConnecte.style.display = 'flex';
-        if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
+        console.log("Utilisateur connecté :", user.displayName || user.email);
+        // Optionnel : Tu peux afficher un message "Salut [Pseudo]" sur ton site s'il y a un élément HTML prévu
     } else {
         utilisateurActuel = null;
-        if(zoneDeconnecte) zoneDeconnecte.style.display = 'block';
-        if(zoneConnecte) zoneConnecte.style.display = 'none';
+        console.log("Aucun utilisateur connecté.");
     }
 });
 
-// Écouteur Inscription (sans altération de page)
-const btnInsc = document.getElementById('btn-inscription');
-if(btnInsc) {
-    btnInsc.addEventListener('click', () => {
-        const pseudo = document.getElementById('auth-pseudo').value.trim();
-        const email = document.getElementById('auth-email').value.trim();
-        const mdp = document.getElementById('auth-mdp').value.trim();
-
-        if(!pseudo || !email || !mdp) { alert("⚠️ Saisie incomplète pour l'inscription !"); return; }
-        
-        auth.createUserWithEmailAndPassword(email, mdp)
-            .then((userCredential) => {
-                userCredential.user.updateProfile({ displayName: pseudo }).then(() => {
-                    alert(`🎉 Compte créé ! Tu es maintenant connecté sous le nom de ${pseudo}.`);
-                });
-            })
-            .catch(err => alert("❌ Erreur d'inscription : " + err.message));
-    });
+// Fonction pour s'inscrire (Créer un compte)
+function inscrireUtilisateur(email, password, pseudo) {
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            let user = userCredential.user;
+            // On enregistre instantanément le pseudo dans son profil Firebase
+            user.updateProfile({ displayName: pseudo }).then(() => {
+                alert(`🎉 Bienvenue ${pseudo} ! Ton compte a bien été créé.`);
+                location.reload(); // Actualise la page pour appliquer la session
+            });
+        })
+        .catch((error) => {
+            alert(`❌ Erreur d'inscription : ${error.message}`);
+        });
 }
 
-// Écouteur Connexion 
-const btnConn = document.getElementById('btn-connexion');
-if(btnConn) {
-    btnConn.addEventListener('click', () => {
-        const email = document.getElementById('auth-email').value.trim();
-        const mdp = document.getElementById('auth-mdp').value.trim();
-
-        if(!email || !mdp) { alert("⚠️ Veuillez saisir votre Email et votre Mot de passe !"); return; }
-
-        auth.signInWithEmailAndPassword(email, mdp)
-            .then(() => alert("👋 Heureux de vous revoir ! Connexion réussie."))
-            .catch(err => alert("❌ Échec de la connexion : " + err.message));
-    });
+// Fonction pour se connecter
+function connecterUtilisateur(email, password) {
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            alert(`👋 Heureux de te revoir !`);
+            location.reload();
+        })
+        .catch((error) => {
+            alert(`❌ Identifiants incorrects : ${error.message}`);
+        });
 }
 
-// Écouteur Déconnexion
-const btnDeco = document.getElementById('btn-deconnexion');
-if(btnDeco) {
-    btnDeco.addEventListener('click', () => {
-        auth.signOut().then(() => alert("🔒 Session fermée. Déconnecté."));
+// Fonction de déconnexion
+function deconnecterUtilisateur() {
+    auth.signOut().then(() => {
+        alert("🔒 Tu es maintenant déconnecté.");
+        location.reload();
     });
 }
 
 // ==========================================
-// 3. CONSTRUCTION DYNAMIQUE DES CHOIX (HTML)
+// 4. GÉNÉRATION AUTOMATIQUE DU TOP 10 (HTML)
 // ==========================================
 if (grille) {
     for (let i = 1; i <= 10; i++) {
@@ -168,6 +161,7 @@ if (grille) {
     });
 }
 
+// Lancement global au démarrage
 initialiserPolePosition();
 mettreAJourListes();
 initialiserEcuriesTopFlop();
@@ -178,7 +172,7 @@ if (selectCourse) {
 }
 
 // ==========================================
-// 4. API VERROUILLAGE DES RÉSULTATS
+// 5. VERROUILLAGE ET APPEL DE L'API HISTORIQUE
 // ==========================================
 function verifierStatutDuGrandPrix() {
     const courseActuelle = selectCourse.value;
@@ -218,7 +212,7 @@ function verifierStatutDuGrandPrix() {
                     }
                 }
             })
-            .catch(err => console.log("Pas de données API.", err));
+            .catch(err => console.log("Pas de données API disponibles.", err));
 
     } else {
         if (titreGrille) titreGrille.innerText = "🏆 TON TOP 10 PILOTES :";
@@ -243,7 +237,7 @@ function desactiverFormulaire(statut) {
 }
 
 // ==========================================
-// 5. MISE À JOUR ET COTES DE LA FORMULE
+// 6. CALCUL ET INTERFACE DES COTES DYNAMIQUES
 // ==========================================
 function mettreAJourListes() {
     const tousLesSelects = document.querySelectorAll('.select-pilote');
@@ -317,7 +311,9 @@ function initialiserEcuriesTopFlop() {
     });
 }
 
-// Bouton Aléatoire
+// ==========================================
+// 7. BOUTON PRONO ALÉATOIRE 🎲
+// ==========================================
 const btnAleatoire = document.getElementById('btn-aleatoire');
 if (btnAleatoire) {
     btnAleatoire.addEventListener('click', () => {
@@ -333,14 +329,29 @@ if (btnAleatoire) {
 }
 
 // ==========================================
-// 6. ENVOI DES PRONOSTICS ET ALERTE
+// 8. SÉCURITÉ ET ENVOI DIRECT VERS FIRESTORE
 // ==========================================
 const btnValider = document.getElementById('btn-valider');
 if (btnValider) {
     btnValider.addEventListener('click', () => {
+        // --- NOUVELLE SÉCURITÉ : L'UTILISATEUR DOIT ÊTRE CONNECTÉ ---
         if (!utilisateurActuel) {
-            alert("⚠️ Envoi bloqué ! Tu dois t'identifier ou créer un compte dans l'ESPACE MEMBRE situé en haut de la page avant de pouvoir envoyer ta grille.");
-            return;
+            // Si pas connecté, on lui demande de le faire via une boîte d'action simple
+            const choix = confirm("⚠️ Tu dois avoir un compte et être connecté pour valider tes pronostics !\n\nClique sur [OK] si tu veux te connecter ou créer un compte.");
+            if (choix) {
+                const action = prompt("Tape [C] pour te Connecter ou [I] pour t'Inscrire :");
+                if (action && action.toLowerCase() === 'i') {
+                    const pseudo = prompt("Choisis ton Pseudo de joueur :");
+                    const email = prompt("Entre ton adresse E-mail :");
+                    const mdp = prompt("Choisis un Mot de passe (6 caractères min) :");
+                    if(pseudo && email && mdp) inscrireUtilisateur(email, mdp, pseudo);
+                } else if (action && action.toLowerCase() === 'c') {
+                    const email = prompt("Entre ton adresse E-mail :");
+                    const mdp = prompt("Entre ton Mot de passe :");
+                    if(email && mdp) connecterUtilisateur(email, mdp);
+                }
+            }
+            return; // On stoppe l'envoi tant qu'il n'est pas authentifié
         }
 
         const poleman = document.getElementById('select-pole').value;
@@ -360,10 +371,11 @@ if (btnValider) {
 
         if (!top1 || !top2 || !flop1 || !flop2) { alert("⚠️ Section Écuries incomplète !"); return; }
 
+        // Construction des données sécurisées grâce à l'authentification
         const donneesPronostic = {
-            uidJoueur: utilisateurActuel.uid,
-            pseudo: utilisateurActuel.displayName || "JoueurAnonyme",
-            email: utilisateurActuel.email,
+            uidJoueur: utilisateurActuel.uid,                         // Identifiant unique Firebase secret
+            pseudo: utilisateurActuel.displayName || "JoueurAnonyme",  // Pseudo officiel
+            email: utilisateurActuel.email,                            // E-mail attaché
             course: selectCourse ? selectCourse.value : "Inconnu",
             poleman: poleman,
             classementPilotes: choixPilotes,
@@ -373,13 +385,14 @@ if (btnValider) {
             date: new Date()
         };
 
+        // Envoi direct à la collection Firestore "pronostics"
         db.collection("pronostics").add(donneesPronostic)
         .then(() => { 
-            alert(`🏆 Succès, ${donneesPronostic.pseudo} !\n\nVos pronostics pour le Grand Prix (${donneesPronostic.course}) ont bien été sauvegardés sur la base de données.`); 
+            alert(`🏆 Super ${donneesPronostic.pseudo} ! Tes pronos ont bien été enregistrés sous ton profil !`); 
         })
         .catch((err) => { 
-            console.error("Erreur d'écriture Firebase : ", err);
-            alert("❌ Erreur de transmission au serveur cloud."); 
+            console.error("Erreur Firebase : ", err);
+            alert("❌ Erreur lors de l'enregistrement Firebase."); 
         });
     });
 }
