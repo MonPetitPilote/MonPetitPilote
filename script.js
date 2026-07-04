@@ -1,4 +1,4 @@
-// Configuration Firebase (Pense à laisser TES clés ici !)
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "TON_API_KEY",
   authDomain: "TON_AUTH_DOMAIN",
@@ -14,7 +14,7 @@ if (typeof firebase !== 'undefined') {
     var db = firebase.firestore();
 }
 
-// Base de données des pilotes F1 2026 avec les cotes estimées
+// Base de données des pilotes F1 2026
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", cote: 1.2, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", cote: 3.5, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
@@ -39,6 +39,9 @@ const pilotesData = [
   {nom: "Valtteri Bottas", ecurie: "Cadillac", cote: 5.0, img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
   {nom: "Sergio Pérez", ecurie: "Cadillac", cote: 4.2, img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
+
+// Liste unique des écuries extraite automatiquement des pilotes
+const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
 
 const grille = document.getElementById('grille-pronos');
 
@@ -67,7 +70,6 @@ for (let i = 1; i <= 10; i++) {
     select.addEventListener('change', () => {
         mettreAJourListes();
         
-        // Trouver le pilote sélectionné par son nom unique
         const piloteTrouve = pilotesData.find(p => p.nom === select.value);
         if (piloteTrouve) {
             img.src = piloteTrouve.img;
@@ -84,23 +86,35 @@ for (let i = 1; i <= 10; i++) {
     grille.appendChild(ligne);
 }
 
+// Initialisation
 mettreAJourListes();
+initialiserEcuriesTopFlop();
 
-// 2. Cache les pilotes déjà sélectionnés et affiche la cote
+// 2. Cache les pilotes déjà sélectionnés et ajuste les COTES SELON LA POSITION
 function mettreAJourListes() {
     const tousLesSelects = document.querySelectorAll('.select-pilote');
     const choixFaits = Array.from(tousLesSelects).map(s => s.value).filter(val => val !== "");
 
     tousLesSelects.forEach(select => {
         const valeurActuelle = select.value;
+        const idSelect = select.id; // Permet de savoir si on est sur la ligne pos-1, pos-2...
+
         select.innerHTML = '<option value="">Sélectionner un pilote...</option>';
 
         pilotesData.forEach(p => {
             if (!choixFaits.includes(p.nom) || p.nom === valeurActuelle) {
                 const opt = document.createElement('option');
                 opt.value = p.nom;
-                // On affiche le nom, l'écurie et la cote dans le menu déroulant
-                opt.text = `${p.nom} (${p.ecurie}) - Cote: x${p.cote.toFixed(1)}`;
+                
+                // --- LOGIQUE DE COTE PERSONNALISÉE ---
+                let coteAffichee = p.cote;
+                
+                // Si on regarde la case P1 (pos-1) et que c'est Alonso, sa cote passe à 100.0
+                if (idSelect === "pos-1" && p.nom === "Fernando Alonso") {
+                    coteAffichee = 100.0;
+                }
+
+                opt.text = `${p.nom} (${p.ecurie}) - Cote: x${coteAffichee.toFixed(1)}`;
                 if (p.nom === valeurActuelle) opt.selected = true;
                 select.appendChild(opt);
             }
@@ -108,7 +122,28 @@ function mettreAJourListes() {
     });
 }
 
-// 3. Validation et envoi Firebase
+// 3. Gestion des menus déroulants Top/Flop Écuries
+function initialiserEcuriesTopFlop() {
+    const selectsEcurie = document.querySelectorAll('.select-ecurie');
+    
+    selectsEcurie.forEach(select => {
+        select.innerHTML = '<option value="">Choisir une écurie...</option>';
+        ecuriesList.forEach(ecurie => {
+            const opt = document.createElement('option');
+            opt.value = ecurie;
+            opt.text = ecurie;
+            select.appendChild(opt);
+        });
+
+        // Évite qu'une écurie soit sélectionnée plusieurs fois
+        select.addEventListener('change', () => {
+            const tousLesChoix = Array.from(selectsEcurie).map(s => s.value).filter(v => v !== "");
+            // Optionnel : Tu pourrais ajouter un contrôle pour bloquer les doublons stricts ici
+        });
+    });
+}
+
+// 4. Validation et envoi Firebase
 document.getElementById('btn-valider').addEventListener('click', () => {
     const courseSelect = document.getElementById('select-course');
     
@@ -117,36 +152,53 @@ document.getElementById('btn-valider').addEventListener('click', () => {
         return;
     }
 
+    // Vérification Top 10 Pilotes
     const tousLesSelects = document.querySelectorAll('.select-pilote');
-    const choix = Array.from(tousLesSelects).map(s => s.value);
+    const choixPilotes = Array.from(tousLesSelects).map(s => s.value);
 
-    if (choix.includes("")) {
-        const restants = choix.filter(v => v === "").length;
+    if (choixPilotes.includes("")) {
+        const restants = choixPilotes.filter(v => v === "").length;
         alert(`⚠️ Top 10 incomplet ! Il reste ${restants} places à pronostiquer.`);
         return;
     }
 
-    const pseudo = prompt("Saisis ton pseudo pour valider ton Top 10 :");
+    // Vérification Top/Flop Écuries
+    const top1 = document.getElementById('ecurie-top-1').value;
+    const top2 = document.getElementById('ecurie-top-2').value;
+    const flop1 = document.getElementById('ecurie-flop-1').value;
+    const flop2 = document.getElementById('ecurie-flop-2').value;
+
+    if (!top1 || !top2 || !flop1 || !flop2) {
+        alert("⚠️ Section Écuries incomplète ! Veuillez choisir 2 Tops et 2 Flops.");
+        return;
+    }
+
+    const pseudo = prompt("Saisis ton pseudo pour valider tes pronostics :");
     if (!pseudo) {
         alert("❌ Enregistrement annulé.");
         return;
     }
 
+    // Préparation des données complètes
+    const donneesPronostic = {
+        pseudo: pseudo,
+        course: courseSelect.value,
+        classementPilotes: choixPilotes,
+        ecuriesTop: [top1, top2],
+        ecuriesFlop: [flop1, flop2],
+        date: new Date()
+    };
+
     if (typeof db !== 'undefined') {
-        db.collection("pronostics").add({
-            pseudo: pseudo,
-            course: courseSelect.value,
-            classement: choix,
-            date: new Date()
-        })
+        db.collection("pronostics").add(donneesPronostic)
         .then(() => {
-            alert(`🏆 Bravo ${pseudo} ! Ton prono Top 10 a bien été enregistré !`);
+            alert(`🏆 Bravo ${pseudo} ! Tes pronos (Pilotes + Écuries) ont bien été enregistrés !`);
         })
         .catch((error) => {
             console.error("Erreur Firebase: ", error);
             alert("❌ Erreur lors de l'enregistrement en base de données.");
         });
     } else {
-        alert(`🏆 Mode démo : Bravo ${pseudo}, ton prono est validé localement (Firebase non configuré).`);
+        alert(`🏆 Mode démo : Bravo ${pseudo}, tes pronos Pilotes et Écuries sont validés localement !`);
     }
 });
