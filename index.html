@@ -14,6 +14,23 @@
         <div class="main-layout">
             <div class="colonne-gauche">
                 
+                <div id="bloc-auth">
+                    <div id="auth-deconnecte">
+                        <span class="auth-titre">🔑 ESPACE MEMBRE :</span>
+                        <div class="auth-champs">
+                            <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription uniquement)">
+                            <input type="email" id="auth-email" placeholder="Adresse E-mail">
+                            <input type="password" id="auth-mdp" placeholder="Mot de passe">
+                            <button id="btn-connexion" class="btn-auth btn-conn">SE CONNECTER</button>
+                            <button id="btn-inscription" class="btn-auth btn-insc">S'INSCRIRE</button>
+                        </div>
+                    </div>
+                    <div id="auth-connecte" style="display: none;">
+                        <div>🟢 Connecté en tant que : <span id="nom-utilisateur">...</span></div>
+                        <button id="btn-deconnexion" class="btn-auth btn-deco">Déconnexion</button>
+                    </div>
+                </div>
+
                 <div class="section-course">
                     <label for="select-course">SÉLECTIONNER LE WEEK-END :</label>
                     <select id="select-course">
@@ -94,13 +111,14 @@
 
         </div>
     </div>
-     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
     <script src="script.js"></script>
-
 </body>
-
 </html>
