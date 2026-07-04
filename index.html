@@ -17,19 +17,19 @@
                 <div class="section-course">
                     <label for="select-course">SÉLECTIONNER LE WEEK-END :</label>
                     <select id="select-course">
-                        <option value="past">01. GP d'Australie (Vainqueur: G. Russell)</option>
-                        <option value="past">02. GP de Chine (Vainqueur: K. Antonelli)</option>
-                        <option value="past">03. GP de Suzuka (Vainqueur: K. Antonelli)</option>
-                        <option value="past">04. GP de Bahreïn (Vainqueur: K. Antonelli)</option>
-                        <option value="past">05. GP de Miami (Vainqueur: K. Antonelli)</option>
-                        <option value="past">06. GP de Monaco (Vainqueur: K. Antonelli)</option>
-                        <option value="past">07. GP de Barcelone (Vainqueur: L. Hamilton)</option>
-                        <option value="past">08. GP de Spielberg (Vainqueur: G. Russell)</option>
-                        <option value="09. GP de Grande-Bretagne (Silverstone)" selected>09. GP de Grande-Bretagne (Silverstone) - EN COURS</option>
-                        <option value="10. GP de Hongrie">10. GP de Hongrie (Budapest)</option>
-                        <option value="11. GP de Belgique">11. GP de Belgique (Spa-Francorchamps)</option>
-                        <option value="12. GP des Pays-Bas">12. GP des Pays-Bas (Zandvoort)</option>
-                        <option value="13. GP d'Italie">13. GP d'Italie (Monza)</option>
+                        <option value="2026/1">01. GP d'Australie (Terminé)</option>
+                        <option value="2026/2">02. GP de Chine (Terminé)</option>
+                        <option value="2026/3">03. GP de Suzuka (Terminé)</option>
+                        <option value="2026/4">04. GP de Bahreïn (Terminé)</option>
+                        <option value="2026/5">05. GP de Miami (Terminé)</option>
+                        <option value="2026/6">06. GP de Monaco (Terminé)</option>
+                        <option value="2026/7">07. GP de Barcelone (Terminé)</option>
+                        <option value="2026/8">08. GP de Spielberg (Terminé)</option>
+                        <option value="2026/9" selected>09. GP de Grande-Bretagne (Silverstone) - EN COURS</option>
+                        <option value="2026/10">10. GP de Hongrie</option>
+                        <option value="2026/11">11. GP de Belgique</option>
+                        <option value="2026/12">12. GP des Pays-Bas</option>
+                        <option value="2026/13">13. GP d'Italie</option>
                     </select>
                 </div>
 
@@ -39,7 +39,7 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
-                    <h2 style="margin: 0;">🏆 TON TOP 10 PILOTES :</h2>
+                    <h2 style="margin: 0;" id="titre-grille">🏆 TON TOP 10 PILOTES :</h2>
                     <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
                 </div>
 
@@ -50,7 +50,7 @@
                     
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <div>
-                            <label style="color: #4cd137; display: block; margin-bottom: 5px; font-size: 0.85rem;">🔥 LES 2 TOPS (Stratégie, Rythme, Dépassements) :</label>
+                            <label style="color: #4cd137; display: block; margin-bottom: 5px; font-size: 0.85rem;">🔥 LES 2 TOPS :</label>
                             <div style="display: flex; gap: 10px;">
                                 <select id="ecurie-top-1" class="select-ecurie"></select>
                                 <select id="ecurie-top-2" class="select-ecurie"></select>
@@ -58,7 +58,7 @@
                         </div>
 
                         <div>
-                            <label style="color: #ff3f3f; display: block; margin-bottom: 5px; font-size: 0.85rem;">⚠️ LES 2 FLOPS (Crash, Stratégie ratée, Manque de rythme) :</label>
+                            <label style="color: #ff3f3f; display: block; margin-bottom: 5px; font-size: 0.85rem;">⚠️ LES 2 FLOPS :</label>
                             <div style="display: flex; gap: 10px;">
                                 <select id="ecurie-flop-1" class="select-ecurie"></select>
                                 <select id="ecurie-flop-2" class="select-ecurie"></select>
@@ -94,6 +94,9 @@
 
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 
     <script src="script.js"></script>
 </body>
