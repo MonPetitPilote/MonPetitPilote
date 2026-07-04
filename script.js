@@ -59,13 +59,14 @@ const calendrierCourses = [
   { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" }
 ];
 
-// Fonction pour générer la liste déroulante avec les dates visibles
+// Fonction pour générer la liste déroulante avec les dates visibles et la bonne pré-sélection
 function initialiserSelectCourse() {
     const select = document.getElementById('select-course');
     if (!select) return;
 
     select.innerHTML = "";
     const maintenant = new Date();
+    let courseActiveTrouvee = false;
 
     calendrierCourses.forEach(c => {
         const option = document.createElement('option');
@@ -77,7 +78,9 @@ function initialiserSelectCourse() {
 
         // Détermination du statut textuel à afficher à côté de la course
         let statut = `(${dateFormatee})`;
-        if (maintenant > new Date(c.dateCourse + "T23:59:59Z")) {
+        const dateCourseFinie = new Date(c.dateCourse + "T23:59:59Z");
+
+        if (maintenant > dateCourseFinie) {
             statut = `🏁 Terminé`;
         } else if (maintenant >= new Date(c.limitePole)) {
             statut = `🔒 En cours / Qualifs lancées`;
@@ -85,14 +88,21 @@ function initialiserSelectCourse() {
 
         option.text = `${String(c.round).padStart(2, '0')}. ${c.nom} — ${statut}`;
         
-        // Sélectionner par défaut la course active (la première non terminée ou celle en cours)
-        if (maintenant <= new Date(c.dateCourse + "T23:59:59Z") && !select.value) {
+        // CORRECTION ICI : On sélectionne le PREMIER Grand Prix qui n'est pas encore terminé
+        if (maintenant <= dateCourseFinie && !courseActiveTrouvee) {
             option.selected = true;
+            courseActiveTrouvee = true; // On passe le drapeau à vrai pour ne pas écraser avec les courses futures
         }
 
         select.appendChild(option);
     });
+
+    // Sécurité : Si toutes les courses sont terminées (fin de saison), on sélectionne la dernière
+    if (!courseActiveTrouvee && select.options.length > 0) {
+        select.options[select.options.length - 1].selected = true;
+    }
 }
+
 
 // Remplacer l'ancienne fonction de vérification par celle-ci pour gérer le verrouillage intelligent
 function verifierStatutDuGrandPrix() {
