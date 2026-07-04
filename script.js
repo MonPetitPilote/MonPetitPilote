@@ -382,4 +382,56 @@ if (btnValider) {
             alert("❌ Erreur lors de la transmission au cloud."); 
         });
     });
+
+    // ==========================================
+// 7. CHARGEMENT DYNAMIQUE DU CLASSEMENT GENERAL
+// ==========================================
+function chargerClassementGeneral() {
+    const conteneurClassement = document.getElementById('liste-classement');
+    if (!conteneurClassement) return;
+
+    // On écoute en temps réel la collection "utilisateurs" (triée par la propriété "points" décroissante)
+    db.collection("utilisateurs").orderBy("points", "desc").onSnapshot((snapshot) => {
+        conteneurClassement.innerHTML = ""; // On vide l'ancien affichage
+        
+        if (snapshot.empty) {
+            conteneurClassement.innerHTML = "<div style='padding: 10px; color: #aaa; font-style: italic;'>Aucun joueur enregistré pour le moment.</div>";
+            return;
+        }
+
+        let position = 1;
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const pseudo = data.pseudo || "Joueur anonyme";
+            const points = data.points !== undefined ? data.points : 0;
+
+            // Attribution des petits emojis de podium pour les 3 premiers
+            let medaille = position;
+            if (position === 1) medaille = "🥇 1";
+            else if (position === 2) medaille = "🥈 2";
+            else if (position === 3) medaille = "🥉 3";
+
+            // Création de la ligne du joueur
+            const ligne = document.createElement('div');
+            ligne.className = 'ligne-joueur';
+            ligne.style.marginTop = '8px'; // Petit espacement entre les lignes
+            
+            ligne.innerHTML = `
+                <div class="pos-podium">${medaille}</div>
+                <div>${pseudo}</div>
+                <div class="score-points">${points} pts</div>
+            `;
+
+            conteneurClassement.appendChild(ligne);
+            position++;
+        });
+    }, (error) => {
+        console.error("Erreur lors du chargement du classement :", error);
+    });
+}
+
+// Lancement automatique du chargement du classement à l'ouverture de la page
+chargerClassementGeneral();
+
 }
