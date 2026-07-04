@@ -1,11 +1,12 @@
 // Configuration Firebase
 const firebaseConfig = {
-  apiKey: "TON_API_KEY",
-  authDomain: "TON_AUTH_DOMAIN",
-  projectId: "TON_PROJECT_ID",
-  storageBucket: "TON_STORAGE_BUCKET",
-  messagingSenderId: "TON_MESSAGING_SENDER_ID",
-  appId: "TON_APP_ID"
+  apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
+    authDomain: "monpetitpilote.firebaseapp.com",
+    projectId: "monpetitpilote",
+    storageBucket: "monpetitpilote.firebasestorage.app",
+    messagingSenderId: "267371118460",
+    appId: "1:267371118460:web:af95dad6fa4368fdffaef9",
+    measurementId: "G-TY047XHDXW"
 };
 
 if (typeof firebase !== 'undefined') {
