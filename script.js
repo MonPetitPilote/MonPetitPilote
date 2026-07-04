@@ -8,13 +8,12 @@ const firebaseConfig = {
   appId: "TON_APP_ID"
 };
 
-// Initialisation de Firebase
 if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 }
 
-// Base de données des pilotes F1 2026 avec les cotes de référence
+// Base de données des pilotes F1 2026
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", cote: 1.2, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", cote: 3.5, img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
@@ -40,65 +39,86 @@ const pilotesData = [
   {nom: "Sergio Pérez", ecurie: "Cadillac", cote: 4.2, img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
 
-// Liste unique des écuries extraite automatiquement à partir de la base des pilotes
 const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
-
 const grille = document.getElementById('grille-pronos');
 
-// 1. Génération automatique des 10 lignes du TOP 10 Pilotes
-for (let i = 1; i <= 10; i++) {
-    const ligne = document.createElement('div');
-    ligne.className = 'ligne-pilote';
+// 1. Génération automatique du Top 10 avec case Coup de Poker
+if (grille) {
+    for (let i = 1; i <= 10; i++) {
+        const ligne = document.createElement('div');
+        ligne.className = 'ligne-pilote';
+        ligne.style.display = 'flex';
+        ligne.style.alignItems = 'center';
+        ligne.style.gap = '10px';
 
-    const badge = document.createElement('div');
-    badge.className = 'badge-position';
-    badge.innerText = `P${String(i).padStart(2, '0')}`;
+        const badge = document.createElement('div');
+        badge.className = 'badge-position';
+        badge.innerText = `P${String(i).padStart(2, '0')}`;
 
-    const select = document.createElement('select');
-    select.id = `pos-${i}`;
-    select.className = 'select-pilote';
-    
-    const optionVide = document.createElement('option');
-    optionVide.value = "";
-    optionVide.text = "Sélectionner un pilote...";
-    select.appendChild(optionVide);
-
-    const img = document.createElement('img');
-    img.className = 'img-monoplace';
-    img.style.display = 'none';
-
-    select.addEventListener('change', () => {
-        mettreAJourListes();
+        const select = document.createElement('select');
+        select.id = `pos-${i}`;
+        select.className = 'select-pilote';
         
-        const piloteTrouve = pilotesData.find(p => p.nom === select.value);
-        if (piloteTrouve) {
-            img.src = piloteTrouve.img;
-            img.style.display = 'block';
-        } else {
-            img.src = "";
-            img.style.display = 'none';
+        const optionVide = document.createElement('option');
+        optionVide.value = "";
+        optionVide.text = "Sélectionner un pilote...";
+        select.appendChild(optionVide);
+
+        // NOUVEAUTÉ 3 : CASE COUP DE POKER ⭐
+        const pokerContainer = document.createElement('label');
+        pokerContainer.title = "Coup de Poker : Cochez pour doubler vos points sur cette ligne si le prono est exact ! (1 max)";
+        pokerContainer.style.cursor = 'pointer';
+        pokerContainer.style.fontSize = '1.1rem';
+        pokerContainer.innerHTML = `<input type="checkbox" name="coup-poker" class="check-poker" value="${i}" style="margin-right:3px;">⭐`;
+
+        const img = document.createElement('img');
+        img.className = 'img-monoplace';
+        img.style.display = 'none';
+
+        select.addEventListener('change', () => {
+            mettreAJourListes();
+            const piloteTrouve = pilotesData.find(p => p.nom === select.value);
+            if (piloteTrouve) {
+                img.src = piloteTrouve.img;
+                img.style.display = 'block';
+            } else {
+                img.src = "";
+                img.style.display = 'none';
+            }
+        });
+
+        ligne.appendChild(badge);
+        ligne.appendChild(select);
+        ligne.appendChild(pokerContainer);
+        ligne.appendChild(img);
+        grille.appendChild(ligne);
+    }
+
+    // Gérer la limite d'un seul Coup de Poker coché à la fois
+    grille.addEventListener('change', (e) => {
+        if (e.target.classList.contains('check-poker')) {
+            const checkboxes = document.querySelectorAll('.check-poker');
+            checkboxes.forEach(cb => { if (cb !== e.target) cb.checked = false; });
         }
     });
-
-    ligne.appendChild(badge);
-    ligne.appendChild(select);
-    ligne.appendChild(img);
-    grille.appendChild(ligne);
 }
 
-// Lancement des fonctions au chargement initial
+// Initialisation globale
+initialiserPolePosition();
 mettreAJourListes();
 initialiserEcuriesTopFlop();
 
-// 2. Cache les pilotes déjà sélectionnés et applique l'algorithme de cote dynamique
+// 2. Remplissage et gestion des listes Pilotes + Cotes
 function mettreAJourListes() {
     const tousLesSelects = document.querySelectorAll('.select-pilote');
+    if (tousLesSelects.length === 0) return;
+
     const choixFaits = Array.from(tousLesSelects).map(s => s.value).filter(val => val !== "");
 
     tousLesSelects.forEach(select => {
         const valeurActuelle = select.value;
         const idSelect = select.id;
-        const positionNumerique = parseInt(idSelect.split('-')[1]); // Récupère le numéro de la place (1 à 10)
+        const positionNumerique = parseInt(idSelect.split('-')[1]);
 
         select.innerHTML = '<option value="">Sélectionner un pilote...</option>';
 
@@ -107,23 +127,14 @@ function mettreAJourListes() {
                 const opt = document.createElement('option');
                 opt.value = p.nom;
                 
-                // --- ALGORITHME DE COTE DYNAMIQUE COHÉRENT ---
                 let coteCalculee = p.cote; 
-
                 if (positionNumerique === 1) {
-                    // Pour la gagne (P1) : la cote de base est multipliée pour refléter la difficulté
                     coteCalculee = p.cote * p.cote * 10;
-                    
-                    // Ajustement spécial : Alonso premier = cote de 100.0
-                    if (p.nom === "Fernando Alonso") {
-                        coteCalculee = 100.0;
-                    }
+                    if (p.nom === "Fernando Alonso") coteCalculee = 100.0;
                 } else {
-                    // Pour les places P2 à P10 : la cote baisse plus la place finale est basse
                     coteCalculee = (p.cote * 3.5) / (positionNumerique * 0.6);
                 }
 
-                // La cote ne peut pas être plus basse que x1.1
                 if (coteCalculee < 1.1) coteCalculee = 1.1;
 
                 opt.text = `${p.nom} (${p.ecurie}) - Cote: x${coteCalculee.toFixed(1)}`;
@@ -134,10 +145,22 @@ function mettreAJourListes() {
     });
 }
 
-// 3. Remplissage automatique des menus déroulants pour le Top/Flop Écuries
+// 3. Remplissage menu Pole Position
+function initialiserPolePosition() {
+    const selectPole = document.getElementById('select-pole');
+    if (!selectPole) return;
+    selectPole.innerHTML = '<option value="">Choisir le poleman du samedi...</option>';
+    pilotesData.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nom;
+        opt.text = `${p.nom} (${p.ecurie})`;
+        selectPole.appendChild(opt);
+    });
+}
+
+// 4. Remplissage menus Écuries
 function initialiserEcuriesTopFlop() {
     const selectsEcurie = document.querySelectorAll('.select-ecurie');
-    
     selectsEcurie.forEach(select => {
         select.innerHTML = '<option value="">Choisir une écurie...</option>';
         ecuriesList.forEach(ecurie => {
@@ -149,65 +172,84 @@ function initialiserEcuriesTopFlop() {
     });
 }
 
-// 4. Validation générale et envoi des données (Pilotes + Écuries)
-document.getElementById('btn-valider').addEventListener('click', () => {
-    const courseSelect = document.getElementById('select-course');
-    
-    // Empêcher de jouer sur un vieux GP
-    if (courseSelect.value === "past") {
-        alert("🚨 Erreur : Ce Grand Prix est terminé !");
-        return;
-    }
-
-    // Vérification du Top 10 Pilotes
-    const tousLesSelects = document.querySelectorAll('.select-pilote');
-    const choixPilotes = Array.from(tousLesSelects).map(s => s.value);
-
-    if (choixPilotes.includes("")) {
-        const restants = choixPilotes.filter(v => v === "").length;
-        alert(`⚠️ Top 10 incomplet ! Il reste ${restants} places à pronostiquer.`);
-        return;
-    }
-
-    // Vérification de la section Top/Flop Écuries
-    const top1 = document.getElementById('ecurie-top-1').value;
-    const top2 = document.getElementById('ecurie-top-2').value;
-    const flop1 = document.getElementById('ecurie-flop-1').value;
-    const flop2 = document.getElementById('ecurie-flop-2').value;
-
-    if (!top1 || !top2 || !flop1 || !flop2) {
-        alert("⚠️ Section Écuries incomplète ! Veuillez choisir 2 Tops et 2 Flops.");
-        return;
-    }
-
-    // Demande du pseudo
-    const pseudo = prompt("Saisis ton pseudo pour valider tes pronostics :");
-    if (!pseudo) {
-        alert("❌ Enregistrement annulé.");
-        return;
-    }
-
-    // Structure finale du message de données
-    const donneesPronostic = {
-        pseudo: pseudo,
-        course: courseSelect.value,
-        classementPilotes: choixPilotes,
-        ecuriesTop: [top1, top2],
-        ecuriesFlop: [flop1, flop2],
-        date: new Date()
-    };
-
-    // Envoi vers Firestore ou exécution locale si non configuré
-    if (typeof db !== 'undefined') {
-        db.collection("pronostics").add(donneesPronostic)
-        .then(() => {
-            alert(`🏆 Bravo ${pseudo} ! Tes pronos (Pilotes + Écuries) ont bien été enregistrés !`);
-        })
-        .catch((error) => {
-            console.error("Erreur Firebase: ", error);
-            alert("❌ Erreur lors de l'enregistrement en base de données.");
+// 5. Logique du Bouton Aléatoire 🎲
+const btnAleatoire = document.getElementById('btn-aleatoire');
+if (btnAleatoire) {
+    btnAleatoire.addEventListener('click', () => {
+        const tousLesSelects = document.querySelectorAll('.select-pilote');
+        // Mélanger la liste complète des pilotes
+        const pilotesMelanges = [...pilotesData].sort(() => 0.5 - Math.random());
+        
+        tousLesSelects.forEach((select, index) => {
+            select.value = pilotesMelanges[index].nom;
+            // Déclencher artificiellement l'affichage de l'image de la voiture
+            const img = select.parentElement.querySelector('.img-monoplace');
+            if (img) {
+                img.src = pilotesMelanges[index].img;
+                img.style.display = 'block';
+            }
         });
-    } else {
-        alert(`🏆 Mode démo : Bravo ${pseudo}, tes pronos Pilotes et Écuries sont validés localement !`);
-    }
-});
+        mettreAJourListes(); // Rafraîchir les cotes et les blocages de listes
+    });
+}
+
+// 6. Validation et envoi Firebase
+const btnValider = document.getElementById('btn-valider');
+if (btnValider) {
+    btnValider.addEventListener('click', () => {
+        const courseSelect = document.getElementById('select-course');
+        if (courseSelect && courseSelect.value === "past") {
+            alert("🚨 Erreur : Ce Grand Prix est terminé !");
+            return;
+        }
+
+        const poleman = document.getElementById('select-pole').value;
+        if (!poleman) {
+            alert("⚠️ Veuillez pronostiquer le Poleman du samedi !");
+            return;
+        }
+
+        const tousLesSelects = document.querySelectorAll('.select-pilote');
+        const choixPilotes = Array.from(tousLesSelects).map(s => s.value);
+        if (choixPilotes.includes("")) {
+            alert(`⚠️ Top 10 incomplet !`);
+            return;
+        }
+
+        // Trouver quelle ligne (P1 à P10) a reçu l'étoile Coup de Poker
+        const checkPokerCocha = document.querySelector('.check-poker:checked');
+        const positionCoupPoker = checkPokerCocha ? parseInt(checkPokerCocha.value) : null;
+
+        const top1 = document.getElementById('ecurie-top-1').value;
+        const top2 = document.getElementById('ecurie-top-2').value;
+        const flop1 = document.getElementById('ecurie-flop-1').value;
+        const flop2 = document.getElementById('ecurie-flop-2').value;
+
+        if (!top1 || !top2 || !flop1 || !flop2) {
+            alert("⚠️ Section Écuries incomplète !");
+            return;
+        }
+
+        const pseudo = prompt("Saisis ton pseudo pour valider :");
+        if (!pseudo) return;
+
+        const donneesPronostic = {
+            pseudo: pseudo,
+            course: courseSelect ? courseSelect.value : "Inconnu",
+            poleman: poleman,
+            classementPilotes: choixPilotes,
+            ligneCoupPoker: positionCoupPoker, // Indique quelle ligne (1 à 10) double ses points
+            ecuriesTop: [top1, top2],
+            ecuriesFlop: [flop1, flop2],
+            date: new Date()
+        };
+
+        if (typeof db !== 'undefined') {
+            db.collection("pronostics").add(donneesPronostic)
+            .then(() => { alert(`🏆 Bravo ${pseudo} ! Tes pronos complets ont été enregistrés !`); })
+            .catch((err) => { alert("❌ Erreur de base de données."); });
+        } else {
+            alert(`🏆 Mode démo : Bravo ${pseudo}, validé localement !`);
+        }
+    });
+}
