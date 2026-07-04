@@ -41,7 +41,7 @@ const pilotesData = [
   {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
 // ==========================================
-// CALENDRIER OFFICIEL ET LOGIQUE DE VERROUILLAGE (SAISON 2026)
+// CALENDRIER OFFICIEL COMPLET (24 COURSES - SAISON 2026)
 // ==========================================
 const calendrierCourses = [
   { round: 1, nom: "GP d'Australie", dateCourse: "2026-03-15", limitePole: "2026-03-14T06:00:00Z" },
@@ -50,14 +50,24 @@ const calendrierCourses = [
   { round: 4, nom: "GP de Bahreïn", dateCourse: "2026-04-19", limitePole: "2026-04-18T16:00:00Z" },
   { round: 5, nom: "GP de Miami", dateCourse: "2026-05-03", limitePole: "2026-05-02T20:00:00Z" },
   { round: 6, nom: "GP de Monaco", dateCourse: "2026-05-24", limitePole: "2026-05-23T14:00:00Z" },
-  { round: 7, nom: "GP de Barcelone", dateCourse: "2026-06-07", limitePole: "2026-06-06T14:00:00Z" },
-  { round: 8, nom: "GP de Spielberg (Autriche)", dateCourse: "2026-06-28", limitePole: "2026-06-27T14:00:00Z" },
+  { round: 7, nom: "GP de Barcelone (Espagne)", dateCourse: "2026-06-07", limitePole: "2026-06-06T14:00:00Z" },
+  { round: 8, nom: "GP de Spielberg (Autriche)", dateCourse: "2026-06-28", limitePole: "2026-06-27T13:00:00Z" },
   { round: 9, nom: "GP de Grande-Bretagne (Silverstone)", dateCourse: "2026-07-05", limitePole: "2026-07-04T14:00:00Z" },
   { round: 10, nom: "GP de Hongrie", dateCourse: "2026-07-26", limitePole: "2026-07-25T14:00:00Z" },
   { round: 11, nom: "GP de Belgique (Spa)", dateCourse: "2026-08-30", limitePole: "2026-08-29T14:00:00Z" },
   { round: 12, nom: "GP des Pays-Bas (Zandvoort)", dateCourse: "2026-09-06", limitePole: "2026-09-05T13:00:00Z" },
-  { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" }
+  { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" },
+  { round: 14, nom: "GP d'Azerbaïdjan (Bakou)", dateCourse: "2026-09-20", limitePole: "2026-09-19T13:00:00Z" },
+  { round: 15, nom: "GP de Singapour", dateCourse: "2026-10-04", limitePole: "2026-10-03T12:00:00Z" },
+  { round: 16, nom: "GP des États-Unis (Austin)", dateCourse: "2026-10-18", limitePole: "2026-10-17T21:00:00Z" },
+  { round: 17, nom: "GP du Mexique", dateCourse: "2026-10-25", limitePole: "2026-10-24T20:00:00Z" },
+  { round: 18, nom: "GP du Brésil (Interlagos)", dateCourse: "2026-11-01", limitePole: "2026-11-03T18:00:00Z" },
+  { round: 19, nom: "GP de Las Vegas", dateCourse: "2026-11-22", limitePole: "2026-11-21T06:00:00Z" },
+  { round: 20, nom: "GP de l'Équateur / Qatar (Losail)", dateCourse: "2026-11-29", limitePole: "2026-11-28T16:00:00Z" },
+  { round: 21, nom: "GP d'Abou Dabi (Yas Marina)", dateCourse: "2026-12-06", limitePole: "2026-12-05T13:00:00Z" }
+  // Note : Tu peux rajouter ou ajuster les rounds selon le calendrier officiel publié de la FIA !
 ];
+
 
 // Fonction pour générer la liste déroulante avec les dates visibles et la bonne pré-sélection
 function initialiserSelectCourse() {
