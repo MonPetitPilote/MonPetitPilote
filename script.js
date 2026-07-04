@@ -236,4 +236,33 @@ if (btnValider) {
         const top1 = document.getElementById('ecurie-top-1').value;
         const top2 = document.getElementById('ecurie-top-2').value;
         const flop1 = document.getElementById('ecurie-flop-1').value;
-        const flop2 = document.
+        const flop2 = document.getElementById('ecurie-flop-2').value;
+
+        if (!top1 || !top2 || !flop1 || !flop2) {
+            alert("⚠️ Il manque des choix dans la section Écuries Top/Flop !");
+            return;
+        }
+
+        const pseudo = prompt("Saisis ton pseudo pour valider :");
+        if (!pseudo) return;
+
+        const donneesPronostic = {
+            pseudo: pseudo,
+            course: courseSelect ? courseSelect.value : "Inconnu",
+            poleman: poleman,
+            classementPilotes: choixPilotes,
+            ligneCoupPoker: positionCoupPoker,
+            ecuriesTop: [top1, top2],
+            ecuriesFlop: [flop1, flop2],
+            date: new Date()
+        };
+
+        if (typeof db !== 'undefined') {
+            db.collection("pronostics").add(donneesPronostic)
+            .then(() => { alert(`🏆 Super ${pseudo} ! Tes pronos ont bien été envoyés !`); })
+            .catch((err) => { alert("❌ Erreur lors de l'enregistrement Firebase."); });
+        } else {
+            alert(`🏆 Mode démo : Bravo ${pseudo}, pronos enregistrés localement !`);
+        }
+    });
+}
