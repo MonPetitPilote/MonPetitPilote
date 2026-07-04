@@ -1,4 +1,6 @@
-// Configuration Firebase de MonPetitPilote
+// ==========================================
+// 1. CONFIGURATION ET INITIALISATION FIREBASE
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
     authDomain: "monpetitpilote.firebaseapp.com",
@@ -9,18 +11,13 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
-// Initialisation correcte pour le format de ton script
+// Initialisation au format Compat (indispensable avec tes scripts HTML)
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
-// ... (Reste de ton code pilotesData, grille, boutons, etc. sans rien changer)
-
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-}
-
-// Base de données des pilotes F1 2026
+// ==========================================
+// 2. BASE DE DONNÉES DES PILOTES F1 2026
+// ==========================================
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
@@ -50,7 +47,9 @@ const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
 const grille = document.getElementById('grille-pronos');
 const selectCourse = document.getElementById('select-course');
 
-// 1. Génération de la grille (Top 10)
+// ==========================================
+// 3. GÉNÉRATION AUTOMATIQUE DU TOP 10 (HTML)
+// ==========================================
 if (grille) {
     for (let i = 1; i <= 10; i++) {
         const ligne = document.createElement('div');
@@ -106,27 +105,27 @@ if (grille) {
     });
 }
 
-// Initialisation au chargement de l'écran
+// Lancement global au démarrage
 initialiserPolePosition();
 mettreAJourListes();
 initialiserEcuriesTopFlop();
-verifierStatutDuGrandPrix(); // Déclenche la vérification de l'état de la course
+verifierStatutDuGrandPrix();
 
-// Écouteur sur le changement de Grand Prix
 if (selectCourse) {
     selectCourse.addEventListener('change', verifierStatutDuGrandPrix);
 }
 
-// 2. FONCTION DE VERIFICATION ET APPEL API AUTOMATIQUE
+// ==========================================
+// 4. VERROUILLAGE ET APPEL DE L'API HISTORIQUE
+// ==========================================
 function verifierStatutDuGrandPrix() {
-    const courseActuelle = selectCourse.value; // Ex: "2026/9"
+    const courseActuelle = selectCourse.value;
     const roundNumber = parseInt(courseActuelle.split('/')[1]);
 
     const titreGrille = document.getElementById('titre-grille');
     const btnAleatoire = document.getElementById('btn-aleatoire');
     const btnValider = document.getElementById('btn-valider');
     
-    // CONDITION DE VERROUILLAGE : Si la course est STRICTEMENT inférieure au GP 9 (Silverstone actuel)
     if (roundNumber < 9) {
         if (titreGrille) titreGrille.innerText = "🏁 RÉSULTATS OFFICIELS DE LA COURSE :";
         if (btnAleatoire) btnAleatoire.style.display = 'none';
@@ -136,11 +135,8 @@ function verifierStatutDuGrandPrix() {
             btnValider.style.backgroundColor = "#555";
         }
         
-        // Bloquer tous les éléments
         desactiverFormulaire(true);
 
-        // Appel de l'API de F1 pour charger automatiquement le vrai résultat
-        // (Note : En cas d'année de test futur, l'API renverra les vraies données historiques)
         fetch(`https://ergast.com/api/f1/${courseActuelle}/results.json`)
             .then(response => response.json())
             .then(data => {
@@ -150,7 +146,6 @@ function verifierStatutDuGrandPrix() {
                         const selectElement = document.getElementById(`pos-${i}`);
                         const apiDriver = results[i-1]?.Driver;
                         if (selectElement && apiDriver) {
-                            // On cherche la correspondance de nom dans notre tableau
                             const monPilote = pilotesData.find(p => p.nom.toLowerCase().includes(apiDriver.familyName.toLowerCase()));
                             if (monPilote) {
                                 selectElement.innerHTML = `<option value="${monPilote.nom}" selected>${monPilote.nom}</option>`;
@@ -161,10 +156,9 @@ function verifierStatutDuGrandPrix() {
                     }
                 }
             })
-            .catch(err => console.log("L'API n'a pas encore de résultats pour cette date :", err));
+            .catch(err => console.log("Pas de données API disponibles pour le moment.", err));
 
     } else {
-        // Mode normal : Course modifiable
         if (titreGrille) titreGrille.innerText = "🏆 TON TOP 10 PILOTES :";
         if (btnAleatoire) btnAleatoire.style.display = 'block';
         if (btnValider) {
@@ -178,7 +172,6 @@ function verifierStatutDuGrandPrix() {
     }
 }
 
-// Active ou désactive tous les champs de saisie de l'écran
 function desactiverFormulaire(statut) {
     document.querySelectorAll('.select-pilote').forEach(s => s.disabled = statut);
     document.querySelectorAll('.check-poker').forEach(c => c.disabled = statut);
@@ -187,7 +180,9 @@ function desactiverFormulaire(statut) {
     if (selectPole) selectPole.disabled = statut;
 }
 
-// 3. LOGIQUE DES COTES
+// ==========================================
+// 5. CALCUL ET INTERFACE DES COTES DYNAMIQUES
+// ==========================================
 function mettreAJourListes() {
     const tousLesSelects = document.querySelectorAll('.select-pilote');
     if (tousLesSelects.length === 0 || tousLesSelects[0].disabled) return;
@@ -260,7 +255,9 @@ function initialiserEcuriesTopFlop() {
     });
 }
 
-// BOUTON ALEATOIRE
+// ==========================================
+// 6. BOUTON PRONO ALÉATOIRE 🎲
+// ==========================================
 const btnAleatoire = document.getElementById('btn-aleatoire');
 if (btnAleatoire) {
     btnAleatoire.addEventListener('click', () => {
@@ -275,7 +272,9 @@ if (btnAleatoire) {
     });
 }
 
-// ENVOI FORMULAIRE
+// ==========================================
+// 7. SÉCURITÉ ET ENVOI DIRECT VERS FIRESTORE
+// ==========================================
 const btnValider = document.getElementById('btn-valider');
 if (btnValider) {
     btnValider.addEventListener('click', () => {
@@ -310,12 +309,14 @@ if (btnValider) {
             date: new Date()
         };
 
-        if (typeof db !== 'undefined') {
-            db.collection("pronostics").add(donneesPronostic)
-            .then(() => { alert(`🏆 Super ${pseudo} ! Pronos envoyés !`); })
-            .catch((err) => { alert("❌ Erreur Firebase."); });
-        } else {
-            alert(`🏆 Mode démo : Validé localement !`);
-        }
+        // Envoi direct à la collection Firestore "pronostics"
+        db.collection("pronostics").add(donneesPronostic)
+        .then(() => { 
+            alert(`🏆 Super ${pseudo} ! Tes pronos ont bien été envoyés !`); 
+        })
+        .catch((err) => { 
+            console.error("Erreur Firebase : ", err);
+            alert("❌ Erreur lors de l'enregistrement Firebase. Vérifie tes règles Firestore Database > Règles (Rules)."); 
+        });
     });
 }
