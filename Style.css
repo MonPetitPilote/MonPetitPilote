@@ -1,0 +1,109 @@
+/* Style Général Style F1 Dark */
+body {
+    background-color: #111622;
+    color: #FFFFFF;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 650px;
+    width: 100%;
+    background: #1a2235;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+
+h2 {
+    font-size: 0.95rem;
+    color: #cccccc;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+.section-course {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #E10600; /* Rouge F1 */
+}
+
+select {
+    background-color: #111622;
+    color: white;
+    border: 1px solid #3b4b6b;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    width: 100%;
+}
+
+/* Alignement des lignes P01 à P22 */
+.ligne-pilote {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    background: #222c43;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.badge-position {
+    background: #3b4b6b;
+    color: white;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 4px;
+    min-width: 40px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.ligne-pilote select {
+    flex-grow: 1;
+    width: auto;
+}
+
+.img-monoplace {
+    height: 25px;
+    max-width: 100px;
+    object-fit: contain;
+    transition: all 0.2s ease;
+}
+
+/* Bouton Valider F1 */
+#btn-valider {
+    width: 100%;
+    background-color: #E10600;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 25px;
+    transition: background 0.2s;
+}
+
+#btn-valider:hover {
+    background-color: #b80500;
+}
