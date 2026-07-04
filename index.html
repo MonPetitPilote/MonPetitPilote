@@ -33,8 +33,17 @@
                     </select>
                 </div>
 
-                <h2>🏆 TON TOP 10 PILOTES :</h2>
-                <div id="grille-pronos"></div>
+                <div class="section-pole" style="margin-top: 20px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
+                    <label for="select-pole" style="color: #00d2d3; display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label>
+                    <select id="select-pole" style="width: 100%; padding: 8px; border-radius: 4px; background: #111622; color: white; border: 1px solid #3b4b6b;"></select>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+                    <h2 style="margin: 0;">🏆 TON TOP 10 PILOTES :</h2>
+                    <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
+                </div>
+
+                <div id="grille-pronos" style="margin-top: 15px;"></div>
 
                 <div class="section-top-flop" style="margin-top: 25px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #E10600;">
                     <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)</h3>
@@ -62,30 +71,4 @@
 
             </div>
 
-            <div class="colonne-droite">
-                <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
-                <div class="tableau-scores">
-                    <div class="entete-scores">
-                        <div>Pos</div>
-                        <div>Joueur</div>
-                        <div style="text-align: right;">Points</div>
-                    </div>
-                    <div class="ligne-joueur">
-                        <div class="pos-podium">🥇 1</div>
-                        <div>PiloteMystere</div>
-                        <div class="score-points">145 pts</div>
-                    </div>
-                    <div class="ligne-joueur">
-                        <div class="pos-podium">🥈 2</div>
-                        <div>LandoFan</div>
-                        <div class="score-points">132 pts</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+            <div class="colonne-
