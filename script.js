@@ -40,6 +40,143 @@ const pilotesData = [
   {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
   {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
+// ==========================================
+// CALENDRIER OFFICIEL ET LOGIQUE DE VERROUILLAGE (SAISON 2026)
+// ==========================================
+const calendrierCourses = [
+  { round: 1, nom: "GP d'Australie", dateCourse: "2026-03-15", limitePole: "2026-03-14T06:00:00Z" },
+  { round: 2, nom: "GP de Chine", dateCourse: "2026-03-22", limitePole: "2026-03-21T07:00:00Z" },
+  { round: 3, nom: "GP de Suzuka (Japon)", dateCourse: "2026-04-05", limitePole: "2026-04-04T06:00:00Z" },
+  { round: 4, nom: "GP de Bahreïn", dateCourse: "2026-04-19", limitePole: "2026-04-18T16:00:00Z" },
+  { round: 5, nom: "GP de Miami", dateCourse: "2026-05-03", limitePole: "2026-05-02T20:00:00Z" },
+  { round: 6, nom: "GP de Monaco", dateCourse: "2026-05-24", limitePole: "2026-05-23T14:00:00Z" },
+  { round: 7, nom: "GP de Barcelone", dateCourse: "2026-06-07", limitePole: "2026-06-06T14:00:00Z" },
+  { round: 8, nom: "GP de Spielberg (Autriche)", dateCourse: "2026-06-28", limitePole: "2026-06-27T14:00:00Z" },
+  { round: 9, nom: "GP de Grande-Bretagne (Silverstone)", dateCourse: "2026-07-05", limitePole: "2026-07-04T14:00:00Z" },
+  { round: 10, nom: "GP de Hongrie", dateCourse: "2026-07-26", limitePole: "2026-07-25T14:00:00Z" },
+  { round: 11, nom: "GP de Belgique (Spa)", dateCourse: "2026-08-30", limitePole: "2026-08-29T14:00:00Z" },
+  { round: 12, nom: "GP des Pays-Bas (Zandvoort)", dateCourse: "2026-09-06", limitePole: "2026-09-05T13:00:00Z" },
+  { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" }
+];
+
+// Fonction pour générer la liste déroulante avec les dates visibles
+function initialiserSelectCourse() {
+    const select = document.getElementById('select-course');
+    if (!select) return;
+
+    select.innerHTML = "";
+    const maintenant = new Date();
+
+    calendrierCourses.forEach(c => {
+        const option = document.createElement('option');
+        option.value = `2026/${c.round}`;
+
+        // Formatage de la date de la course en version lisible (française)
+        const optionsDate = { day: 'numeric', month: 'short' };
+        const dateFormatee = new Date(c.dateCourse).toLocaleDateString('fr-FR', optionsDate);
+
+        // Détermination du statut textuel à afficher à côté de la course
+        let statut = `(${dateFormatee})`;
+        if (maintenant > new Date(c.dateCourse + "T23:59:59Z")) {
+            statut = `🏁 Terminé`;
+        } else if (maintenant >= new Date(c.limitePole)) {
+            statut = `🔒 En cours / Qualifs lancées`;
+        }
+
+        option.text = `${String(c.round).padStart(2, '0')}. ${c.nom} — ${statut}`;
+        
+        // Sélectionner par défaut la course active (la première non terminée ou celle en cours)
+        if (maintenant <= new Date(c.dateCourse + "T23:59:59Z") && !select.value) {
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+    });
+}
+
+// Remplacer l'ancienne fonction de vérification par celle-ci pour gérer le verrouillage intelligent
+function verifierStatutDuGrandPrix() {
+    const selectCourse = document.getElementById('select-course');
+    if (!selectCourse) return;
+
+    const courseActuelle = selectCourse.value;
+    const roundNumber = parseInt(courseActuelle.split('/')[1]);
+    const courseData = calendrierCourses.find(c => c.round === roundNumber);
+
+    const titreGrille = document.getElementById('titre-grille');
+    const btnAleatoire = document.getElementById('btn-aleatoire');
+    const btnValider = document.getElementById('btn-valider');
+    const selectPole = document.getElementById('select-pole');
+
+    const maintenant = new Date();
+    const dateCourseFinie = new Date(courseData.dateCourse + "T23:59:59Z");
+    const dateLimitePole = new Date(courseData.limitePole);
+
+    // CAS 1 : Le week-end de course est complètement passé
+    if (maintenant > dateCourseFinie) {
+        if (titreGrille) titreGrille.innerText = "🏁 RÉSULTATS OFFICIELS DE LA COURSE :";
+        if (btnAleatoire) btnAleatoire.style.display = 'none';
+        if (btnValider) {
+            btnValider.disabled = true;
+            btnValider.innerText = "🔒 WEEK-END CLOS (MODIFICATION IMPOSSIBLE)";
+            btnValider.style.backgroundColor = "#555";
+        }
+        desactiverFormulaire(true);
+
+        // Appel API Ergast pour afficher la grille finale rétroactivement
+        fetch(`https://ergast.com/api/f1/${courseActuelle}/results.json`)
+            .then(res => res.json())
+            .then(data => {
+                const results = data.MRData.RaceTable.Race[0]?.Results;
+                if (results) {
+                    for (let i = 1; i <= 10; i++) {
+                        const selectElement = document.getElementById(`pos-${i}`);
+                        const apiDriver = results[i-1]?.Driver;
+                        if (selectElement && apiDriver) {
+                            const monPilote = pilotesData.find(p => p.nom.toLowerCase().includes(apiDriver.familyName.toLowerCase()));
+                            if (monPilote) {
+                                selectElement.innerHTML = `<option value="${monPilote.nom}" selected>${monPilote.nom}</option>`;
+                                const img = selectElement.parentElement.querySelector('.img-monoplace');
+                                if (img) { img.src = monPilote.img; img.style.display = 'block'; }
+                            }
+                        }
+                    }
+                }
+            }).catch(err => console.log("Pas de données API.", err));
+
+    } else {
+        // Le week-end n'est pas encore fini, on réactive la mise en page normale
+        if (titreGrille) titreGrille.innerText = "🏆 TON TOP 10 PILOTES :";
+        if (btnAleatoire) btnAleatoire.style.display = 'block';
+        if (btnValider) {
+            btnValider.disabled = false;
+            btnValider.innerText = "🏁 VALIDER MES PRONOSTICS";
+            btnValider.style.backgroundColor = "#E10600";
+        }
+        
+        desactiverFormulaire(false);
+        mettreAJourListes();
+
+        // CAS 2 : Le samedi des qualifs est commencé -> On bloque UNIQUEMENT le choix de la Pole Position !
+        if (maintenant >= dateLimitePole) {
+            if (selectPole) {
+                selectPole.disabled = true;
+                // On ajoute une indication visuelle
+                const optionSelectionnee = selectPole.options[selectPole.selectedIndex];
+                if (optionSelectionnee && !optionSelectionnee.text.includes("🔒")) {
+                    optionSelectionnee.text += " 🔒 (Bloqué pour le samedi !)";
+                }
+            }
+            console.log("⚡ Choix de la Pole position verrouillé pour cause de Qualifications en cours !");
+        }
+    }
+}
+
+// Pour initialiser correctement au chargement de ton script :
+initialiserSelectCourse();
+// (Assure-toi que cet appel est bien mis juste avant d'appeler verifierStatutDuGrandPrix())
+
+
 
 const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
 const grille = document.getElementById('grille-pronos');
