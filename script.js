@@ -67,7 +67,7 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// Inscription stable sans rechargement de page destructeur
+// Inscription
 const btnInsc = document.getElementById('btn-inscription');
 if(btnInsc) {
     btnInsc.addEventListener('click', () => {
@@ -87,7 +87,7 @@ if(btnInsc) {
     });
 }
 
-// Connexion instantanée 
+// Connexion
 const btnConn = document.getElementById('btn-connexion');
 if(btnConn) {
     btnConn.addEventListener('click', () => {
@@ -332,9 +332,7 @@ if (btnAleatoire) {
     });
 }
 
-// ==========================================
-// 6. SOUMISSION DES PRONOSTICS SECURISEE
-// ==========================================
+// Soumission
 const btnValider = document.getElementById('btn-valider');
 if (btnValider) {
     btnValider.addEventListener('click', () => {
@@ -375,24 +373,24 @@ if (btnValider) {
 
         db.collection("pronostics").add(donneesPronostic)
         .then(() => { 
-            alert(`🏆 Bravo ${donneesPronostic.pseudo} !\n\nTes pronostics pour le Grand Prix (${donneesPronostic.course}) ont bien été envoyés et sécurisés sur la base de données.`); 
+            alert(`🏆 Bravo ${donneesPronostic.pseudo} !\\n\\nTes pronostics pour le Grand Prix (${donneesPronostic.course}) ont bien été envoyés et sécurisés sur la base de données.`); 
         })
         .catch((err) => { 
             console.error("Erreur d'écriture Firebase : ", err);
             alert("❌ Erreur lors de la transmission au cloud."); 
         });
     });
+}
 
-    // ==========================================
+// ==========================================
 // 7. CHARGEMENT DYNAMIQUE DU CLASSEMENT GENERAL
 // ==========================================
 function chargerClassementGeneral() {
     const conteneurClassement = document.getElementById('liste-classement');
     if (!conteneurClassement) return;
 
-    // On écoute en temps réel la collection "utilisateurs" (triée par la propriété "points" décroissante)
     db.collection("utilisateurs").orderBy("points", "desc").onSnapshot((snapshot) => {
-        conteneurClassement.innerHTML = ""; // On vide l'ancien affichage
+        conteneurClassement.innerHTML = ""; 
         
         if (snapshot.empty) {
             conteneurClassement.innerHTML = "<div style='padding: 10px; color: #aaa; font-style: italic;'>Aucun joueur enregistré pour le moment.</div>";
@@ -400,22 +398,19 @@ function chargerClassementGeneral() {
         }
 
         let position = 1;
-
         snapshot.forEach((doc) => {
             const data = doc.data();
             const pseudo = data.pseudo || "Joueur anonyme";
             const points = data.points !== undefined ? data.points : 0;
 
-            // Attribution des petits emojis de podium pour les 3 premiers
             let medaille = position;
             if (position === 1) medaille = "🥇 1";
             else if (position === 2) medaille = "🥈 2";
             else if (position === 3) medaille = "🥉 3";
 
-            // Création de la ligne du joueur
             const ligne = document.createElement('div');
             ligne.className = 'ligne-joueur';
-            ligne.style.marginTop = '8px'; // Petit espacement entre les lignes
+            ligne.style.marginTop = '8px';
             
             ligne.innerHTML = `
                 <div class="pos-podium">${medaille}</div>
@@ -431,7 +426,4 @@ function chargerClassementGeneral() {
     });
 }
 
-// Lancement automatique du chargement du classement à l'ouverture de la page
 chargerClassementGeneral();
-
-}
