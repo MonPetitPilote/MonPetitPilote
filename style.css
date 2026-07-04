@@ -8,7 +8,7 @@ body {
 }
 
 .container {
-    max-width: 1200px; /* Légèrement élargi pour un meilleur confort double-colonne */
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -30,7 +30,7 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* STRUCTURE LAYOUT DOUBLE COLONNE D'ORIGINE */
+/* STRUCTURE LAYOUT DOUBLE COLONNE */
 .main-layout {
     display: flex;
     gap: 30px;
@@ -38,17 +38,22 @@ h2 {
 }
 
 .colonne-gauche {
-    flex: 2;
+    flex: 1.3;
     min-width: 320px;
 }
 
 .colonne-droite {
     flex: 1;
-    min-width: 280px;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+}
+
+.bloc-sub-droite {
     background: #161d2a;
     padding: 20px;
     border-radius: 8px;
-    height: fit-content;
     border: 1px solid #232c3d;
 }
 
@@ -189,7 +194,7 @@ label {
     background: #b80500;
 }
 
-/* CLASSEMENT SCORES D'ORIGINE */
+/* CLASSEMENT SCORES */
 .tableau-scores {
     display: flex;
     flex-direction: column;
