@@ -15,21 +15,49 @@ body {
 }
 
 /* ==========================================
-   HEADER DYNAMIQUE & PERSONNALISÉ (ANTI-IA)
+   HEADER LOOK RACING ALIGNÉ CÔTE À CÔTE
    ========================================== */
 .brand-header {
     background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
     border-radius: 16px;
-    padding: 25px 30px;
+    padding: 20px 30px;
     margin-bottom: 35px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     border-left: 6px solid #e10600;
+    
+    /* Force l'alignement sur une seule et même ligne horizontale */
     display: flex;
+    flex-direction: row; 
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+}
+
+/* Zone qui regroupe la connexion + le bouton règlement */
+.header-right-zone {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 20px;
 }
+
+.auth-champs-header {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Reste du CSS pour les inputs du header */
+.auth-champs-header input {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    max-width: 140px;
+    background-color: #0c1017;
+    border: 1px solid #2d3954;
+    border-radius: 6px;
+    color: white;
+}
+
 
 .brand-logo-zone {
     display: flex;
