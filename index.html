@@ -72,6 +72,102 @@
 
                 <div id="grille-pronos" style="margin-top: 15px;"></div>
 
+                <div style="margin: 20px 0; background: #1b2436; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px dashed #FF8000;">
+                    <input type="checkbox" id="check-joker" style="transform: scale(1.4); cursor: pointer;">
+                    <span id="joker-status-text" style="color: #FF8000; font-weight: bold; font-size: 0.9rem;">🚀 Activer mon unique Joker (+300% de points !)</span>
+                </div>
+
+                <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
+
+            </div>
+
+            <div class="colonne-droite">
+                
+                <div class="bloc-sub-droite" style="margin-bottom: 25px;">
+                    <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour consulter ses scores précédents.</p>
+                    <div class="tableau-scores">
+                        <div class="entete-scores">
+                            <div>Pos</div>
+                            <div>Joueur</div>
+                            <div style="text-align: right;">Points</div>
+                        </div>
+                        <div id="liste-classement"></div>
+                    </div>
+                </div>
+
+                <div class="section-top-flop" style="background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #E10600;">
+                    <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label style="color: #4cd137; display: block; margin-bottom: 5px; font-size: 0.85rem;">🔥 LES 2 TOPS :</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="ecurie-top-1" class="select-ecurie"></select>
+                                <select id="ecurie-top-2" class="select-ecurie"></select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="color: #ff3f3f; display: block; margin-bottom: 5px; font-size: 0.85rem;">⚠️ LES 2 FLOPS :</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="ecurie-flop-1" class="select-ecurie"></select>
+                                <select id="ecurie-flop-2" class="select-ecurie"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    
+    <script src="script.js"></script>
+</body>
+</html>
+                
+                <div id="bloc-auth">
+                    <div id="auth-deconnecte">
+                        <span class="auth-titre">🔑 ESPACE MEMBRE :</span>
+                        <div class="auth-champs">
+                            <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription uniquement)">
+                            <input type="email" id="auth-email" placeholder="Adresse E-mail">
+                            <input type="password" id="auth-mdp" placeholder="Mot de passe">
+                            <button id="btn-connexion" class="btn-auth btn-conn">SE CONNECTER</button>
+                            <button id="btn-inscription" class="btn-auth btn-insc">S'INSCRIRE</button>
+                        </div>
+                        <div style="margin-top: 10px; text-align: right;">
+                            <a href="#" id="link-recup-mdp" style="color: #aaa; font-size: 0.8rem; text-decoration: underline;">Mot de passe oublié ?</a>
+                        </div>
+                    </div>
+                    <div id="auth-connecte" style="display: none;">
+                        <div>🟢 Connecté en tant que : <span id="nom-utilisateur">...</span></div>
+                        <button id="btn-deconnexion" class="btn-auth btn-deco">Déconnexion</button>
+                    </div>
+                </div>
+
+                <div class="section-course">
+                    <label for="select-course">SÉLECTIONNER LE WEEK-END :</label>
+                    <select id="select-course"></select>
+                </div>
+
+                <div class="section-pole" style="margin-top: 20px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
+                    <label for="select-pole" style="color: #00d2d3; display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label>
+                    <select id="select-pole" style="width: 100%; padding: 8px; border-radius: 4px; background: #111622; color: white; border: 1px solid #3b4b6b;"></select>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+                    <h2 style="margin: 0;" id="titre-grille">🏆 TON TOP 10 PILOTES :</h2>
+                    <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
+                </div>
+
+                <div id="grille-pronos" style="margin-top: 15px;"></div>
+
                 <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
 
             </div>
