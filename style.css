@@ -14,30 +14,16 @@ body {
     padding: 30px 20px;
 }
 
+
+
 /* ==========================================
-   HEADER LOOK RACING ALIGNÉ CÔTE À CÔTE
+   BARRE MEMBRE SUPÉRIEURE (HAUT DROITE)
    ========================================== */
-.brand-header {
-    background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
-    border-radius: 16px;
-    padding: 15px 30px; /* Légèrement réduit pour un bandeau plus fin et élégant */
-    margin-bottom: 35px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border-left: 6px solid #e10600;
-    
+.top-member-bar {
     display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
-    align-items: center; /* Aligne le titre et la zone de connexion parfaitement au centre vertical */
-}
-
-
-/* Zone qui regroupe la connexion + le bouton règlement */
-.header-right-zone {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 20px;
+    justify-content: flex-end; /* Pousse l'espace membre tout à droite */
+    margin-bottom: 12px;
+    padding-right: 10px;
 }
 
 .auth-champs-header {
@@ -46,6 +32,34 @@ body {
     gap: 8px;
     align-items: center;
 }
+
+.auth-champs-header input {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    max-width: 140px;
+    background-color: #111622;
+    border: 1px solid #2d3954;
+    border-radius: 6px;
+    color: white;
+}
+
+/* ==========================================
+   HEADER PRINCIPAL (TITRE + RÈGLEMENT À DROITE)
+   ========================================== */
+.brand-header {
+    background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
+    border-radius: 16px;
+    padding: 20px 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border-left: 6px solid #e10600;
+    
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between; /* Met le logo à gauche et le règlement tout à droite */
+    align-items: center; 
+}
+
 
 /* Reste du CSS pour les inputs du header */
 .auth-champs-header input {
