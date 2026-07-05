@@ -15,30 +15,30 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Base de données des pilotes F1 2026
+// Base de données des pilotes F1 2026 avec couleurs d'écuries officielles
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
-  {nom: "Lando Norris", ecurie: "McLaren", statut: "favori", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
-  {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
-  {nom: "George Russell", ecurie: "Mercedes", statut: "favori", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
-  {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", statut: "outsider", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
-  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
-  {nom: "Alex Albon", ecurie: "Williams", statut: "outsider", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "fond", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", statut: "fond", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", statut: "fond", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "fond", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
-  {nom: "Oliver Bearman", ecurie: "Haas", statut: "fond", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
-  {nom: "Esteban Ocon", ecurie: "Haas", statut: "fond", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
+  {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", couleur: "#3671C6", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", couleur: "#3671C6", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori", couleur: "#E10600", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori", couleur: "#E10600", img: "https://cdn-9.motorsport.com/images/vcl/jYNlMJ0D/s3/ferrari-sf-26.png"},
+  {nom: "Lando Norris", ecurie: "McLaren", statut: "favori", couleur: "#FF8000", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori", couleur: "#FF8000", img: "https://cdn-2.motorsport.com/images/vcl/p2wyqb6Q/s3/mclaren-mcl40.png"},
+  {nom: "George Russell", ecurie: "Mercedes", statut: "favori", couleur: "#27CCB5", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori", couleur: "#27CCB5", img: "https://cdn-8.motorsport.com/images/vcl/z0qrdy2N/s3/mercedes-mgp-w17.png"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider", couleur: "#229971", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider", couleur: "#229971", img: "https://cdn-2.motorsport.com/images/vcl/vYMl7G2E/s3/aston-martin-amr26.png"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider", couleur: "#0093CC", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", statut: "outsider", couleur: "#0093CC", img: "https://cdn-3.motorsport.com/images/vcl/q633Z46A/s3/alpine-a526.png"},
+  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider", couleur: "#37BEDD", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
+  {nom: "Alex Albon", ecurie: "Williams", statut: "outsider", couleur: "#37BEDD", img: "https://cdn-7.motorsport.com/images/vcl/B2G3Vr29/s3/williams-fw48.png"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "fond", couleur: "#6692FF", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", statut: "fond", couleur: "#6692FF", img: "https://cdn-2.motorsport.com/images/vcl/G2ewOP6o/s3/racing-bulls-vcarb03.png"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", statut: "fond", couleur: "#F50A23", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "fond", couleur: "#F50A23", img: "https://cdn-8.motorsport.com/images/vcl/x27BRO0E/s3/audi-r26-2.png"},
+  {nom: "Oliver Bearman", ecurie: "Haas", statut: "fond", couleur: "#B6BABD", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
+  {nom: "Esteban Ocon", ecurie: "Haas", statut: "fond", couleur: "#B6BABD", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond", couleur: "#DDA7A5", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", couleur: "#DDA7A5", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
 ];
 
 const calendrierCourses = [
@@ -114,6 +114,7 @@ function verifierStatutDuGrandPrix() {
     const btnAleatoire = document.getElementById('btn-aleatoire');
     const btnValider = document.getElementById('btn-valider');
     const selectPole = document.getElementById('select-pole');
+    const checkJoker = document.getElementById('check-joker');
 
     const maintenant = new Date();
     const dateCourseFinie = new Date(courseData.dateCourse + "T23:59:59Z");
@@ -138,6 +139,7 @@ function verifierStatutDuGrandPrix() {
             btnValider.style.backgroundColor = "#E10600";
         }
         desactiverFormulaire(false);
+        verifierDisponibiliteJoker();
         mettreAJourListes();
 
         if (maintenant >= dateLimitePole && selectPole) {
@@ -146,6 +148,23 @@ function verifierStatutDuGrandPrix() {
             if (optSel && !optSel.text.includes("🔒")) optSel.text += " 🔒 (Verrouillé)";
         }
     }
+}
+
+function verifierDisponibiliteJoker() {
+    const checkJoker = document.getElementById('check-joker');
+    const txtJokerStatus = document.getElementById('joker-status-text');
+    if (!utilisateurActuel || !checkJoker) return;
+
+    db.collection("utilisateurs").doc(utilisateurActuel.uid).get().then(doc => {
+        if (doc.exists && doc.data().jokerSaisonUtilise) {
+            checkJoker.disabled = true;
+            checkJoker.checked = false;
+            if(txtJokerStatus) txtJokerStatus.innerText = "❌ Joker déjà grillé cette saison !";
+        } else {
+            checkJoker.disabled = false;
+            if(txtJokerStatus) txtJokerStatus.innerText = "🚀 Activer mon unique Joker (+300% de points !)";
+        }
+    });
 }
 
 function chargerResultatsOfficielsApi(courseActuelle) {
@@ -176,6 +195,8 @@ function desactiverFormulaire(statut) {
     document.querySelectorAll('.select-ecurie').forEach(e => e.disabled = statut);
     const selectPole = document.getElementById('select-pole');
     if (selectPole) selectPole.disabled = statut;
+    const checkJoker = document.getElementById('check-joker');
+    if (checkJoker) checkJoker.disabled = statut;
 }
 
 auth.onAuthStateChanged((user) => {
@@ -188,6 +209,7 @@ auth.onAuthStateChanged((user) => {
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
         if(zoneConnecte) zoneConnecte.style.display = 'flex';
         if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
+        verifierDisponibiliteJoker();
     } else {
         utilisateurActuel = null;
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'block';
@@ -224,18 +246,17 @@ if(btnConn) {
 const btnDeco = document.getElementById('btn-deconnexion');
 if(btnDeco) { btnDeco.addEventListener('click', () => auth.signOut()); }
 
-// Réinitialisation du mot de passe oublié
 const linkRecup = document.getElementById('link-recup-mdp');
 if (linkRecup) {
     linkRecup.addEventListener('click', (e) => {
         e.preventDefault();
         const email = document.getElementById('auth-email').value.trim();
         if (!email) {
-            alert("✍️ Entre ton adresse email dans la case correspondante ci-dessus, puis re-clique ici pour recevoir ton lien de réinitialisation.");
+            alert("✍️ Entre ton adresse email dans la case correspondante ci-dessus, puis re-clique ici.");
             return;
         }
         auth.sendPasswordResetEmail(email)
-            .then(() => alert("📨 Un lien de réinitialisation vient de t'être envoyé par e-mail ! Vérifie tes spams si besoin."))
+            .then(() => alert("📨 Un lien de réinitialisation vient de t'être envoyé par e-mail !"))
             .catch(err => alert("Erreur : " + err.message));
     });
 }
@@ -256,6 +277,14 @@ if (grille) {
         badge.className = 'badge-position';
         badge.innerText = `P${String(i).padStart(2, '0')}`;
 
+        // Indicateur Visuel Couleur Écurie
+        const indicateurCouleur = document.createElement('div');
+        indicateurCouleur.id = `couleur-barre-${i}`;
+        indicateurCouleur.style.width = '6px';
+        indicateurCouleur.style.height = '30px';
+        indicateurCouleur.style.borderRadius = '3px';
+        indicateurCouleur.style.backgroundColor = '#333'; 
+
         const select = document.createElement('select');
         select.id = `pos-${i}`;
         select.className = 'select-pilote';
@@ -271,10 +300,19 @@ if (grille) {
         select.addEventListener('change', () => {
             mettreAJourListes();
             const p = pilotesData.find(pilote => pilote.nom === select.value);
-            if (p) { img.src = p.img; img.style.display = 'block'; } else { img.src = ""; img.style.display = 'none'; }
+            if (p) { 
+                img.src = p.img; 
+                img.style.display = 'block'; 
+                indicateurCouleur.style.backgroundColor = p.couleur; // Applique la couleur officielle
+            } else { 
+                img.src = ""; 
+                img.style.display = 'none'; 
+                indicateurCouleur.style.backgroundColor = '#333';
+            }
         });
 
         ligne.appendChild(badge);
+        ligne.appendChild(indicateurCouleur);
         ligne.appendChild(select);
         ligne.appendChild(pokerContainer);
         ligne.appendChild(img);
@@ -359,6 +397,8 @@ if (btnAleatoire) {
             select.value = m[index].nom;
             const img = select.parentElement.querySelector('.img-monoplace');
             if (img) { img.src = m[index].img; img.style.display = 'block'; }
+            const indCouleur = document.getElementById(`couleur-barre-${index+1}`);
+            if (indCouleur) indCouleur.style.backgroundColor = m[index].couleur;
         });
         mettreAJourListes();
     });
@@ -377,6 +417,7 @@ if (btnValiderPr) {
         const top2 = document.getElementById('ecurie-top-2').value;
         const flop1 = document.getElementById('ecurie-flop-1').value;
         const flop2 = document.getElementById('ecurie-flop-2').value;
+        const jokerCoche = document.getElementById('check-joker') ? document.getElementById('check-joker').checked : false;
 
         db.collection("pronostics").add({
             uidJoueur: utilisateurActuel.uid,
@@ -388,8 +429,18 @@ if (btnValiderPr) {
             ligneCoupPoker: checkPoker ? parseInt(checkPoker.value) : null,
             ecuriesTop: [top1, top2],
             ecuriesFlop: [flop1, flop2],
+            jokerActive: jokerCoche,
             date: new Date()
-        }).then(() => alert("🏆 Pronostic enregistré avec succès !"));
+        }).then(() => {
+            if (jokerCoche) {
+                // Marque définitivement le Joker comme utilisé par le joueur
+                db.collection("utilisateurs").doc(utilisateurActuel.uid).update({
+                    jokerSaisonUtilise: true
+                });
+            }
+            alert("🏆 Pronostic enregistré avec succès !");
+            verifierDisponibiliteJoker();
+        });
     });
 }
 
@@ -451,9 +502,10 @@ function ouvrirHistoriqueJoueur(uid, pseudo) {
         } else {
             snapshot.forEach(doc => {
                 const data = doc.data();
+                const jokerBadge = data.jokerApplique ? " 🚀 (JOKER X3 INTERVENU !)" : "";
                 contenuHTML += `
                 <div style="background: #111622; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #E10600;">
-                    <strong>Round ${data.round} : +${data.pointsGagnes} points empochés</strong><br>
+                    <strong>Round ${data.round} : +${data.pointsGagnes} points empochés${jokerBadge}</strong><br>
                     <small>Prono Poleman: ${data.polemanProno} (Officiel: ${data.polemanOfficiel})</small>
                 </div>`;
             });
@@ -479,27 +531,20 @@ if (btnReglement) {
             <div style="max-height: 450px; overflow-y:auto; margin-top:15px; font-size:0.95rem; line-height:1.5;">
                 <div class="reglement-item">
                     <strong>1. Le Top 10 classique 🏁</strong><br>
-                    Tu trouves la place exacte d'un pilote ? C'est <strong>+10 points</strong>. Le pilote finit dans le Top 10 mais pas à la place que tu voulais ? Tu grattes quand même <strong>+3 points</strong> !
+                    Tu trouves la place exacte d'un pilote ? C'est <strong>+10 points</strong>. Le pilote finit dans le Top 10 mais pas à la place prévue ? Tu grattes quand même <strong>+3 points</strong> !
                 </div>
                 <div class="reglement-item">
                     <strong>2. Le Coup de Poker ⭐ (La folie des cotes !)</strong><br>
-                    Coche l'étoile sur une des lignes de ta grille. Si le pilote termine <strong>exactement</strong> à cette place, on prend tes 10 points de base et on les multiplie par la cote du pilote ! Un favori rapporte peu, mais placer un fond de grille gagnant peut te rapporter plus de 1000 points d'un coup ! ⚠️ Si la position est fausse, c'est 0 point sur cette ligne.
+                    Coche l'étoile sur une des lignes de ta grille. Si le pilote termine <strong>exactement</strong> à cette place, on multiplie tes 10 points par sa cote ! Placer un fond de grille gagnant peut te rapporter plus de 1000 points d'un coup ! ⚠️ Si la position est fausse, c'est 0 point sur cette ligne.
                 </div>
                 <div class="reglement-item">
-                    <strong>3. La Pole Position ⏱️</strong><br>
-                    Devine qui fera le meilleur temps le samedi. Si c'est bon, tu empoches un bonus fixe de <strong>+15 points</strong>.
+                    <strong>3. Le Joker de la Saison 🚀</strong><br>
+                    Tu possèdes <strong>1 seul Joker</strong> pour TOUTE la saison. Coche-le sur un week-end stratégique pour <strong>tripler (x3)</strong> l'intégralité de tes points sur ce Grand Prix !
                 </div>
                 <div class="reglement-item">
                     <strong>4. Écuries Tops & Flops 🔥</strong><br>
-                    • <strong>Top :</strong> Choisis une écurie. Si ses DEUX voitures finissent dans le Top 10, tu marques <strong>+10 points</strong>.<br>
-                    • <strong>Flop :</strong> Choisis une écurie. Si AUCUNE de ses deux voitures n'entre dans le Top 10, tu prends <strong>+10 points</strong>.
-                </div>
-                <div class="reglement-item">
-                    <strong>🎖️ Les Badges de la Gloire (Mis à jour en direct) :</strong><br>
-                    👑 <strong>Le Boss :</strong> Premier au classement général.<br>
-                    ⏱️ <strong>Le Roi de la Pole :</strong> Celui qui a déniché le plus de Polemans.<br>
-                    🃏 <strong>Le Bluffeur :</strong> Le joueur qui a validé le Coup de Poker avec la plus grosse cote.<br>
-                    🚜 <strong>La Cuillère de Bois :</strong> Le malheureux dernier du classement (Force à toi !).
+                    • <strong>Top :</strong> Si ses DEUX voitures finissent dans le Top 10, tu marques <strong>+10 points</strong>.<br>
+                    • <strong>Flop :</strong> Si AUCUNE de ses deux voitures n'entre dans le Top 10, tu prends <strong>+10 points</strong>.
                 </div>
             </div>
         </div>`;
