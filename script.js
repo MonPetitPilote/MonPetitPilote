@@ -538,11 +538,15 @@ if (btnReglement) {
                     Coche l'étoile sur une des lignes de ta grille. Si le pilote termine <strong>exactement</strong> à cette place, on multiplie tes 10 points par sa cote ! Placer un fond de grille gagnant peut te rapporter plus de 1000 points d'un coup ! ⚠️ Si la position est fausse, c'est 0 point sur cette ligne.
                 </div>
                 <div class="reglement-item">
-                    <strong>3. Le Joker de la Saison 🚀</strong><br>
+                    <strong>3. La Pole Position ⏱️</strong><br>
+                    Devine qui fera le meilleur temps le samedi lors des qualifications. Si tu as le bon pilote, tu empoches un bonus fixe de <strong>+15 points</strong> !
+                </div>
+                <div class="reglement-item">
+                    <strong>4. Le Joker de la Saison 🚀</strong><br>
                     Tu possèdes <strong>1 seul Joker</strong> pour TOUTE la saison. Coche-le sur un week-end stratégique pour <strong>tripler (x3)</strong> l'intégralité de tes points sur ce Grand Prix !
                 </div>
                 <div class="reglement-item">
-                    <strong>4. Écuries Tops & Flops 🔥</strong><br>
+                    <strong>5. Écuries Tops & Flops 🔥</strong><br>
                     • <strong>Top :</strong> Si ses DEUX voitures finissent dans le Top 10, tu marques <strong>+10 points</strong>.<br>
                     • <strong>Flop :</strong> Si AUCUNE de ses deux voitures n'entre dans le Top 10, tu prends <strong>+10 points</strong>.
                 </div>
