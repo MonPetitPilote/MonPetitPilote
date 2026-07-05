@@ -207,19 +207,16 @@ auth.onAuthStateChanged((user) => {
     if (user) {
         utilisateurActuel = user;
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
-        
-        // CORRECTION ICI : On utilise 'flex' au lieu de 'block' pour que le badge
-        // et le bouton de déconnexion s'alignent parfaitement côte à côte.
-        if(zoneConnecte) zoneConnecte.style.style.display = 'flex';
-        
+        if(zoneConnecte) zoneConnecte.style.display = 'flex'; // Aligne le badge profil et déco côte à côte
         if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
         verifierDisponibiliteJoker();
     } else {
         utilisateurActuel = null;
-        if(zoneDeconnecte) zoneDeconnecte.style.style.display = 'block';
-        if(zoneConnecte) zoneConnecte.style.style.display = 'none';
+        if(zoneDeconnecte) zoneDeconnecte.style.display = 'block';
+        if(zoneConnecte) zoneConnecte.style.display = 'none';
     }
 });
+
 
 
 // ==========================================
