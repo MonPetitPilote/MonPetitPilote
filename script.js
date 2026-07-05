@@ -12,33 +12,10 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+var db = firebase.firestore();
+var auth = firebase.auth();
 
-const calendrierCourses = [
-  { round: 1, nom: "GP d'Australie", dateCourse: "2026-03-15", limitePole: "2026-03-14T06:00:00Z" },
-  { round: 2, nom: "GP de Chine", dateCourse: "2026-03-22", limitePole: "2026-03-21T07:00:00Z" },
-  { round: 3, nom: "GP de Suzuka (Japon)", dateCourse: "2026-04-05", limitePole: "2026-04-04T06:00:00Z" },
-  { round: 4, nom: "GP de Bahreïn", dateCourse: "2026-04-19", limitePole: "2026-04-18T16:00:00Z" },
-  { round: 5, nom: "GP de Miami", dateCourse: "2026-05-03", limitePole: "2026-05-02T20:00:00Z" },
-  { round: 6, nom: "GP de Monaco", dateCourse: "2026-05-24", limitePole: "2026-05-23T14:00:00Z" },
-  { round: 7, nom: "GP de Barcelone (Espagne)", dateCourse: "2026-06-07", limitePole: "2026-06-06T14:00:00Z" },
-  { round: 8, nom: "GP de Spielberg (Autriche)", dateCourse: "2026-06-28", limitePole: "2026-06-27T13:00:00Z" },
-  { round: 9, nom: "GP de Grande-Bretagne (Silverstone)", dateCourse: "2026-07-05", limitePole: "2026-07-04T14:00:00Z" },
-  { round: 10, nom: "GP de Hongrie", dateCourse: "2026-07-26", limitePole: "2026-07-25T14:00:00Z" },
-  { round: 11, nom: "GP de Belgique (Spa)", dateCourse: "2026-08-30", limitePole: "2026-08-29T14:00:00Z" },
-  { round: 12, nom: "GP des Pays-Bas (Zandvoort)", dateCourse: "2026-09-06", limitePole: "2026-09-05T13:00:00Z" },
-  { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" },
-  { round: 14, nom: "GP d'Azerbaïdjan (Bakou)", dateCourse: "2026-09-20", limitePole: "2026-09-19T13:00:00Z" },
-  { round: 15, nom: "GP de Singapour", dateCourse: "2026-10-04", limitePole: "2026-10-03T12:00:00Z" },
-  { round: 16, nom: "GP des États-Unis (Austin)", dateCourse: "2026-10-18", limitePole: "2026-10-17T21:00:00Z" },
-  { round: 17, nom: "GP du Mexique", dateCourse: "2026-10-25", limitePole: "2026-10-24T20:00:00Z" },
-  { round: 18, nom: "GP du Brésil (Interlagos)", dateCourse: "2026-11-01", limitePole: "2026-11-03T18:00:00Z" },
-  { round: 19, nom: "GP de Las Vegas", dateCourse: "2026-11-22", limitePole: "2026-11-21T06:00:00Z" },
-  { round: 20, nom: "GP de l'Équateur / Qatar (Losail)", dateCourse: "2026-11-29", limitePole: "2026-11-28T16:00:00Z" },
-  { round: 21, nom: "GP d'Abou Dabi (Yas Marina)", dateCourse: "2026-12-06", limitePole: "2026-12-05T13:00:00Z" }
-];
-
+// Base de données des pilotes F1 2026
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider", img: "https://cdn-1.motorsport.com/images/vcl/X0kvd86d/s3/red-bull-racing-rb22.png"},
@@ -62,6 +39,30 @@ const pilotesData = [
   {nom: "Esteban Ocon", ecurie: "Haas", statut: "fond", img: "https://cdn-6.motorsport.com/images/vcl/e2dwbn0J/s3/haas-vf-26.png"},
   {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"},
   {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond", img: "https://cdn-5.motorsport.com/images/vcl/n0mwOGYz/s3/cadillac-2.png"}
+];
+
+const calendrierCourses = [
+  { round: 1, nom: "GP d'Australie", dateCourse: "2026-03-15", limitePole: "2026-03-14T06:00:00Z" },
+  { round: 2, nom: "GP de Chine", dateCourse: "2026-03-22", limitePole: "2026-03-21T07:00:00Z" },
+  { round: 3, nom: "GP de Suzuka (Japon)", dateCourse: "2026-04-05", limitePole: "2026-04-04T06:00:00Z" },
+  { round: 4, nom: "GP de Bahreïn", dateCourse: "2026-04-19", limitePole: "2026-04-18T16:00:00Z" },
+  { round: 5, nom: "GP de Miami", dateCourse: "2026-05-03", limitePole: "2026-05-02T20:00:00Z" },
+  { round: 6, nom: "GP de Monaco", dateCourse: "2026-05-24", limitePole: "2026-05-23T14:00:00Z" },
+  { round: 7, nom: "GP de Barcelone (Espagne)", dateCourse: "2026-06-07", limitePole: "2026-06-06T14:00:00Z" },
+  { round: 8, nom: "GP de Spielberg (Autriche)", dateCourse: "2026-06-28", limitePole: "2026-06-27T13:00:00Z" },
+  { round: 9, nom: "GP de Grande-Bretagne (Silverstone)", dateCourse: "2026-07-05", limitePole: "2026-07-04T14:00:00Z" },
+  { round: 10, nom: "GP de Hongrie", dateCourse: "2026-07-26", limitePole: "2026-07-25T14:00:00Z" },
+  { round: 11, nom: "GP de Belgique (Spa)", dateCourse: "2026-08-30", limitePole: "2026-08-29T14:00:00Z" },
+  { round: 12, nom: "GP des Pays-Bas (Zandvoort)", dateCourse: "2026-09-06", limitePole: "2026-09-05T13:00:00Z" },
+  { round: 13, nom: "GP d'Italie (Monza)", dateCourse: "2026-09-13", limitePole: "2026-09-12T14:00:00Z" },
+  { round: 14, nom: "GP d'Azerbaïdjan (Bakou)", dateCourse: "2026-09-20", limitePole: "2026-09-19T13:00:00Z" },
+  { round: 15, nom: "GP de Singapour", dateCourse: "2026-10-04", limitePole: "2026-10-03T12:00:00Z" },
+  { round: 16, nom: "GP des États-Unis (Austin)", dateCourse: "2026-10-18", limitePole: "2026-10-17T21:00:00Z" },
+  { round: 17, nom: "GP du Mexique", dateCourse: "2026-10-25", limitePole: "2026-10-24T20:00:00Z" },
+  { round: 18, nom: "GP du Brésil (Interlagos)", dateCourse: "2026-11-01", limitePole: "2026-11-03T18:00:00Z" },
+  { round: 19, nom: "GP de Las Vegas", dateCourse: "2026-11-22", limitePole: "2026-11-21T06:00:00Z" },
+  { round: 20, nom: "GP de l'Équateur / Qatar (Losail)", dateCourse: "2026-11-29", limitePole: "2026-11-28T16:00:00Z" },
+  { round: 21, nom: "GP d'Abou Dabi (Yas Marina)", dateCourse: "2026-12-06", limitePole: "2026-12-05T13:00:00Z" }
 ];
 
 const ecuriesList = [...new Set(pilotesData.map(p => p.ecurie))];
@@ -223,6 +224,22 @@ if(btnConn) {
 const btnDeco = document.getElementById('btn-deconnexion');
 if(btnDeco) { btnDeco.addEventListener('click', () => auth.signOut()); }
 
+// Réinitialisation du mot de passe oublié
+const linkRecup = document.getElementById('link-recup-mdp');
+if (linkRecup) {
+    linkRecup.addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('auth-email').value.trim();
+        if (!email) {
+            alert("✍️ Entre ton adresse email dans la case correspondante ci-dessus, puis re-clique ici pour recevoir ton lien de réinitialisation.");
+            return;
+        }
+        auth.sendPasswordResetEmail(email)
+            .then(() => alert("📨 Un lien de réinitialisation vient de t'être envoyé par e-mail ! Vérifie tes spams si besoin."))
+            .catch(err => alert("Erreur : " + err.message));
+    });
+}
+
 // ==========================================
 // CONSTRUIRE LA ZONE DU TOP 10 PILOTES
 // ==========================================
@@ -347,9 +364,9 @@ if (btnAleatoire) {
     });
 }
 
-const btnValider = document.getElementById('btn-valider');
-if (btnValider) {
-    btnValider.addEventListener('click', () => {
+const btnValiderPr = document.getElementById('btn-valider');
+if (btnValiderPr) {
+    btnValiderPr.addEventListener('click', () => {
         if (!utilisateurActuel) { alert("⚠️ Connecte-toi avant d'envoyer !"); return; }
         const poleman = document.getElementById('select-pole').value;
         const choixPilotes = Array.from(document.querySelectorAll('.select-pilote')).map(s => s.value);
@@ -451,9 +468,55 @@ function ouvrirHistoriqueJoueur(uid, pseudo) {
     });
 }
 
+// Modale Règlement Bon Enfant
+const btnReglement = document.getElementById('btn-ouvrir-reglement');
+if (btnReglement) {
+    btnReglement.addEventListener('click', () => {
+        const contenuHTML = `
+        <div class="modal-content-inner" style="max-width: 600px;">
+            <span class="close-modal" onclick="document.getElementById('modal-reglement').remove()">&times;</span>
+            <h2>📜 RÈGLEMENT FUN DES COTES & BONUS 🏎️</h2>
+            <div style="max-height: 450px; overflow-y:auto; margin-top:15px; font-size:0.95rem; line-height:1.5;">
+                <div class="reglement-item">
+                    <strong>1. Le Top 10 classique 🏁</strong><br>
+                    Tu trouves la place exacte d'un pilote ? C'est <strong>+10 points</strong>. Le pilote finit dans le Top 10 mais pas à la place que tu voulais ? Tu grattes quand même <strong>+3 points</strong> !
+                </div>
+                <div class="reglement-item">
+                    <strong>2. Le Coup de Poker ⭐ (La folie des cotes !)</strong><br>
+                    Coche l'étoile sur une des lignes de ta grille. Si le pilote termine <strong>exactement</strong> à cette place, on prend tes 10 points de base et on les multiplie par la cote du pilote ! Un favori rapporte peu, mais placer un fond de grille gagnant peut te rapporter plus de 1000 points d'un coup ! ⚠️ Si la position est fausse, c'est 0 point sur cette ligne.
+                </div>
+                <div class="reglement-item">
+                    <strong>3. La Pole Position ⏱️</strong><br>
+                    Devine qui fera le meilleur temps le samedi. Si c'est bon, tu empoches un bonus fixe de <strong>+15 points</strong>.
+                </div>
+                <div class="reglement-item">
+                    <strong>4. Écuries Tops & Flops 🔥</strong><br>
+                    • <strong>Top :</strong> Choisis une écurie. Si ses DEUX voitures finissent dans le Top 10, tu marques <strong>+10 points</strong>.<br>
+                    • <strong>Flop :</strong> Choisis une écurie. Si AUCUNE de ses deux voitures n'entre dans le Top 10, tu prends <strong>+10 points</strong>.
+                </div>
+                <div class="reglement-item">
+                    <strong>🎖️ Les Badges de la Gloire (Mis à jour en direct) :</strong><br>
+                    👑 <strong>Le Boss :</strong> Premier au classement général.<br>
+                    ⏱️ <strong>Le Roi de la Pole :</strong> Celui qui a déniché le plus de Polemans.<br>
+                    🃏 <strong>Le Bluffeur :</strong> Le joueur qui a validé le Coup de Poker avec la plus grosse cote.<br>
+                    🚜 <strong>La Cuillère de Bois :</strong> Le malheureux dernier du classement (Force à toi !).
+                </div>
+            </div>
+        </div>`;
+
+        const modal = document.createElement('div');
+        modal.id = 'modal-reglement';
+        modal.className = 'modal-back';
+        modal.innerHTML = contenuHTML;
+        document.body.appendChild(modal);
+    });
+}
+
 window.addEventListener('click', (e) => {
-    const modal = document.getElementById('modal-historique');
-    if (e.target === modal) modal.remove();
+    const modalHist = document.getElementById('modal-historique');
+    if (e.target === modalHist) modalHist.remove();
+    const modalReg = document.getElementById('modal-reglement');
+    if (e.target === modalReg) modalReg.remove();
 });
 
 // Initialisations globales
