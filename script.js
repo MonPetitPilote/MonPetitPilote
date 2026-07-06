@@ -15,47 +15,45 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Liens de secours publics et stables (Zéro blocage)
+// Chemins locaux vers tes images AVIF
 const LOGOS_2026 = {
-    redbull: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/red_bull.png",
-    ferrari: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/ferrari.png",
-    mclaren: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/mclaren.png",
-    mercedes: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/mercedes.png",
-    aston: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/aston_martin.png",
-    alpine: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/alpine.png",
-    williams: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/williams.png",
-    racingbulls: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/alphatauri.png", 
-    audi: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/sauber.png", 
-    haas: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/haas.png",
-    cadillac: "https://cdnjs.cloudflare.com/ajax/libs/f1-web-api/1.0.0/teams/renault.png"
+    redbull: "images/redbull.avif",
+    ferrari: "images/ferrari.avif",
+    mclaren: "images/mclaren.avif",
+    mercedes: "images/mercedes.avif",
+    aston: "images/astonmartin.avif",
+    alpine: "images/alpine.avif",
+    williams: "images/williams.avif",
+    racingbulls: "images/racingbulls.avif",
+    audi: "images/audi.avif",
+    haas: "images/haas.avif",
+    cadillac: "images/cadillac.avif"
 };
 
-// URL d'un visuel de casque F1 transparent ultra-fiable issu d'un dépôt open-source
-const HELMET_PLACEHOLDER = "https://raw.githubusercontent.com/twbs/icons/main/icons/shield.svg";
-
+// Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", carImg: LOGOS_2026.redbull},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", carImg: LOGOS_2026.redbull},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari},
-  {nom: "Lando Norris", ecurie: "McLaren", carImg: LOGOS_2026.mclaren},
-  {nom: "Oscar Piastri", ecurie: "McLaren", carImg: LOGOS_2026.mclaren},
-  {nom: "George Russell", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", carImg: LOGOS_2026.aston},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", carImg: LOGOS_2026.aston},
-  {nom: "Pierre Gasly", ecurie: "Alpine", carImg: LOGOS_2026.alpine},
-  {nom: "Franco Colapinto", ecurie: "Alpine", carImg: LOGOS_2026.alpine},
-  {nom: "Carlos Sainz", ecurie: "Williams", carImg: LOGOS_2026.williams},
-  {nom: "Alex Albon", ecurie: "Williams", carImg: LOGOS_2026.williams},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", carImg: LOGOS_2026.audi},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", carImg: LOGOS_2026.audi},
-  {nom: "Oliver Bearman", ecurie: "Haas", carImg: LOGOS_2026.haas},
-  {nom: "Esteban Ocon", ecurie: "Haas", carImg: LOGOS_2026.haas},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac}
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43", pays: "fr", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/had.avif"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44", pays: "gb", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/ham.avif"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16", pays: "mc", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/lec.avif"},
+  {nom: "Lando Norris", ecurie: "McLaren", numero: "4", pays: "gb", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/nor.avif"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81", pays: "au", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/pia.avif"},
+  {nom: "George Russell", ecurie: "Mercedes", numero: "63", pays: "gb", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/rus.avif"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12", pays: "it", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/ant.avif"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", numero: "14", pays: "es", couleur: "#229971", carImg: LOGOS_2026.aston, driverImg: "images/drivers/alo.avif"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", numero: "18", pays: "ca", couleur: "#229971", carImg: LOGOS_2026.aston, driverImg: "images/drivers/str.avif"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", numero: "10", pays: "fr", couleur: "#0093CC", carImg: LOGOS_2026.alpine, driverImg: "images/drivers/gas.avif"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", numero: "43", pays: "ar", couleur: "#0093CC", carImg: LOGOS_2026.alpine, driverImg: "images/drivers/col.avif"},
+  {nom: "Carlos Sainz", ecurie: "Williams", numero: "55", pays: "es", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/sai.avif"},
+  {nom: "Alex Albon", ecurie: "Williams", numero: "23", pays: "th", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/alb.avif"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", numero: "30", pays: "nz", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/law.avif"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "40", pays: "gb", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/lin.avif"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", numero: "27", pays: "de", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/hul.avif"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", numero: "5", pays: "br", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/bor.avif"},
+  {nom: "Oliver Bearman", ecurie: "Haas", numero: "87", pays: "gb", couleur: "#B6BABD", carImg: LOGOS_2026.haas, driverImg: "images/drivers/bea.avif"},
+  {nom: "Esteban Ocon", ecurie: "Haas", numero: "31", pays: "fr", couleur: "#B6BABD", carImg: LOGOS_2026.haas, driverImg: "images/drivers/oco.avif"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", numero: "77", pays: "fi", couleur: "#900C3F", carImg: LOGOS_2026.cadillac, driverImg: "images/drivers/bot.avif"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", numero: "11", pays: "mx", couleur: "#900C3F", carImg: LOGOS_2026.cadillac, driverImg: "images/drivers/per.avif"}
 ];
 
 const ecuriesSaison = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
@@ -135,18 +133,26 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
-        // Ajustement opacité : le logo de l'écurie est maintenant bien visible (opacity: 0.95)
+        // Mise en place de la carte de style F1 Officiel
         slot.innerHTML = `
-            <div class="grid-pos-badge">P${i}</div>
-            <div class="grid-media-zone" style="position: relative; overflow: hidden; background: #141a29; display: flex; justify-content: center; align-items: center; width: 75px; height: 55px; border-radius: 6px; border: 1px solid #232e44;">
-                <img id="car-grid-p${i}" src="" alt="" style="position: absolute; max-width: 90%; max-height: 90%; opacity: 0.95; object-fit: contain; pointer-events: none;">
-                <img id="img-grid-p${i}" src="" alt="" style="position: relative; max-height: 50%; max-width: 50%; object-fit: contain; z-index: 2; filter: invert(100%); display: none;">
-            </div>
-            <div class="grid-driver-info">
-                <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}">
-                    ${optionsHtml}
-                </select>
-                <div id="team-grid-p${i}" class="grid-driver-team" style="color: #616e88; font-style: italic;">⚡ PLACE À PRENDRE</div>
+            <div class="grid-pos-badge" id="badge-p${i}">P${i}</div>
+            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; width: 100%; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease;">
+                
+                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                        <span id="num-f1-p${i}" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
+                        <img id="flag-f1-p${i}" src="" style="width: 18px; border-radius: 2px; display: none;">
+                    </div>
+                    <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}" style="width: 95%; background: transparent; border: none; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; padding: 2px 0;">
+                        ${optionsHtml}
+                    </select>
+                    <div id="team-grid-p${i}" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">⚡ PLACE À PRENDRE</div>
+                </div>
+
+                <div style="position: relative; width: 85px; height: 55px; display: flex; justify-content: center; align-items: center; overflow: hidden; margin-left: 10px;">
+                    <img id="car-grid-p${i}" src="" style="position: absolute; max-width: 90%; max-height: 90%; opacity: 0.15; object-fit: contain; pointer-events: none; right: 0;">
+                    <img id="img-grid-p${i}" src="" style="position: relative; max-height: 100%; object-fit: contain; z-index: 2; transform: translateY(4px); display: none;">
+                </div>
             </div>
         `;
         conteneurGrille.appendChild(slot);
@@ -159,31 +165,46 @@ function creerLaGrilleDeDepartTV() {
 }
 
 function mettreAJourDesignSlot(position, nomPilote) {
+    const card = document.getElementById(`card-f1-p${position}`);
+    const badge = document.getElementById(`badge-p${position}`);
+    const numTarget = document.getElementById(`num-f1-p${position}`);
+    const flagTarget = document.getElementById(`flag-f1-p${position}`);
     const imgTarget = document.getElementById(`img-grid-p${position}`);
     const carTarget = document.getElementById(`car-grid-p${position}`);
     const teamTarget = document.getElementById(`team-grid-p${position}`);
-    const slot = document.querySelector(`.grid-slot[data-pos="${position}"]`);
     
     const localData = pilotesData.find(p => p.nom === nomPilote);
 
     if (nomPilote && localData) {
-        const openF1Info = designPilotesF1[nomPilote];
+        // Changement de l'accentuation de couleur F1
+        card.style.borderLeft = `5px solid ${localData.couleur}`;
+        if(badge) badge.style.background = localData.couleur;
         
-        imgTarget.src = HELMET_PLACEHOLDER;
+        // Numéro et drapeau nationaux
+        numTarget.innerText = localData.numero;
+        numTarget.style.color = localData.couleur;
+        flagTarget.src = `https://flagcdn.com/w20/${localData.pays}.png`;
+        flagTarget.style.display = "inline-block";
+        
+        // Images (Casque et Logo d'écurie)
+        imgTarget.src = localData.driverImg;
         imgTarget.style.display = "block";
         carTarget.src = localData.carImg;
         
+        // Texte
         teamTarget.innerText = localData.ecurie;
         teamTarget.style.color = "#ff8000"; 
-        teamTarget.style.fontStyle = "normal";
-        if(slot) slot.style.borderLeft = `4px solid ${openF1Info ? openF1Info.couleur : '#ff8000'}`;
     } else {
+        // Reset mode par défaut (Vide)
+        card.style.borderLeft = `1px solid #2f3e56`;
+        if(badge) badge.style.background = "#232e44";
+        numTarget.innerText = "--";
+        numTarget.style.color = "rgba(255,255,255,0.15)";
+        flagTarget.style.display = "none";
         imgTarget.style.display = "none";
         carTarget.removeAttribute('src');
         teamTarget.innerText = "⚡ PLACE À PRENDRE";
-        teamTarget.style.color = "#616e88"; 
-        teamTarget.style.fontStyle = "italic";
-        if(slot) slot.style.borderLeft = `4px solid #2d3954`;
+        teamTarget.style.color = "#616e88";
     }
 }
 
@@ -281,7 +302,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         top10Selection.push(val);
     }
     const pronoData = {
-        uidJoueur: utilisateurActuel.uid,
+        uidJoueur: '../../',
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
         classementPilotes: top10Selection,
