@@ -167,3 +167,10 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 #btn-valider { width: 100%; background: linear-gradient(135deg, #e10600 0%, #b30500 100%); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 6px; cursor: pointer; margin-top: 15px; }
 .tableau-scores { background: #0f131c; border-radius: 8px; overflow: hidden; }
 .entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
+
+
+@media (max-width: 576px) {
+    #grille-pronos {
+        display: block !important;
+    }
+}
