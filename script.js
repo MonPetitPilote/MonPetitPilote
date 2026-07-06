@@ -45,7 +45,7 @@ auth.onAuthStateChanged(user => {
         if(zoneInfo) zoneInfo.style.display = 'flex';
         if(nomUser) nomUser.innerText = user.email.split('@')[0];
 
-        // 🎯 Correction : Lecture du profil dans "pronostics" au lieu de "utilisateurs"
+        // Lecture du profil dans "pronostics" au lieu de "utilisateurs"
         db.collection("pronostics").doc(user.uid).get().then(doc => {
             if (doc.exists) {
                 const userData = doc.data();
@@ -93,7 +93,6 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!email || !pass || !pseudo) return alert("Veuillez remplir tous les champs d'inscription.");
 
     auth.createUserWithEmailAndPassword(email, pass).then(res => {
-        // 🎯 Correction : Création du joueur directement dans "pronostics" avec ses 0 points initiaux
         db.collection("pronostics").doc(res.user.uid).set({
             pseudo: pseudo,
             email: email,
@@ -117,9 +116,32 @@ document.getElementById('btn-deconnexion-header')?.addEventListener('click', () 
 // 3. BASE DE DONNÉES DU CHAMPIONNAT (PILOTES ET ÉCURIES)
 // ==========================================
 const pilotesData = [
-    {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori"},\n    {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider"},\n    {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori"},\n    {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori"},\n    {nom: "Lando Norris", ecurie: "McLaren", statut: "favori"},\n    {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori"},\n    {nom: "George Russell", ecurie: "Mercedes", statut: "favori"},\n    {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori"},\n    {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider"},\n    {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider"},\n    {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider"},\n    {nom: "Jack Doohan", ecurie: "Alpine", statut: "outsider"},\n    {nom: "Alex Albon", ecurie: "Williams", statut: "outsider"},\n    {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider"},\n    {nom: "Yuki Tsunoda", ecurie: "Racing Bulls", statut: "outsider"},\n    {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "outsider"},\n    {nom: "Nico Hulkenberg", ecurie: "Audi", statut: "outsider"},\n    {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "outsider"},\n    {nom: "Esteban Ocon", ecurie: "Haas", statut: "outsider"},\n    {nom: "Oliver Bearman", ecurie: "Haas", statut: "outsider"}\n];
+    {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori"},
+    {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider"},
+    {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori"},
+    {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori"},
+    {nom: "Lando Norris", ecurie: "McLaren", statut: "favori"},
+    {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori"},
+    {nom: "George Russell", ecurie: "Mercedes", statut: "favori"},
+    {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori"},
+    {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider"},
+    {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider"},
+    {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider"},
+    {nom: "Jack Doohan", ecurie: "Alpine", statut: "outsider"},
+    {nom: "Alex Albon", ecurie: "Williams", statut: "outsider"},
+    {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider"},
+    {nom: "Yuki Tsunoda", ecurie: "Racing Bulls", statut: "outsider"},
+    {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "outsider"},
+    {nom: "Nico Hulkenberg", ecurie: "Audi", statut: "outsider"},
+    {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "outsider"},
+    {nom: "Esteban Ocon", ecurie: "Haas", statut: "outsider"},
+    {nom: "Oliver Bearman", ecurie: "Haas", statut: "outsider"}
+];
 
-const ecuriesListe = [\n    "Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", \n    "Alpine", "Williams", "Racing Bulls", "Audi", "Haas"\n];
+const ecuriesListe = [
+    "Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", 
+    "Alpine", "Williams", "Racing Bulls", "Audi", "Haas"
+];
 
 // ==========================================
 // 4. CHARGEMENT ET TRI DU CLASSEMENT GÉNÉRAL
@@ -131,7 +153,6 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        // 🎯 Correction : On extrait les scores depuis la collection "pronostics"
         const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
         
@@ -143,7 +164,6 @@ async function chargerClassementGeneral() {
         let joueurs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // On s'assure d'exclure les documents annexes de la collection qui n'auraient pas de pseudo
             if (data.pseudo) {
                 joueurs.push({
                     pseudo: data.pseudo,
@@ -292,6 +312,7 @@ function mettreAJourDesignSlot(pos, nomPilote) {
     if(badgeTeam && piloteObj) badgeTeam.innerText = piloteObj.ecurie;
 }
 
+// Contrôle visuel des pilotes sélectionnés en double
 function controlerDoublonsPilotes() {
     const selectionnes = [];
     for(let i = 1; i <= 10; i++) {
@@ -320,7 +341,11 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     let tri = [...pilotesData].sort(() => 0.5 - Math.random());
     for(let i=1; i<=10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = tri[i-1].nom; mettreAJourDesignSlot(i, tri[i-1].nom); }\n    }
+        if(s) { 
+            s.value = tri[i-1].nom; 
+            mettreAJourDesignSlot(i, tri[i-1].nom); 
+        }
+    }
     controlerDoublonsPilotes();
 });
 
@@ -332,12 +357,14 @@ function chargerPronosticsUtilisateur() {
     if(!user) return;
 
     const round = document.getElementById('select-course').value;
+    const docId = round ? `gp_${round}` : 'gp_1';
     
-    db.collection("pronostics").doc(user.uid).collection("grands_prix").doc(document.getElementById('select-course').value ? `gp_${round}` : 'gp_1').get().then(doc => {
+    db.collection("pronostics").doc(user.uid).collection("grands_prix").doc(docId).get().then(doc => {
         // Reset global des sélections avant l'injection
         for(let i=1; i<=10; i++) {
             const s = document.getElementById(`select-grid-p${i}`);
-            if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }\n        }
+            if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+        }
         const pole = document.getElementById('select-poleman'); if(pole) pole.value = "";
         const t1 = document.getElementById('ecurie-top-1'); if(t1) t1.value = "";
         const t2 = document.getElementById('ecurie-top-2'); if(t2) t2.value = "";
@@ -350,7 +377,8 @@ function chargerPronosticsUtilisateur() {
             if(data.top10 && Array.isArray(data.top10)) {
                 data.top10.forEach((pilote, index) => {
                     const s = document.getElementById(`select-grid-p${index+1}`);
-                    if(s) { s.value = pilote; mettreAJourDesignSlot(index+1, pilote); }\n                });
+                    if(s) { s.value = pilote; mettreAJourDesignSlot(index+1, pilote); }
+                });
             }
             if(pole && data.poleman) pole.value = data.poleman;
             if(t1 && data.ecurieTop1) t1.value = data.ecurieTop1;
