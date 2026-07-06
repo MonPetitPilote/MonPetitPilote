@@ -12,7 +12,7 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 
-const totalRounds = 24; // La saison 2026 comporte généralement 24 Grands Prix
+const totalRounds = 24; // La saison 2026 comporte 24 Grands Prix
 
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori"},
@@ -26,225 +26,191 @@ const pilotesData = [
   {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider"},
   {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider"},
   {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", statut: "outsider"},
-  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider"},
+  {nom: "Jack Doohan", ecurie: "Alpine", statut: "outsider"},
   {nom: "Alex Albon", ecurie: "Williams", statut: "outsider"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "fond"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", statut: "fond"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", statut: "fond"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "fond"},
-  {nom: "Oliver Bearman", ecurie: "Haas", statut: "fond"},
-  {nom: "Esteban Ocon", ecurie: "Haas", statut: "fond"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "fond"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "fond"}
+  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider"},
+  {nom: "Yuki Tsunoda", ecurie: "Racing Bulls", statut: "outsider"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "outsider"},
+  {nom: "Nico Hulkenberg", ecurie: "Audi", statut: "outsider"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "outsider"},
+  {nom: "Esteban Ocon", ecurie: "Haas", statut: "outsider"},
+  {nom: "Oliver Bearman", ecurie: "Haas", statut: "outsider"}
 ];
 
-function obtenirCote(piloteNom, position) {
-    const p = pilotesData.find(pilote => pilote.nom === piloteNom);
-    if (!p) return 1.5;
-    
-    if (p.statut === "favori") {
-        if (position === 1) return 1.3;
-        if (position <= 3) return 1.1;
-        if (position <= 6) return 1.8;
-        return 2.5 + (position * 0.1);
-    } 
-    if (p.statut === "outsider") {
-        if (position === 1) return p.nom === "Fernando Alonso" ? 100.0 : 35.0;
-        if (position <= 3) return 10.0;
-        if (position <= 6) return 3.5;
-        return 1.6;
-    } 
-    if (p.statut === "fond") {
-        if (position === 1) return 120.0;
-        if (position <= 3) return 60.0;
-        if (position <= 6) return 18.0;
-        if (position <= 8) return 5.0;
-        return 1.3;
-    }
-    return 1.5;
-}
+// Barème de points officiel F1 pour le Top 10
+const BAREME_F1 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
 async function demarrer() {
-    console.log("🤖 Lancement du calcul automatique OpenF1 pour la saison 2026...");
-    
+    console.log("🤖 Lancement du traitement des résultats de course...");
+
     for (let round = 1; round <= totalRounds; round++) {
-        const courseId = `2026/${round}`; 
-        
+        const histoRef = db.collection("historique_courses").doc(`gp_${round}`);
+        const histoDoc = await histoRef.get();
+
+        if (histoDoc.exists) {
+            // Ce Grand Prix a déjà été calculé et clôturé, on passe au suivant
+            continue; 
+        }
+
         try {
-            // 1. Récupérer la session de course (Race) pour le round 2026 demandé
-            const sessionRes = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Race`);
-            const sessions = sessionRes.data;
+            console.log(`📡 Vérification des données de session OpenF1 pour le GP ${round}...`);
             
-            // On cherche la session qui correspond à l'index du round actuel
-            // OpenF1 liste les sessions dans l'ordre chronologique de l'année
-            const sessionCourse = sessions[round - 1]; 
+            // Récupération de la session de course la plus récente (ou ajuster selon vos clés de rounds)
+            const sessionRes = await axios.get(`https://api.openf1.org/v1/sessions?round=${round}&session_name=Race`);
+            if (!sessionRes.data || sessionRes.data.length === 0) {
+                console.log(`⏹️ GP ${round} non disponible ou pas encore couru.`);
+                break; 
+            }
+
+            const sessionKey = sessionRes.data[0].session_key;
             
-            if (!sessionCourse) {
-                console.log(`ℹ️ Le GP numéro ${round} de 2026 n'est pas encore enregistré ou débuté.`);
+            // 1. Récupération des positions finales de la course
+            const positionRes = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`);
+            if (!positionRes.data || positionRes.data.length === 0) {
+                console.log(`⚠ Pas de données de positions de course pour le GP ${round}.`);
                 break;
             }
 
-            const sessionKey = sessionCourse.session_key;
-
-            // 2. Récupérer la position finale des pilotes pour cette course spécifique
-            const positionsRes = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`);
-            const ttesPositions = positionsRes.data;
-
-            if (!ttesPositions || ttesPositions.length === 0) {
-                console.log(`ℹ️ Les résultats du GP numéro ${round} ne sont pas encore disponibles.`);
-                break;
-            }
-
-            // Vérifier si le GP est déjà calculé dans ton Firestore
-            const histoRef = db.collection("courses_calculees").doc(`gp_${round}`);
-            const histoDoc = await histoRef.get();
+            // Tri par position croissante pour obtenir le Top 10 final officiel
+            const triee = positionRes.data.sort((a, b) => a.position - b.position);
             
-            if (histoDoc.exists) {
-                console.log(`ℹ️ Le GP ${round} a déjà été traité.`);
-                continue; 
-            }
-
-            // Filtrer pour obtenir la dernière position connue de chaque pilote à la fin de la course
-            const derniersEtatsPilotes = {};
-            ttesPositions.forEach(pos => {
-                derniersEtatsPilotes[pos.driver_number] = pos;
+            // 2. Récupération des infos pilotes pour faire correspondre le nom complet
+            const driversRes = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`);
+            const driversMap = {};
+            driversRes.data.forEach(d => {
+                driversMap[d.driver_number] = `${d.first_name} ${d.last_name}`;
             });
 
-            // Classer les pilotes par position montante (1, 2, 3...)
-            const classementTrie = Object.values(derniersEtatsPilotes).sort((a, b) => a.position - b.position);
-
-            // Récupérer le dictionnaire des pilotes pour convertir les numéros (ex: 1) en Noms (ex: Max Verstappen)
-            const driversRes = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`);
-            const driversList = driversRes.data;
-
+            // Construction du Top 10 Officiel
             const top10Officiel = [];
-            for (let i = 0; i < Math.min(10, classementTrie.length); i++) {
-                const numPilote = classementTrie[i].driver_number;
-                const dInfo = driversList.find(d => d.driver_number === numPilote);
-                if (dInfo) {
-                    top10Officiel.push(`${dInfo.first_name} ${dInfo.last_name}`);
+            const vus = new Set();
+            for (let item of triee) {
+                const nomComplet = driversMap[item.driver_number];
+                if (nomComplet && !vus.has(nomComplet)) {
+                    vus.add(nomComplet);
+                    top10Officiel.push(nomComplet);
+                    if (top10Officiel.length === 10) break;
                 }
             }
 
             if (top10Officiel.length < 10) {
-                console.log(`ℹ️ Attente de la validation définitive du classement final pour le GP ${round}.`);
+                console.log(`⚠ Top 10 incomplet (${top10Officiel.length}/10). Traitement reporté.`);
                 break;
             }
 
-            console.log(`🏁 Traitement en cours du GP 2026 Round ${round}. Top 3 officiel :`, top10Officiel.slice(0,3));
-            
-            // Le premier du Top 10 de la course est considéré comme notre référence de points
-            const polemanOfficiel = top10Officiel[0]; 
-
-            const compteEcuriesTop10 = {};
-            top10Officiel.forEach(piloteNom => {
-                const pData = pilotesData.find(p => p.nom === piloteNom);
-                if (pData) {
-                    compteEcuriesTop10[pData.ecurie] = (compteEcuriesTop10[pData.ecurie] || 0) + 1;
+            // 3. Récupération du Poleman officiel (Depuis la session de qualification)
+            let polemanOfficiel = "";
+            try {
+                const qualifRes = await axios.get(`https://api.openf1.org/v1/sessions?round=${round}&session_name=Qualifying`);
+                if (qualifRes.data && qualifRes.data.length > 0) {
+                    const qualifKey = qualifRes.data[0].session_key;
+                    const polePosRes = await axios.get(`https://api.openf1.org/v1/position?session_key=${qualifKey}&position=1`);
+                    if (polePosRes.data && polePosRes.data.length > 0) {
+                        polemanOfficiel = driversMap[polePosRes.data[0].driver_number] || "";
+                    }
                 }
-            });
+            } catch (err) {
+                console.warn(` Impossible de récupérer le Poleman pour le GP ${round}.`, err.message);
+            }
 
-            const pronosSnapshot = await db.collection("pronostics").where("course", "==", courseId).get();
+            console.log(`🏁 Résultats GP ${round} : Poleman = ${polemanOfficiel} | Top 3 = ${top10Officiel.slice(0, 3).join(', ')}`);
+
+            // 4. Parcours des pronostics de tous les utilisateurs pour calculer les points
+            const joueursSnapshot = await db.collection("pronostics").get();
             
-            if (!pronosSnapshot.empty) {
-                for (const doc of pronosSnapshot.docs) {
-                    const prono = doc.data();
-                    const uidJoueur = prono.uidJoueur;
-                    const pseudo = prono.pseudo;
-                    const grilleJoueur = prono.classementPilotes;
+            for (let joueurDoc of joueursSnapshot.docs) {
+                const userId = joueurDoc.id;
+                const userDataBase = joueurDoc.data();
+                const pseudo = userDataBase.pseudo || "Pilote Anonyme";
 
+                const pronoRef = db.collection("pronostics").doc(userId).collection("grands_prix").doc(`gp_${round}`);
+                const pronoDoc = await pronoRef.get();
+
+                if (pronoDoc.exists) {
+                    const pronoData = pronoDoc.data();
+                    
+                    let pointsDuTop10 = 0;
+                    let pointsDesEcuries = 0;
+                    let bonusPole = 0;
                     let pointsGagnes = 0;
-                    let poleReussie = false;
-                    let meilleureCotePari = 0;
 
-                    if (grilleJoueur && Array.isArray(grilleJoueur)) {
-                        grilleJoueur.forEach((piloteProno, index) => {
-                            const position = index + 1;
+                    // A. Calcul des points du Top 10 Pilotes
+                    if (pronoData.top10 && Array.isArray(pronoData.top10)) {
+                        pronoData.top10.forEach((piloteProno, indexProno) => {
                             const indexOfficiel = top10Officiel.indexOf(piloteProno);
-                            const positionOfficielle = indexOfficiel + 1;
-                            const estCoupPoker = (prono.ligneCoupPoker === position);
-
                             if (indexOfficiel !== -1) {
-                                if (position === positionOfficielle) {
-                                    if (estCoupPoker) {
-                                        const cote = obtenirCote(piloteProno, position);
-                                        const pointsPoker = Math.round(10 * cote);
-                                        pointsGagnes += pointsPoker;
-                                        meilleureCotePari = cote;
-                                    } else {
-                                        pointsGagnes += 10;
-                                    }
-                                } else if (!estCoupPoker) {
-                                    pointsGagnes += 3;
+                                // Cas 1 : Position exacte (Points complets du barème)
+                                if (indexProno === indexOfficiel) {
+                                    pointsDuTop10 += BAREME_F1[indexProno];
+                                } else {
+                                    // Cas 2 : Présent dans le Top 10 mais mauvaise position (+1 point de consolation)
+                                    pointsDuTop10 += 1;
                                 }
                             }
                         });
                     }
 
-                    if (prono.poleman === polemanOfficiel) {
-                        pointsGagnes += 15;
-                        poleReussie = true;
+                    // B. Calcul du bonus Poleman (+5 points)
+                    const poleReussie = (pronoData.poleman && polemanOfficiel && pronoData.poleman === polemanOfficiel);
+                    if (poleReussie) {
+                        bonusPole = 5;
                     }
 
-                    if (prono.ecuriesTop && Array.isArray(prono.ecuriesTop)) {
-                        prono.ecuriesTop.forEach(ecurie => {
-                            if (compteEcuriesTop10[ecurie] === 2) pointsGagnes += 10;
-                        });
+                    // C. Calcul simple fictif des Écuries Top / Flop (Exemple : +2 par bonne écurie)
+                    // À adapter ou affiner selon vos critères de performance réels
+                    const ecurieGagnante = pilotesData.find(p => p.nom === top10Officiel[0])?.ecurie;
+                    if (pronoData.ecurieTop1 === ecurieGagnante) pointsDesEcuries += 5;
+                    if (pronoData.ecurieTop2 === ecurieGagnante) pointsDesEcuries += 2;
+
+                    // D. Totalisation et application du multiplicateur Joker s'il est activé
+                    pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
+                    if (pronoData.jokerUtilise) {
+                        pointsGagnes = pointsGagnes * 2;
                     }
 
-                    if (prono.ecuriesFlop && Array.isArray(prono.ecuriesFlop)) {
-                        prono.ecuriesFlop.forEach(ecurie => {
-                            if (!compteEcuriesTop10[ecurie] || compteEcuriesTop10[ecurie] === 0) pointsGagnes += 10;
-                        });
-                    }
-
-                    const utiliserJoker = prono.jokerActive || false;
-                    if (utiliserJoker) {
-                        pointsGagnes = pointsGagnes * 3;
-                    }
-
-                    await db.collection("historique_points").add({
-                        uidJoueur, pseudo, round, courseId, pointsGagnes,
-                        polemanProno: prono.poleman, polemanOfficiel,
-                        classementPilotes: grilleJoueur, top10Officiel,
-                        jokerApplique: utiliserJoker, dateCalcul: new Date()
-                    });
-
-                    const userRef = db.collection("utilisateurs").doc(uidJoueur);
+                    // E. Transaction Firestore sécurisée pour mettre à jour le Général et le Bilan Détallé du GP
                     await db.runTransaction(async (transaction) => {
+                        const userRef = db.collection("pronostics").doc(userId);
                         const userDoc = await transaction.get(userRef);
+                        
                         if (userDoc.exists) {
-                            const data = userDoc.data();
-                            const polesTotal = (data.polesReussies || 0) + (poleReussie ? 1 : 0);
-                            const maxCote = Math.max((data.meilleureCoteGagnee || 0), meilleureCotePari);
+                            const currentData = userDoc.data();
+                            const polesTotal = (currentData.polesReussies || 0) + (poleReussie ? 1 : 0);
                             
+                            // Mise à jour du profil Global
                             transaction.update(userRef, { 
-                                points: (data.points || 0) + pointsGagnes,
-                                polesReussies: polesTotal,
-                                meilleureCoteGagnee: maxCote
+                                points: (currentData.points || 0) + pointsGagnes,
+                                polesReussies: polesTotal
                             });
-                        } else {
-                            transaction.set(userRef, { 
-                                pseudo, points: pointsGagnes,
-                                polesReussies: poleReussie ? 1 : 0,
-                                meilleureCoteGagnee: meilleureCotePari,
-                                jokerSaisonUtilise: utiliserJoker
-                            });
+
+                            // 🎯 ÉCRITURE DU BILAN CALCULÉ DANS LE GRAND PRIX DE L'UTILISATEUR
+                            transaction.set(pronoRef, {
+                                bilanCalcul: {
+                                    pointsTotaux: pointsGagnes,
+                                    detailTop10: pointsDuTop10,
+                                    bonusPole: bonusPole,
+                                    bonusEcuries: pointsDesEcuries,
+                                    jokerApplique: pronoData.jokerUtilise || false,
+                                    calculeLe: new Date()
+                                }
+                            }, { merge: true }); // Important : 'merge: true' préserve la grille saisie d'origine
                         }
                     });
+                    
+                    console.log(`✅ Score calculé pour ${pseudo} : +${pointsGagnes} pts (Top10: ${pointsDuTop10}, Pole: ${bonusPole}, Écuries: ${pointsDesEcuries})`);
                 }
             }
 
-            await histoRef.set({ calculeLe: new Date(), top10: top10Officiel });
-            console.log(`🔒 GP ${round} archivé avec succès.`);
+            // Archivage final de la course pour éviter un re-calcul au prochain lancement du cron
+            await histoRef.set({ calculeLe: new Date(), top10: top10Officiel, poleman: polemanOfficiel });
+            console.log(`🔒 GP ${round} archivé et validé avec succès.`);
 
         } catch (error) {
-            console.error(`⚠️ Erreur de connexion ou attente de session pour le GP ${round}:`, error.message);
+            console.error(`⚠️ Erreur lors du calcul réseau pour le GP ${round}:`, error.message);
             break; 
         }
     }
-    console.log("🤖 Fin d'exécution.");
+    console.log("🤖 Fin d'exécution du cron avec succès.");
 }
 
 demarrer();
