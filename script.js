@@ -575,7 +575,7 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
 // INITIALISATIONS DE BASE AU CHARGEMENT
 initialiserSelectCourse();
 initialiserPolePosition();
-initialiserEcuriesTopFlop();
+initialiserEcurieTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
 adapterEnTeteTitreEtReglement();
