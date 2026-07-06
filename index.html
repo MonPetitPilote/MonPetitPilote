@@ -1,157 +1,44 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MON PETIT PILOTE ENTRE POTES - F1 2026</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <div class="container">
+<div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4;">
         
-        <div class="top-member-bar">
-            <div id="auth-inputs-header" class="auth-champs-header">
-                <input type="text" id="input-email-header" placeholder="Email">
-                <input type="password" id="input-pass-header" placeholder="Mot de passe">
-                <button id="btn-connexion-header" class="btn-header-auth" style="background: #ff8000; color: #10141d;">Connexion</button>
-            </div>
+        <button id="btn-fermer-reglement" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
+        
+        <h3 style="color: #ff8000; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📜 Barème & Règlement du Jeu</h3>
+        
+        <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 15px; font-style: italic;">🚨 Vos pronostics doivent être validés et enregistrés sur le site avant le début officiel de la séance de qualifications de chaque week-end.</p>
 
-            <div id="user-info-header" style="display: none; align-items: center; gap: 15px; background: #161b26; padding: 6px 14px; border-radius: 20px; border: 1px solid #2d3954;">
-                <span id="user-logged-name" style="font-weight: bold; color: #fff;">--</span>
-                <span id="user-badges-container" style="display: flex; gap: 5px;"></span>
-                <span id="user-logged-points" style="background: #ff8000; color: #10141d; padding: 3px 10px; font-weight: bold; font-size: 0.85rem; border-radius: 12px; box-shadow: 0 0 8px rgba(255,128,0,0.3);">0 pts</span>
-                <span id="badge-eligible" style="font-size: 0.8rem; font-weight: bold;">--</span>
-                <button id="btn-deconnexion-header" class="btn-header-auth" style="background: #ef4444; color: white;">Déconnexion</button>
-            </div>
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">1. Le Top 10 Pilotes</h4>
+            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Vos choix pour les 10 premières places de la course sont comparés aux résultats officiels :</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0; list-style-type: square;">
+                <li style="margin-bottom: 4px;"><strong style="color: #22c55e;">Position exacte :</strong> Vous marquez l'intégralité des points du barème F1 officiel :<br>
+                    <span style="color: #cbd5e1; font-size: 0.8rem; display: block; margin-top: 2px;">
+                        P1: 25 | P2: 18 | P3: 15 | P4: 12 | P5: 10 <br>
+                        P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
+                    </span>
+                </li>
+                <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+1 pt)</strong>.</li>
+            </ul>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #1c2437; padding-bottom: 15px;">
-            <div>
-                <h1 style="margin: 0; font-size: 1.8rem; letter-spacing: 1px; color: #fff;">🏁 MON PETIT PILOTE <span style="color: #ff8000;">F1 2026</span></h1>
-                <p style="margin: 4px 0 0 0; color: #616e88; font-size: 0.9rem;">Le jeu de pronostics ultime entre potes.</p>
-            </div>
-            <button id="btn-reglement" style="background: #2d3954; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer;">📜 Règlement</button>
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">2. Le Bonus Poleman</h4>
+            <p style="margin: 0; font-size: 0.9rem;">Si le pilote sélectionné comme « Poleman » décroche la première place (P1) lors de la séance officielle de qualifications, vous empochez un bonus fixe de <strong style="color: #22c55e;">+5 points</strong>.</p>
         </div>
 
-        <div class="layout-paddock" style="display: grid; grid-template-columns: 1fr 340px; gap: 25px;">
-            
-            <div>
-                <div style="background: #111622; padding: 15px; border-radius: 8px; border: 1px solid #1c2437; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                    <label for="select-course" style="font-weight: bold; color: #ff8000;">Sélectionner le week-end :</label>
-                    <select id="select-course" style="background: #0f131c; color: white; border: 1px solid #2d3954; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;"></select>
-                    
-                    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="check-joker" style="transform: scale(1.2); cursor: pointer;">
-                        <label for="check-joker" style="font-weight: bold; color: #fff; cursor: pointer;">👑 Activer mon JOKER x2</label>
-                    </div>
-                </div>
-
-                <div id="zone-bilan-gp" style="display: none; margin-bottom: 20px; padding: 15px; background: #1a2235; border: 1px solid #ff8000; border-radius: 8px;">
-                    <h4 style="color: #ff8000; margin: 0 0 10px 0;">📊 Votre bilan sur ce Grand Prix</h4>
-                    <div style="display: flex; gap: 20px; font-size: 0.9rem; color: #cbd5e1;">
-                        <div>Pilotes (Top 10) : <span id="bilan-points-pilotes" style="color: #fff; font-weight: bold;">0</span> pts</div>
-                        <div>Pole Position : <span id="bilan-points-pole" style="color: #fff; font-weight: bold;">0</span> pts</div>
-                        <div>Écuries (Top/Flop) : <span id="bilan-points-ecuries" style="color: #fff; font-weight: bold;">0</span> pts</div>
-                        <div style="margin-left: auto; border-left: 1px solid #2d3954; padding-left: 20px; font-size: 1rem;">
-                            Total Gagné : <span id="bilan-points-total" style="color: #ff8000; font-weight: bold;">0</span> pts <span id="bilan-joker-mention" style="color: #ff8000; font-weight: bold; display:none;">(Joker 👑)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="background: #111622; padding: 20px; border-radius: 8px; border: 1px solid #1c2437;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0; color: #fff;">🏎️ Votre Grille de Départ (Top 10)</h3>
-                        <button id="btn-aleatoire" style="background: #1c2437; color: #a0aec0; border: 1px solid #2d3954; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">🎲 Grille Aléatoire</button>
-                    </div>
-                    
-                    <div id="paddock-grid-slots" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-                        </div>
-
-                    <div style="border-top: 1px solid #1c2437; padding-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <h4 style="margin: 0 0 10px 0; color: #fff;">⏱️ Qualification</h4>
-                            <select id="select-poleman" style="width: 100%; padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;"></select>
-                        </div>
-                        <div>
-                            <h4 style="margin: 0 0 10px 0; color: #fff;">🏢 Écuries de Pointe</h4>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <select id="ecurie-top-1" style="padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;"></select>
-                                <select id="ecurie-top-2" style="padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;"></select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <select id="ecurie-flop-1" style="display:none;"></select>
-                    <select id="ecurie-flop-2" style="display:none;"></select>
-
-                    <button id="btn-valider" style="width: 100%; background: #ff8000; color: #10141d; border: none; padding: 14px; border-radius: 6px; font-size: 1.05rem; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,128,0,0.2);">🔒 Enregistrer mes Pronostics</button>
-                </div>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div style="background: #111622; border-radius: 8px; border: 1px solid #1c2437; overflow: hidden;">
-                    <div style="background: #1c2437; padding: 15px; font-weight: bold; color: #fff; border-bottom: 1px solid #2d3954;">🏆 Classement Général</div>
-                    <div id="liste-classement" style="max-height: 400px; overflow-y: auto;">
-                        </div>
-                </div>
-
-                <div id="bloc-zone-inscription" style="background: #111622; padding: 20px; border-radius: 8px; border: 1px solid #1c2437;">
-                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #fff;">Créer un compte Joueur</h3>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <input type="text" id="reg-pseudo" placeholder="Votre Pseudo" style="padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;">
-                        <input type="text" id="reg-email" placeholder="Adresse Email" style="padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;">
-                        <input type="password" id="reg-pass" placeholder="Mot de passe" style="padding: 10px; background: #0f131c; color: white; border: 1px solid #2d3954; border-radius: 4px;">
-                        <button id="btn-inscription" style="background: #2d3954; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px;">S'inscrire</button>
-                    </div>
-                </div>
-            </div>
-
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
+            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
+                <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
+                <li>Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
+            </ul>
         </div>
 
-        <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
-            <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4;">
-                <button id="btn-fermer-reglement" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
-                <h3 style="color: #ff8000; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📜 Barème & Règlement du Jeu</h3>
-                <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 15px; font-style: italic;">🚨 Vos pronostics doivent être validés et enregistrés sur le site avant le début officiel de la séance de qualifications de chaque week-end.</p>
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">1. Le Top 10 Pilotes</h4>
-                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Vos choix pour les 10 premières places de la course sont comparés aux résultats officiels :</p>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0; list-style-type: square;">
-                        <li style="margin-bottom: 4px;"><strong style="color: #22c55e;">Position exacte :</strong> Vous marquez l'intégralité des points du barème F1 officiel :<br>
-                            <span style="color: #cbd5e1; font-size: 0.8rem; display: block; margin-top: 2px;">
-                                P1: 25 | P2: 18 | P3: 15 | P4: 12 | P5: 10 <br>
-                                P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
-                            </span>
-                        </li>
-                        <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+1 pt)</strong>.</li>
-                    </ul>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">2. Le Bonus Poleman</h4>
-                    <p style="margin: 0; font-size: 0.9rem;">Si le pilote sélectionné comme « Poleman » décroche la première place (P1) lors de la séance officielle de qualifications, vous empochez un bonus fixe de <strong style="color: #22c55e;">+5 points</strong>.</p>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
-                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
-                        <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
-                        <li>Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
-                    </ul>
-                </div>
-                <div style="margin-bottom: 5px;">
-                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
-                    <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
-                </div>
-            </div>
+        <div style="margin-bottom: 5px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
+            <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
         </div>
 
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    
-    <script src="script.js"></script>
-</body>
-</html>
+</div>
