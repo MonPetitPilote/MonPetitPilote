@@ -117,7 +117,7 @@ async function chargerDonneesEsthetiquesOpenF1() {
             };
         });
     } catch (e) {
-        console.error("OpenF1 hors-ligne.", e);
+        console.error("OpenF1 hors-ligne.");
     }
     creerLaGrilleDeDepartTV();
 }
