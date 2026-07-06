@@ -1,44 +1,152 @@
-<div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4;">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MON PETIT PILOTE ENTRE POTES - F1 2026</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles des fenêtres modales (Règlement et Historique) */
+        .modal-back {
+            position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content-inner {
+            background-color: #222c43; color: white; padding: 25px; border-radius: 8px;
+            width: 90%; max-width: 550px; border: 1px solid #3b4b6b; position: relative;
+        }
+        .close-modal {
+            position: absolute; right: 15px; top: 10px; color: #aaa; font-size: 28px;
+            font-weight: bold; cursor: pointer;
+        }
+        .close-modal:hover { color: #fff; }
+        .ligne-joueur:hover { background-color: #2c3a54; transition: 0.2s; }
+        .reglement-item { margin-bottom: 15px; background: #111622; padding: 10px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="top-member-bar">
+            <div id="bloc-auth-header">
+                <div id="auth-deconnecte">
+                    <div class="auth-champs-header">
+                        <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription)">
+                        <input type="email" id="auth-email" placeholder="Email">
+                        <input type="password" id="auth-mdp" placeholder="Mot de passe">
+                        <button id="btn-connexion" class="btn-header-auth btn-conn">Connexion</button>
+                        <button id="btn-inscription" class="btn-header-auth btn-insc">S'inscrire</button>
+                    </div>
+                    <div style="text-align: right; margin-top: 4px;">
+                        <a href="#" id="link-recup-mdp" style="color: #a5b1c2; font-size: 0.75rem; text-decoration: underline;">Mot de passe oublié ?</a>
+                    </div>
+                </div>
+                <div id="auth-connecte" style="display: none; align-items: center; gap: 15px;">
+                    <div class="user-profile-badge">
+                        <span class="status-dot"></span>
+                        <span id="nom-utilisateur">...</span>
+                    </div>
+                    <button id="btn-deconnexion" class="btn-logout">DÉCONNEXION</button>
+                </div>
+            </div>
+        </div>
+
+        <header class="brand-header">
+            <div class="brand-logo-zone">
+                <h1 class="brand-title">MON PETIT <span>PILOTE</span></h1>
+                <div class="brand-subtitle">🏆 Le Championnat des Potes 2026</div>
+            </div>
+            
+            <button id="btn-reglement" style="background: #ff8000; color: #111622; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">📜 RÈGLEMENT</button>
+        </header>
+
+        <div class="main-layout">
+            
+            <div class="colonne-gauche">
+                
+                <div class="section-course">
+                    <label for="select-course">SÉLECTIONNER LE WEEK-END :</label>
+                    <select id="select-course"></select>
+                </div>
+
+                <div class="section-pole" style="margin-top: 20px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
+                    <label for="select-pole" style="color: #00d2d3; display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label>
+                    <select id="select-pole" style="width: 100%; padding: 8px; border-radius: 4px; background: #111622; color: white; border: 1px solid #3b4b6b;"></select>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+                    <h2 style="margin: 0;" id="titre-grille">🏆 TA GRILLE DE DÉPART TOP 10 :</h2>
+                    <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
+                </div>
+
+                <div id="grille-pronos" class="f1-starting-grid"></div>
+
+                <div style="margin: 20px 0; background: #1b2436; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px dashed #FF8000;">
+                    <input type="checkbox" id="check-joker" style="transform: scale(1.4); cursor: pointer;">
+                    <span id="joker-status-text" style="color: #FF8000; font-weight: bold; font-size: 0.9rem;">🚀 Activer mon unique Joker (+300% de points !)</span>
+                </div>
+
+                <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
+            </div>
+
+            <div class="colonne-droite">
+                
+                <div class="bloc-sub-droite" style="margin-bottom: 25px;">
+                    <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour consulter ses scores précédents.</p>
+                    <div class="tableau-scores">
+                        <div class="entete-scores">
+                            <div>Pos</div>
+                            <div>Joueur</div>
+                            <div style="text-align: right;">Points</div>
+                        </div>
+                        <div id="liste-classement"></div>
+                    </div>
+                </div>
+
+                <div class="section-top-flop" style="background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #E10600;">
+                    <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label style="color: #4cd137; display: block; margin-bottom: 5px; font-size: 0.85rem;">🔥 LES 2 TOPS :</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="ecurie-top-1" class="select-ecurie"></select>
+                                <select id="ecurie-top-2" class="select-ecurie"></select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="color: #ff3f3f; display: block; margin-bottom: 5px; font-size: 0.85rem;">⚠️ LES 2 FLOPS :</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="ecurie-flop-1" class="select-ecurie"></select>
+                                <select id="ecurie-flop-2" class="select-ecurie"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 500px; width: 90%; border: 1px solid #2f3e56; color: #fff; position: relative;">
         
-        <button id="btn-fermer-reglement" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
+        <button id="btn-fermer-reglement" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
         
-        <h3 style="color: #ff8000; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📜 Barème & Règlement du Jeu</h3>
-        
-        <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 15px; font-style: italic;">🚨 Vos pronostics doivent être validés et enregistrés sur le site avant le début officiel de la séance de qualifications de chaque week-end.</p>
-
-        <div style="margin-bottom: 15px;">
-            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">1. Le Top 10 Pilotes</h4>
-            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Vos choix pour les 10 premières places de la course sont comparés aux résultats officiels :</p>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0; list-style-type: square;">
-                <li style="margin-bottom: 4px;"><strong style="color: #22c55e;">Position exacte :</strong> Vous marquez l'intégralité des points du barème F1 officiel :<br>
-                    <span style="color: #cbd5e1; font-size: 0.8rem; display: block; margin-top: 2px;">
-                        P1: 25 | P2: 18 | P3: 15 | P4: 12 | P5: 10 <br>
-                        P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
-                    </span>
-                </li>
-                <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+1 pt)</strong>.</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">2. Le Bonus Poleman</h4>
-            <p style="margin: 0; font-size: 0.9rem;">Si le pilote sélectionné comme « Poleman » décroche la première place (P1) lors de la séance officielle de qualifications, vous empochez un bonus fixe de <strong style="color: #22c55e;">+5 points</strong>.</p>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
-            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
-                <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
-                <li>Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
-            </ul>
-        </div>
-
-        <div style="margin-bottom: 5px;">
-            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
-            <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
-        </div>
-
+        <h3 style="color: #ff8000; margin-top: 0;">📜 Règlement du Jeu</h3>
+        <p>1. Enregistrez votre Top 10 avant le début de chaque séance qualificative.</p>
+        <p>2. Les points sont attribués selon le barème officiel de la F1.</p>
+        <p>3. Un bonus de +5 points est accordé si vous trouvez le bon Poleman !</p>
     </div>
 </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    <script src="script.js"></script>
+</body>
+</html>
