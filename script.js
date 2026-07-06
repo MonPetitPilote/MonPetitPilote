@@ -17,17 +17,17 @@ var auth = firebase.auth();
 
 // Chemins locaux vers tes images AVIF
 const LOGOS_2026 = {
-    redbull: "images/redbull.avif",
-    ferrari: "images/ferrari.avif",
-    mclaren: "images/mclaren.avif",
-    mercedes: "images/mercedes.avif",
-    aston: "images/astonmartin.avif",
-    alpine: "images/alpine.avif",
-    williams: "images/williams.avif",
-    racingbulls: "images/racingbulls.avif",
-    audi: "images/audi.avif",
-    haas: "images/haas.avif",
-    cadillac: "images/cadillac.avif"
+    redbull: "images/cars/redbull.avif",
+    ferrari: "images/cars/ferrari.avif",
+    mclaren: "images/cars/mclaren.avif",
+    mercedes: "images/cars/mercedes.avif",
+    aston: "images/cars/astonmartin.avif",
+    alpine: "images/cars/alpine.avif",
+    williams: "images/cars/williams.avif",
+    racingbulls: "images/cars/racingbulls.avif",
+    audi: "images/cars/audi.avif",
+    haas: "images/cars/haas.avif",
+    cadillac: "images/cars/cadillac.avif"
 };
 
 // Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
