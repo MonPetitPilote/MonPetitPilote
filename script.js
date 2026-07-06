@@ -549,28 +549,46 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     }
 });
 
-// CHARGEMENT DU CLASSEMENT GÉNÉRAL REEL + BADGES DES AMIS
+// CHARGEMENT DU CLASSEMENT GÉNÉRAL BASÉ UNIQUEMENT SUR LA COLLECTION PRONOSTICS
 async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
-    if(!liste) return;
+    if(!liste || !selectCourse) return;
     
+    const courseId = selectCourse.value; // Ex: "2026/1"
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
+        // On récupère tous les pronostics pour le Grand Prix sélectionné
+        const snapshot = await db.collection("pronostics").where("course", "==", courseId).get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
-            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun joueur enregistré pour le moment.</div>";
+            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun pronostic enregistré pour ce Grand Prix.</div>";
             return;
         }
 
-        let pos = 1;
+        // Extraction des joueurs et de leurs scores calculés par le script automatisé (cron)
+        let joueurs = [];
         snapshot.forEach(doc => {
-            const u = doc.data();
+            const data = doc.data();
+            // On récupère les points calculés par ton cron, s'ils n'existent pas encore, on met 0
+            const pointsGagnes = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) ? data.bilanCalcul.pointsTotaux : 0;
+            
+            joueurs.push({
+                pseudo: data.pseudo || 'Pilote Anonyme',
+                points: pointsGagnes,
+                badges: data.badges || [] // Si tu ajoutes des badges plus tard dans le document
+            });
+        });
+
+        // Tri des joueurs du plus grand nombre de points au plus petit
+        joueurs.sort((a, b) => b.points - a.points);
+
+        let pos = 1;
+        joueurs.forEach(u => {
             let badgesHtml = "";
             
-            // Intégration visuelle des distinctions à côté des pseudos de la ligue
+            // Gestion des badges/distinctions si présents
             if (u.badges && Array.isArray(u.badges)) {
                 u.badges.forEach(badge => {
                     badgesHtml += `<span style="margin-left: 5px; cursor: help;" title="${badge.nom} : ${badge.description}">🏅</span>`;
@@ -581,8 +599,8 @@ async function chargerClassementGeneral() {
             div.style = 'display:grid; grid-template-columns:50px 1fr 90px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
             div.innerHTML = `
                 <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo || 'Pilote Anonyme'} ${badgesHtml}</div>
-                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>
+                <div>${u.pseudo} ${badgesHtml}</div>
+                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
             `;
             liste.appendChild(div); 
             pos++;
