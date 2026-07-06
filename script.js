@@ -90,9 +90,4 @@ document.getElementById('btn-connexion')?.addEventListener('click', () => {
 });
 document.getElementById('btn-inscription')?.addEventListener('click', () => {
     const pseudo = document.getElementById('auth-pseudo').value;
-    const email = document.getElementById('auth-email').value;
-    const mdp = document.getElementById('auth-mdp').value;
-    if(!pseudo) return alert("Pseudo requis !");
-    auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
-        res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo
+    const email = document.getElementById('auth-email
