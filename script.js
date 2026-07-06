@@ -63,6 +63,34 @@ let designPilotesF1 = {};
 const selectCourse = document.getElementById('select-course');
 const selectPole = document.getElementById('select-pole');
 
+// Calendrier complet officiel 2026 avec pays, circuit et date de course
+const calendrier2026 = [
+    { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-15" },
+    { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-22" },
+    { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-04-05" },
+    { round: 4, nom: "Grand Prix de Bahreïn", circuit: "Sakhir", pays: "Bahreïn", date: "2026-04-19" },
+    { round: 5, nom: "Grand Prix d'Arabie Saoudite", circuit: "Djeddah", pays: "Arabie Saoudite", date: "2026-05-03" },
+    { round: 6, nom: "Grand Prix de Miami", circuit: "Miami", pays: "USA", date: "2026-05-10" },
+    { round: 7, nom: "Grand Prix d'Émilie-Romagne", circuit: "Imola", pays: "Italie", date: "2026-05-24" },
+    { round: 8, nom: "Grand Prix de Monaco", circuit: "Monaco", pays: "Monaco", date: "2026-05-31" },
+    { round: 9, nom: "Grand Prix d'Espagne", circuit: "Barcelone", pays: "Espagne", date: "2026-06-14" },
+    { round: 10, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-06-21" },
+    { round: 11, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-07-05" },
+    { round: 12, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-12" },
+    { round: 13, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-26" },
+    { round: 14, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-08-02" },
+    { round: 15, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-30" },
+    { round: 16, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
+    { round: 17, nom: "Grand Prix d'Azerbaïdjan", circuit: "Bakou", pays: "Azerbaïdjan", date: "2026-09-20" },
+    { round: 18, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-04" },
+    { round: 19, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-18" },
+    { round: 20, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-10-25" },
+    { round: 21, nom: "Grand Prix de São Paulo", circuit: "Interlagos", pays: "Brésil", date: "2026-11-08" },
+    { round: 22, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-22" },
+    { round: 23, nom: "Grand Prix du Qatar", circuit: "Losail", pays: "Qatar", date: "2026-11-29" },
+    { round: 24, nom: "Grand Prix d'Abou Dabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
+];
+
 // Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
 function injecterStylesResponsifsGlobaux() {
     if (document.getElementById('f1-responsive-styles-globaux')) return;
@@ -70,7 +98,6 @@ function injecterStylesResponsifsGlobaux() {
     const styleSheet = document.createElement("style");
     styleSheet.id = "f1-responsive-styles-globaux";
     styleSheet.innerText = `
-        /* --- STYLE DE BASE DE LA GRILLE --- */
         .grid-slot {
             display: flex !important;
             flex-direction: row !important;
@@ -80,9 +107,7 @@ function injecterStylesResponsifsGlobaux() {
             margin-bottom: 12px !important;
         }
 
-        /* --- STYLES ADAPTATIFS MOBILE (< 576px) --- */
         @media (max-width: 576px) {
-            /* 1. Structure de la Grille de Pronos en Blocs */
             #grille-pronos {
                 display: block !important;
                 width: 100% !important;
@@ -126,7 +151,6 @@ function injecterStylesResponsifsGlobaux() {
                 height: 120% !important;
             }
 
-            /* 2. Adaptation Responsive de la Zone Connexion / Inscription */
             #auth-deconnecte, #auth-connecte {
                 width: 100% !important;
                 box-sizing: border-box !important;
@@ -144,40 +168,27 @@ function injecterStylesResponsifsGlobaux() {
                 box-sizing: border-box !important;
                 font-size: 14px !important;
                 padding: 10px !important;
-                margin: 2px 0 !important;
             }
             #auth-deconnecte button, #auth-connecte button {
                 width: 100% !important;
                 box-sizing: border-box !important;
                 padding: 12px !important;
-                margin: 4px 0 !important;
                 font-size: 14px !important;
                 text-align: center !important;
                 justify-content: center !important;
-            }
-            
-            /* Ajustement pour séparer proprement la ligne ou le bloc de boutons */
-            .auth-actions-group {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 8px !important;
-                width: 100% !important;
             }
         }
     `;
     document.head.appendChild(styleSheet);
 }
 
-// GESTION DU TITRE ET DU BOUTON RÈGLEMENT
+// GESTION DU TITRE ET DU BOUTON RÈGLEMENT SANS CASSER SON ONCLICK
 function adapterEnTeteTitreEtReglement() {
-    // On essaie de cibler le conteneur du titre à l'aide de structures courantes
-    // S'il n'y a pas d'ID, on cherche un conteneur contenant h1 ou l'élément du règlement
-    const boutonReglement = document.querySelector('button[onclick*="reglement"]') || document.getElementById('btn-reglement') || document.querySelector('.btn-reglement');
+    const boutonReglement = document.getElementById('btn-reglement') || document.querySelector('button[onclick*="reglement"]') || document.querySelector('.btn-reglement');
     if (!boutonReglement) return;
 
     const conteneurParent = boutonReglement.parentElement;
     if (conteneurParent) {
-        // Applique un style flex en colonne centré au conteneur pour que le titre passe au-dessus et le bouton au-dessous
         conteneurParent.style.display = 'flex';
         conteneurParent.style.flexDirection = 'column';
         conteneurParent.style.alignItems = 'center';
@@ -187,7 +198,6 @@ function adapterEnTeteTitreEtReglement() {
         conteneurParent.style.width = '100%';
         conteneurParent.style.margin = '20px auto';
 
-        // S'assurer que le bouton lui-même est bien centré et ne prend pas une taille disproportionnée
         boutonReglement.style.margin = '0 auto';
         boutonReglement.style.display = 'inline-block';
     }
@@ -255,7 +265,6 @@ function creerLaGrilleDeDepartTV() {
     if (!conteneurGrille) return;
     conteneurGrille.innerHTML = "";
 
-    // Injection des styles responsifs globaux (Grille, Écran de Connexion)
     injecterStylesResponsifsGlobaux();
 
     for (let i = 1; i <= 10; i++) {
@@ -270,10 +279,8 @@ function creerLaGrilleDeDepartTV() {
             <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff; flex-shrink: 0; transition: background 0.3s ease;">P${i}</div>
             <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
                 
-                <!-- Voiture en arrière-plan étendue sur le cadre -->
                 <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
 
-                <!-- Zone gauche : Infos Pilote -->
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
@@ -285,7 +292,6 @@ function creerLaGrilleDeDepartTV() {
                     <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
                 </div>
 
-                <!-- Zone droite : Portrait Pilote zoomé -->
                 <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
                     <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
@@ -366,15 +372,38 @@ function controlerDoublonsPilotes() {
     }
 }
 
-// INITIALISATIONS DE BASE
+// INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
 function initialiserSelectCourse() {
     if (!selectCourse) return;
-    for (let i = 1; i <= 24; i++) {
+    selectCourse.innerHTML = ""; // Reset complet
+
+    const aujourdhui = new Date();
+    let prochainRoundValue = "2026/1"; // Valeur par défaut (Round 1)
+    let roundTrouve = false;
+
+    calendrier2026.forEach(gp => {
         const opt = document.createElement('option');
-        opt.value = `2026/${i}`; opt.innerText = `Grand Prix - Round ${i}`;
+        opt.value = `2026/${gp.round}`;
+        
+        // Formatage de la date en français (ex: 15 mars 2026)
+        const dateObj = new Date(gp.date);
+        const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        // Texte enrichi complet demandé : Circuit + Pays + Date
+        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
         selectCourse.appendChild(opt);
-    }
+
+        // Détection automatique : On cherche le premier GP dont la date est aujourd'hui ou dans le futur
+        if (!roundTrouve && dateObj >= aujourdhui) {
+            prochainRoundValue = `2026/${gp.round}`;
+            roundTrouve = true; // Empêche de surcharger avec les suivants
+        }
+    });
+
+    // Appliquer la sélection automatique du Grand Prix à venir
+    selectCourse.value = prochainRoundValue;
 }
+
 function initialiserPolePosition() {
     if (!selectPole) return;
     selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
