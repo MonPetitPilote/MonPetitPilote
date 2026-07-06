@@ -630,4 +630,9 @@ chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
 adapterEnTeteTitreEtReglement();
 
-if(selectCourse) selectCourse.addEventListener('change', chargerPronosticsUtilisateur);
+if(selectCourse) {
+    selectCourse.addEventListener('change', () => {
+        chargerPronosticsUtilisateur();
+        chargerClassementGeneral(); // recharge le classement de la course sélectionnée !
+    });
+};
