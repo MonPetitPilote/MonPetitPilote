@@ -169,7 +169,7 @@ function injecterStylesResponsifsGlobaux() {
 }
 
 // GESTION DU TITRE ET DU BOUTON RÈGLEMENT
-function adapterEn-TeteTitreEtReglement() {
+function adapterEnTeteTitreEtReglement() {
     // On essaie de cibler le conteneur du titre à l'aide de structures courantes
     // S'il n'y a pas d'ID, on cherche un conteneur contenant h1 ou l'élément du règlement
     const boutonReglement = document.querySelector('button[onclick*="reglement"]') || document.getElementById('btn-reglement') || document.querySelector('.btn-reglement');
