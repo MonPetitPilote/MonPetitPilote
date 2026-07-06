@@ -241,7 +241,7 @@ auth.onAuthStateChanged(async (user) => {
         
         // Récupération des données utilisateur de la base pour obtenir ses points généraux réels
         try {
-            const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
+            const userDoc = await db.collection("pronostics").doc(user.uid).get();
             let pointsGeneraux = 0;
             let estEligible = true;
 
@@ -289,7 +289,7 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!pseudo) return alert("Pseudo requis !");
     auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
         res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
+            db.collection("pronostics").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
             location.reload();
         });
     }).catch(err => alert(err.message));
@@ -537,7 +537,7 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
+        const snapshot = await db.collection("pronostics").orderBy("points", "desc").get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
