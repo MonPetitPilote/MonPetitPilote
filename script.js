@@ -286,4 +286,55 @@ async function chargerPronosticsUtilisateur() {
     controlerDoublonsPilotes();
 }
 
-document.
+document.getElementById('btn-valider')?.addEventListener('click', async () => {
+    if (!utilisateurActuel) return alert("Tu dois être connecté !");
+    const courseId = selectCourse.value;
+    const top10Selection = [];
+    for(let i=1; i<=10; i++) {
+        const val = document.getElementById(`select-grid-p${i}`).value;
+        if(!val) return alert(`Il manque la position P${i} !`);
+        top10Selection.push(val);
+    }
+    const pronoData = {
+        uidJoueur: utilisateurActuel.uid,
+        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+        course: courseId,
+        classementPilotes: top10Selection,
+        poleman: selectPole.value,
+        ecuriesTop: [document.getElementById('ecurie-top-1').value, document.getElementById('ecurie-top-2').value],
+        ecuriesFlop: [document.getElementById('ecurie-flop-1').value, document.getElementById('ecurie-flop-2').value],
+        dateEnregistrement: new Date()
+    };
+    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
+    alert("🏁 Grille enregistrée avec succès !");
+});
+
+async function chargerClassementGeneral() {
+    const liste = document.getElementById('liste-classement'); if(!liste) return;
+    liste.innerHTML = "";
+    const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
+    let pos = 1;
+    snapshot.forEach(doc => {
+        const u = doc.data();
+        const div = document.createElement('div');
+        div.style = 'display:grid; grid-template-columns:40px 1fr 60px; padding:12px; border-bottom:1px solid #1c2437;';
+        div.innerHTML = `<div><strong>#${pos}</strong></div><div>${u.pseudo}</div><div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>`;
+        liste.appendChild(div); pos++;
+    });
+}
+
+document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
+    let tri = [...pilotesData].sort(() => 0.5 - Math.random());
+    for(let i=1; i<=10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`);
+        if(s) { s.value = tri[i-1].nom; mettreAJourDesignSlot(i, tri[i-1].nom); }
+    }
+    controlerDoublonsPilotes();
+});
+
+initialiserSelectCourse();
+initialiserPolePosition();
+initialiserEcuriesTopFlop();
+chargerClassementGeneral();
+chargerDonneesEsthetiquesOpenF1();
+if(selectCourse) selectCourse.addEventListener('change', chargerPronosticsUtilisateur);
