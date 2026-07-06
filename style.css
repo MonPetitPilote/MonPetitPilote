@@ -169,6 +169,31 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 .entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
 
 
+/* Style pour les boutons de sélection visuelle d'écurie */
+.carte-selection-team {
+    background: #111622 !important;
+    border: 2px dashed #2d3954 !important;
+    border-radius: 8px !important;
+    height: 90px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: all 0.2s ease-in-out !important;
+    overflow: hidden !important;
+    padding: 5px !important;
+}
+
+/* Effet au survol de la souris */
+.carte-selection-team:hover {
+    border-color: #ff8000 !important;
+    background: #161d2d !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 128, 0, 0.1);
+}
+
 @media (max-width: 576px) {
     #grille-pronos {
         display: block !important;
