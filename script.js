@@ -187,7 +187,6 @@ function adapterEnTeteTitreEtReglement() {
     const boutonReglement = document.getElementById('btn-reglement') || document.querySelector('button[onclick*="reglement"]') || document.querySelector('.btn-reglement');
     if (!boutonReglement) return;
 
-    // Sauvegarde et nettoyage des styles inline conflictuels du parent
     const conteneurParent = boutonReglement.parentElement;
     if (conteneurParent) {
         conteneurParent.style.display = 'flex';
@@ -209,16 +208,12 @@ function adapterEnTeteTitreEtReglement() {
 // ==========================================
 document.getElementById('btn-reglement')?.addEventListener('click', () => {
     const modale = document.getElementById('modale-reglement');
-    if (modale) {
-        modale.style.display = 'flex'; 
-    }
+    if (modale) modale.style.display = 'flex'; 
 });
 
 document.getElementById('btn-fermer-reglement')?.addEventListener('click', () => {
     const modale = document.getElementById('modale-reglement');
-    if (modale) {
-        modale.style.display = 'none'; 
-    }
+    if (modale) modale.style.display = 'none'; 
 });
 
 window.addEventListener('click', (e) => {
@@ -228,7 +223,9 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
+// ==========================================
+// 3. GESTION AUTHENTIFICATION ET POINTS EN DIRECT
+// ==========================================
 auth.onAuthStateChanged(async (user) => {
     const zoneDeconnecte = document.getElementById('auth-deconnecte');
     const zoneConnecte = document.getElementById('auth-connecte');
@@ -239,21 +236,25 @@ auth.onAuthStateChanged(async (user) => {
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
         if(zoneConnecte) zoneConnecte.style.display = 'flex';
         
-        // Récupération des données utilisateur de la base pour obtenir ses points généraux réels
         try {
             const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
             let pointsGeneraux = 0;
             let estEligible = true;
+            let badgesHtml = "";
 
             if (userDoc.exists) {
                 const userData = userDoc.data();
                 pointsGeneraux = userData.points || 0;
-                if (userData.eligible !== undefined) {
-                    estEligible = userData.eligible;
+                if (userData.eligible !== undefined) estEligible = userData.eligible;
+                
+                // Intégration visuelle des badges de l'utilisateur connecté
+                if (userData.badges && Array.isArray(userData.badges)) {
+                    userData.badges.forEach(badge => {
+                        badgesHtml += `<span style="background: #ff8000; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 5px;" title="${badge.description}">🏅 ${badge.nom}</span>`;
+                    });
                 }
             }
 
-            // Création du bloc récapitulatif à côté du nom
             const badgeEligibleHtml = estEligible 
                 ? `<span style="background: #10b981; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">👑 ÉLIGIBLE</span>`
                 : `<span style="background: #ef4444; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">❌ NON ÉLIGIBLE</span>`;
@@ -261,11 +262,13 @@ auth.onAuthStateChanged(async (user) => {
             if(nomUserSpan) {
                 nomUserSpan.innerHTML = `
                     <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
-                    <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pointsGeneraux} pts au Général</span>
+                    <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pointsGeneraux} pts</span>
                     ${badgeEligibleHtml}
+                    ${badgesHtml}
                 `;
             }
         } catch (error) {
+            console.error("Erreur récupération profil utilisateur:", error);
             if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
         }
 
@@ -282,6 +285,7 @@ document.getElementById('btn-connexion')?.addEventListener('click', () => {
     const mdp = document.getElementById('auth-mdp').value;
     auth.signInWithEmailAndPassword(email, mdp).catch(err => alert(err.message));
 });
+
 document.getElementById('btn-inscription')?.addEventListener('click', () => {
     const pseudo = document.getElementById('auth-pseudo').value;
     const email = document.getElementById('auth-email').value;
@@ -289,15 +293,16 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!pseudo) return alert("Pseudo requis !");
     auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
         res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
+            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true, badges: [] });
             location.reload();
         });
     }).catch(err => alert(err.message));
 });
+
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 // ==========================================
-// 3. CHARGEMENT ET GENERATION GRILLE TV
+// 4. CHARGEMENT ET GENERATION GRILLE TV
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
     try {
@@ -306,9 +311,7 @@ async function chargerDonneesEsthetiquesOpenF1() {
         
         drivers.forEach(d => {
             const nomComplet = `${d.first_name} ${d.last_name}`;
-            designPilotesF1[nomComplet] = {
-                couleur: `#${d.team_colour || '2d3954'}`
-            };
+            designPilotesF1[nomComplet] = { couleur: `#${d.team_colour || '2d3954'}` };
         });
     } catch (e) {
         console.error("OpenF1 hors-ligne.");
@@ -334,9 +337,7 @@ function creerLaGrilleDeDepartTV() {
         slot.innerHTML = `
             <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff; flex-shrink: 0; transition: background 0.3s ease;">P${i}</div>
             <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
-                
                 <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
-
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
@@ -347,7 +348,6 @@ function creerLaGrilleDeDepartTV() {
                     </select>
                     <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
                 </div>
-
                 <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
                     <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
@@ -402,7 +402,7 @@ function mettreAJourDesignSlot(position, nomPilote) {
 }
 
 // ==========================================
-// 4. SECURITE CONTROLE DES DOUBLONS
+// 5. SECURITE CONTROLE DES DOUBLONS
 // ==========================================
 function controlerDoublonsPilotes() {
     const selections = [];
@@ -418,7 +418,6 @@ function controlerDoublonsPilotes() {
 
         Array.from(select.options).forEach(option => {
             if(option.value === "") return;
-            
             if(selections.includes(option.value) && option.value !== valeurActuelle) {
                 option.disabled = true;
             } else {
@@ -428,7 +427,9 @@ function controlerDoublonsPilotes() {
     }
 }
 
-// INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
+// ==========================================
+// 6. INITIALISATIONS DES DROPDOWNS
+// ==========================================
 function initialiserSelectCourse() {
     if (!selectCourse) return;
     selectCourse.innerHTML = ""; 
@@ -464,6 +465,7 @@ function initialiserPolePosition() {
         opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
     });
 }
+
 function initialiserEcuriesTopFlop() {
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         const select = document.getElementById(id); if(!select) return;
@@ -472,34 +474,46 @@ function initialiserEcuriesTopFlop() {
     });
 }
 
+// ==========================================
+// 7. SYNC FIRESTORE : RECUPERATION ET SAUVEGARDE
+// ==========================================
 async function chargerPronosticsUtilisateur() {
     if (!utilisateurActuel || !selectCourse) return;
     const courseId = selectCourse.value;
-    const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
-    for (let i = 1; i <= 10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-    }
-    if(selectPole) selectPole.value = "";
+    try {
+        const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
+        
+        for (let i = 1; i <= 10; i++) {
+            const s = document.getElementById(`select-grid-p${i}`);
+            if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+        }
+        if(selectPole) selectPole.value = "";
+        if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = "";
+        if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = "";
+        if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = "";
+        if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = "";
 
-    if (doc.exists) {
-        const data = doc.data();
-        if (data.classementPilotes) {
-            data.classementPilotes.forEach((nom, idx) => {
-                const s = document.getElementById(`select-grid-p${idx+1}`);
-                if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
-            });
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.classementPilotes) {
+                data.classementPilotes.forEach((nom, idx) => {
+                    const s = document.getElementById(`select-grid-p${idx+1}`);
+                    if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
+                });
+            }
+            if(selectPole && data.poleman) selectPole.value = data.poleman;
+            if(data.ecuriesTop) {
+                if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = data.ecuriesTop[0] || "";
+                if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = data.ecuriesTop[1] || "";
+            }
+            if(data.ecuriesFlop) {
+                if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = data.ecuriesFlop[0] || "";
+                if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = data.ecuriesFlop[1] || "";
+            }
         }
-        if(selectPole && data.poleman) selectPole.value = data.poleman;
-        if(data.ecuriesTop) {
-            if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = data.ecuriesTop[0] || "";
-            if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = data.ecuriesTop[1] || "";
-        }
-        if(data.ecuriesFlop) {
-            if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = data.ecuriesFlop[0] || "";
-            if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = data.ecuriesFlop[1] || "";
-        }
+    } catch(err) {
+        console.error("Erreur lors du chargement des pronos:", err);
     }
     controlerDoublonsPilotes();
 }
@@ -508,32 +522,38 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
     const top10Selection = [];
+    
     for(let i=1; i<=10; i++) {
         const val = document.getElementById(`select-grid-p${i}`).value;
         if(!val) return alert(`Il manque la position P${i} !`);
         top10Selection.push(val);
     }
-    const pronoData = {
-        uidJoueur: utilisateurActuel.uid,
-        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
-        course: courseId,
-        classementPilotes: top10Selection,
-        poleman: selectPole.value,
-        ecuriesTop: [document.getElementById('ecuries-top-1')?.value || "", document.getElementById('ecuries-top-2')?.value || ""],
-        ecuriesFlop: [document.getElementById('ecuries-flop-1')?.value || "", document.getElementById('ecuries-flop-2')?.value || ""],
-        dateEnregistrement: new Date()
-    };
-    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
-    alert("🏁 Grille enregistrée avec succès !");
+    
+    try {
+        const pronoData = {
+            uidJoueur: utilisateurActuel.uid,
+            pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+            course: courseId,
+            classementPilotes: top10Selection,
+            poleman: selectPole?.value || "",
+            // Correction ici : IDs synchronisés sans le 's' (ecurie-top-1)
+            ecuriesTop: [document.getElementById('ecurie-top-1')?.value || "", document.getElementById('ecurie-top-2')?.value || ""],
+            ecuriesFlop: [document.getElementById('ecurie-flop-1')?.value || "", document.getElementById('ecurie-flop-2')?.value || ""],
+            dateEnregistrement: new Date()
+        };
+        
+        await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
+        alert("🏁 Grille enregistrée avec succès !");
+    } catch (error) {
+        alert("Erreur de sauvegarde : " + error.message);
+    }
 });
 
-// CHARGEMENT DU CLASSEMENT GÉNÉRAL SÉCURISÉ
+// CHARGEMENT DU CLASSEMENT GÉNÉRAL REEL + BADGES DES AMIS
 async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
-    if(!liste) {
-        console.warn("Conteneur 'liste-classement' introuvable dans le HTML.");
-        return;
-    }
+    if(!liste) return;
+    
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
@@ -548,17 +568,27 @@ async function chargerClassementGeneral() {
         let pos = 1;
         snapshot.forEach(doc => {
             const u = doc.data();
+            let badgesHtml = "";
+            
+            // Intégration visuelle des distinctions à côté des pseudos de la ligue
+            if (u.badges && Array.isArray(u.badges)) {
+                u.badges.forEach(badge => {
+                    badgesHtml += `<span style="margin-left: 5px; cursor: help;" title="${badge.nom} : ${badge.description}">🏅</span>`;
+                });
+            }
+
             const div = document.createElement('div');
-            div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
+            div.style = 'display:grid; grid-template-columns:50px 1fr 90px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
             div.innerHTML = `
                 <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo || 'Pilote Anonyme'}</div>
+                <div>${u.pseudo || 'Pilote Anonyme'} ${badgesHtml}</div>
                 <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>
             `;
             liste.appendChild(div); 
             pos++;
         });
     } catch (error) {
+        console.error("Erreur Firestore sur le classement:", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
@@ -572,11 +602,14 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     controlerDoublonsPilotes();
 });
 
-// INITIALISATIONS DE BASE AU CHARGEMENT
+// ==========================================
+// 8. INITIALISATIONS DE BASE AU CHARGEMENT
+// ==========================================
 initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
 adapterEnTeteTitreEtReglement();
+
 if(selectCourse) selectCourse.addEventListener('change', chargerPronosticsUtilisateur);
