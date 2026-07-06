@@ -11,17 +11,14 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
-// Initialisation de l'application
+// Initialisation immédiate et sécurisée
 const app = firebase.initializeApp(firebaseConfig);
-
-// 🎯 Initialisation propre de Firestore avec fusion des paramètres (évite le warning et le blocage)
 var db = firebase.firestore(app);
 db.settings({
-    host: "firestore.googleapis.com", // On remet le host par défaut explicitement
+    host: "firestore.googleapis.com",
     ssl: true,
-    experimentalAutoDetectLongPolling: true // Force le polling contre uBlock/AdBlock
+    experimentalAutoDetectLongPolling: true // Force le rafraîchissement réseau standard
 });
-
 var auth = firebase.auth();
 
 // Chemins locaux vers tes images AVIF
@@ -43,7 +40,6 @@ const designPilotesF1 = {};
 // ==========================================
 // 2. GESTION DE L'AUTHENTIFICATION (CONNEXION/INSCRIPTION)
 // ==========================================
-
 auth.onAuthStateChanged(user => {
     const zoneAuth = document.getElementById('auth-inputs-header');
     const zoneInfo = document.getElementById('user-info-header');
@@ -54,13 +50,11 @@ auth.onAuthStateChanged(user => {
         if(zoneInfo) zoneInfo.style.display = 'flex';
         if(nomUser) nomUser.innerText = user.email.split('@')[0];
 
-        // Lecture du profil dans "pronostics" au lieu de "utilisateurs"
         db.collection("pronostics").doc(user.uid).get().then(doc => {
             if (doc.exists) {
                 const userData = doc.data();
                 if(nomUser) nomUser.innerText = userData.pseudo || user.email.split('@')[0];
                 
-                // Affichage des points réels de la base de données
                 const ptsG = userData.points !== undefined ? userData.points : 0;
                 const el = document.getElementById('user-logged-points');
                 if(el) el.innerText = ptsG + " pts au Général";
@@ -72,7 +66,7 @@ auth.onAuthStateChanged(user => {
                 }
             }
         }).catch(err => {
-            console.error("Erreur lors de la récupération des points du profil :", err);
+            console.error("Erreur profil :", err);
         });
 
         chargerPronosticsUtilisateur();
@@ -116,7 +110,6 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     });
 });
 
-// Événement Déconnexion
 document.getElementById('btn-deconnexion-header')?.addEventListener('click', () => {
     auth.signOut().then(() => location.reload());
 });
@@ -159,8 +152,6 @@ async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
     if(!liste) return;
     
-    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
-    
     try {
         const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
@@ -181,7 +172,6 @@ async function chargerClassementGeneral() {
             }
         });
 
-        // Tri décroissant pour mettre le premier du championnat en haut
         joueurs.sort((a, b) => b.points - a.points);
 
         joueurs.forEach((u, index) => {
@@ -195,10 +185,8 @@ async function chargerClassementGeneral() {
             `;
             liste.appendChild(div); 
         });
-
     } catch (error) {
         console.error("Erreur classement :", error);
-        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement.</div>";
     }
 }
 
@@ -248,6 +236,8 @@ function initialiserEcuriesTopFlop() {
 // 6. LOGIQUE OPENF1 ET ESTHÉTIQUE DE LA GRILLE
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
+    // 🎯 Sécurité : On génère la grille d'abord pour qu'elle apparaisse instantanément
+    creerLaGrilleDeDepartTV();
     try {
         const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
         const drivers = await response.json();
@@ -257,10 +247,14 @@ async function chargerDonneesEsthetiquesOpenF1() {
                 couleur: `#${d.team_colour || '2d3954'}`
             };
         });
+        // Si l'API répond après coup, on applique les couleurs à la grille existante
+        for(let i=1; i<=10; i++) {
+            const s = document.getElementById(`select-grid-p${i}`);
+            if(s && s.value) mettreAJourDesignSlot(i, s.value);
+        }
     } catch (e) {
-        console.error("OpenF1 hors-ligne ou bloqué par CORS :", e);
+        console.warn("OpenF1 hors-ligne, utilisation des styles par défaut.");
     }
-    creerLaGrilleDeDepartTV();
 }
 
 function creerLaGrilleDeDepartTV() {
@@ -285,12 +279,14 @@ function creerLaGrilleDeDepartTV() {
         container.appendChild(divSlot);
 
         const select = document.getElementById(`select-grid-p${i}`);
-        pilotesData.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.nom;
-            opt.innerText = p.nom;
-            select.appendChild(opt);
-        });
+        if(select) {
+            pilotesData.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.nom;
+                opt.innerText = p.nom;
+                select.appendChild(opt);
+            });
+        }
     }
 }
 
@@ -311,7 +307,6 @@ function mettreAJourDesignSlot(pos, nomPilote) {
     }
 
     const piloteObj = pilotesData.find(p => p.nom === nomPilote);
-    
     let couleurEcurie = "#ff8000";
     if(designPilotesF1[nomPilote] && designPilotesF1[nomPilote].couleur) {
         couleurEcurie = designPilotesF1[nomPilote].couleur;
@@ -321,7 +316,6 @@ function mettreAJourDesignSlot(pos, nomPilote) {
     if(badgeTeam && piloteObj) badgeTeam.innerText = piloteObj.ecurie;
 }
 
-// Contrôle visuel des pilotes sélectionnés en double
 function controlerDoublonsPilotes() {
     const selectionnes = [];
     for(let i = 1; i <= 10; i++) {
@@ -333,7 +327,6 @@ function controlerDoublonsPilotes() {
         const s = document.getElementById(`select-grid-p${i}`);
         if(!s) continue;
         const valeur = s.value;
-        
         const doublons = selectionnes.filter(v => v === valeur).length;
         if(valeur && doublons > 1) {
             s.style.color = "#ef4444";
@@ -345,7 +338,6 @@ function controlerDoublonsPilotes() {
     }
 }
 
-// Bouton Aléatoire
 document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     let tri = [...pilotesData].sort(() => 0.5 - Math.random());
     for(let i=1; i<=10; i++) {
@@ -362,7 +354,7 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
 // 7. CHARGEMENT ET SAUVEGARDE DES PRONOSTICS
 // ==========================================
 function chargerPronosticsUtilisateur() {
-    // 1. Reset visuel complet des champs d'abord, pour que la grille ne disparaisse jamais
+    // On s'assure d'abord que les champs sont vides à l'écran
     for(let i=1; i<=10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
         if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
@@ -375,7 +367,7 @@ function chargerPronosticsUtilisateur() {
     const jk = document.getElementById('check-joker'); if(jk) jk.checked = false;
 
     const user = auth.currentUser;
-    if(!user) return; // Si pas connecté, on s'arrête là mais les sélecteurs restent affichés et vides !
+    if(!user) return;
 
     const round = document.getElementById('select-course').value;
     const docId = round ? `gp_${round}` : 'gp_1';
@@ -398,33 +390,26 @@ function chargerPronosticsUtilisateur() {
         }
         controlerDoublonsPilotes();
     }).catch(err => {
-        console.error("Erreur de chargement des pronos :", err);
+        console.error("Erreur synchro pronos :", err);
     });
 }
 
-// Bouton valider les pronos
 document.getElementById('btn-valider')?.addEventListener('click', () => {
     const user = auth.currentUser;
     if(!user) return alert("Veuillez vous connecter pour sauvegarder vos pronostics.");
 
     const round = document.getElementById('select-course').value;
-    
     const top10 = [];
     for(let i=1; i<=10; i++) {
         const val = document.getElementById(`select-grid-p${i}`)?.value;
         if(val) top10.push(val);
     }
 
-    if(top10.length < 10) {
-        return alert("Veuillez compléter votre Top 10 pilotes avant de valider.");
-    }
-
+    if(top10.length < 10) return alert("Veuillez compléter votre Top 10 pilotes.");
     const aChanger = new Set(top10);
-    if(aChanger.size < 10) return alert("Erreur : Vous avez mis le même pilote plusieurs fois dans votre Top 10.");
+    if(aChanger.size < 10) return alert("Erreur : Doublons détectés dans le Top 10.");
 
     const poleman = document.getElementById('select-poleman')?.value;
-    
-    // Supporte les ID HTML avec ou sans "s" (ecurie-top-1 vs ecuries-top-1)
     const ecurieTop1 = document.getElementById('ecurie-top-1')?.value || document.getElementById('ecuries-top-1')?.value;
     const ecurieTop2 = document.getElementById('ecurie-top-2')?.value || document.getElementById('ecuries-top-2')?.value;
     const ecurieFlop1 = document.getElementById('ecurie-flop-1')?.value || document.getElementById('ecuries-flop-1')?.value;
@@ -441,13 +426,12 @@ document.getElementById('btn-valider')?.addEventListener('click', () => {
         jokerUtilise: jokerUtilise,
         sauvegardeLe: new Date()
     }).then(() => {
-        alert(`🏁 Vos pronostics pour le Grand Prix ${round} ont bien été enregistrés !`);
+        alert(`🏁 Pronostics du Grand Prix ${round} enregistrés !`);
     }).catch(err => {
-        alert("Erreur de sauvegarde : " + err.message);
+        alert("Erreur : " + err.message);
     });
 });
 
-// Modales Règlement
 function adapterEnTeteTitreEtReglement() {
     document.getElementById('btn-reglement')?.addEventListener('click', () => {
         const modal = document.getElementById('modale-reglement');
