@@ -11,10 +11,7 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
-// Initialisation standard et fiable à 100%
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
@@ -47,6 +44,7 @@ auth.onAuthStateChanged(user => {
         if(zoneInfo) zoneInfo.style.display = 'flex';
         if(nomUser) nomUser.innerText = user.email.split('@')[0];
 
+        // Récupération du profil depuis la collection unique "pronostics"
         db.collection("pronostics").doc(user.uid).get().then(doc => {
             if (doc.exists) {
                 const userData = doc.data();
@@ -150,6 +148,7 @@ async function chargerClassementGeneral() {
     if(!liste) return;
     
     try {
+        // 🛠️ CORRECTION : On pointe sur la bonne collection unique "pronostics" au lieu de "utilisateurs"
         const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
         
@@ -161,6 +160,7 @@ async function chargerClassementGeneral() {
         let joueurs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
+            // On s'assure qu'il s'agit d'un document de profil joueur (possède un pseudo)
             if (data.pseudo) {
                 joueurs.push({
                     pseudo: data.pseudo,
@@ -169,8 +169,10 @@ async function chargerClassementGeneral() {
             }
         });
 
+        // Tri du score le plus haut au plus bas
         joueurs.sort((a, b) => b.points - a.points);
 
+        // Rendu HTML propre dans ton tableau de classement
         joueurs.forEach((u, index) => {
             const pos = index + 1;
             const div = document.createElement('div');
@@ -184,6 +186,7 @@ async function chargerClassementGeneral() {
         });
     } catch (error) {
         console.error("Erreur classement :", error);
+        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement.</div>";
     }
 }
 
@@ -214,6 +217,7 @@ function initialiserPolePosition() {
     });
 }
 
+// Remplissage dynamique des écuries Top/Flop
 function initialiserEcuriesTopFlop() {
     const ids = ['ecurie-top-1', 'ecurie-top-2', 'ecurie-flop-1', 'ecurie-flop-2'];
     ids.forEach(id => {
@@ -233,9 +237,6 @@ function initialiserEcuriesTopFlop() {
 // 6. LOGIQUE OPENF1 ET ESTHÉTIQUE DE LA GRILLE
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
-    // 🎯 Sécurité vitale : On crée la grille immédiatement avant tout appel API externe
-    creerLaGrilleDeDepartTV();
-    
     try {
         const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
         const drivers = await response.json();
@@ -245,14 +246,8 @@ async function chargerDonneesEsthetiquesOpenF1() {
                 couleur: `#${d.team_colour || '2d3954'}`
             };
         });
-        
-        // Applique les couleurs chargées
-        for(let i=1; i<=10; i++) {
-            const s = document.getElementById(`select-grid-p${i}`);
-            if(s && s.value) mettreAJourDesignSlot(i, s.value);
-        }
     } catch (e) {
-        console.warn("OpenF1 inaccessible ou bloqué par AdBlock. Styles de secours activés.");
+        console.warn("OpenF1 inaccessible.");
     }
 }
 
@@ -353,17 +348,6 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
 // 7. CHARGEMENT ET SAUVEGARDE DES PRONOSTICS
 // ==========================================
 function chargerPronosticsUtilisateur() {
-    for(let i=1; i<=10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-    }
-    const pole = document.getElementById('select-poleman'); if(pole) pole.value = "";
-    const t1 = document.getElementById('ecurie-top-1'); if(t1) t1.value = "";
-    const t2 = document.getElementById('ecurie-top-2'); if(t2) t2.value = "";
-    const f1 = document.getElementById('ecurie-flop-1'); if(f1) f1.value = "";
-    const f2 = document.getElementById('ecurie-flop-2'); if(f2) f2.value = "";
-    const jk = document.getElementById('check-joker'); if(jk) jk.checked = false;
-
     const user = auth.currentUser;
     if(!user) return;
 
@@ -379,12 +363,24 @@ function chargerPronosticsUtilisateur() {
                     if(s) { s.value = pilote; mettreAJourDesignSlot(index+1, pilote); }
                 });
             }
-            if(pole && data.poleman) pole.value = data.poleman;
-            if(t1 && data.ecurieTop1) t1.value = data.ecurieTop1;
-            if(t2 && data.ecurieTop2) t2.value = data.ecurieTop2;
-            if(f1 && data.ecurieFlop1) f1.value = data.ecurieFlop1;
-            if(f2 && data.ecurieFlop2) f2.value = data.ecurieFlop2;
-            if(jk && data.jokerUtilise) jk.checked = data.jokerUtilise;
+            const pole = document.getElementById('select-poleman'); if(pole && data.poleman) pole.value = data.poleman;
+            const t1 = document.getElementById('ecurie-top-1'); if(t1 && data.ecurieTop1) t1.value = data.ecurieTop1;
+            const t2 = document.getElementById('ecurie-top-2'); if(t2 && data.ecurieTop2) t2.value = data.ecurieTop2;
+            const f1 = document.getElementById('ecurie-flop-1'); if(f1 && data.ecurieFlop1) f1.value = data.ecurieFlop1;
+            const f2 = document.getElementById('ecurie-flop-2'); if(f2 && data.ecurieFlop2) f2.value = data.ecurieFlop2;
+            const jk = document.getElementById('check-joker'); if(jk) jk.checked = data.jokerUtilise || false;
+        } else {
+            // Reset complet si aucun prono enregistré pour ce GP
+            for(let i=1; i<=10; i++) {
+                const s = document.getElementById(`select-grid-p${i}`);
+                if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+            }
+            const pole = document.getElementById('select-poleman'); if(pole) pole.value = "";
+            const t1 = document.getElementById('ecurie-top-1'); if(t1) t1.value = "";
+            const t2 = document.getElementById('ecurie-top-2'); if(t2) t2.value = "";
+            const f1 = document.getElementById('ecurie-flop-1'); if(f1) f1.value = "";
+            const f2 = document.getElementById('ecurie-flop-2'); if(f2) f2.value = "";
+            const jk = document.getElementById('check-joker'); if(jk) jk.checked = false;
         }
         controlerDoublonsPilotes();
     }).catch(err => {
@@ -447,6 +443,7 @@ function adapterEnTeteTitreEtReglement() {
 initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
+creerLaGrilleDeDepartTV();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
 adapterEnTeteTitreEtReglement();
