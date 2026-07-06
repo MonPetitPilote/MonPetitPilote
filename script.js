@@ -538,12 +538,14 @@ async function chargerClassementGeneral() {
             const data = doc.data();
             const pseudo = data.pseudo || 'Pilote Anonyme';
             
-            // Extraction des points (depuis l'objet du cron ou la racine)
+            // Extraction des points avec flexibilité (points, point ou bilanCalcul)
             let pointsCourse = 0;
             if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
                 pointsCourse = data.bilanCalcul.pointsTotaux;
             } else if (data.points !== undefined) {
                 pointsCourse = data.points;
+            } else if (data.point !== undefined) { // Sécurité si ton champ dans Firestore est au singulier "point"
+                pointsCourse = data.point;
             }
 
             // Cumul par pseudo
@@ -566,6 +568,11 @@ async function chargerClassementGeneral() {
 
         // 4. On ne garde QUE les 5 premiers (Top 5)
         let top5Joueurs = joueurs.slice(0, 5);
+
+        if (top5Joueurs.length === 0) {
+            liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun point à afficher.</div>";
+            return;
+        }
 
         // 5. Génération visuelle du Top 5
         let pos = 1;
