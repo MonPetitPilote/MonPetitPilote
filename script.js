@@ -223,9 +223,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// ==========================================
-// 3. GESTION AUTHENTIFICATION ET POINTS EN DIRECT
-// ==========================================
+// GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
 auth.onAuthStateChanged(async (user) => {
     const zoneDeconnecte = document.getElementById('auth-deconnecte');
     const zoneConnecte = document.getElementById('auth-connecte');
@@ -236,39 +234,25 @@ auth.onAuthStateChanged(async (user) => {
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
         if(zoneConnecte) zoneConnecte.style.display = 'flex';
         
+        // Extraction du score directement du prono de la course courante
         try {
-            const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
-            let pointsGeneraux = 0;
-            let estEligible = true;
-            let badgesHtml = "";
-
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                pointsGeneraux = userData.points || 0;
-                if (userData.eligible !== undefined) estEligible = userData.eligible;
-                
-                // Intégration visuelle des badges de l'utilisateur connecté
-                if (userData.badges && Array.isArray(userData.badges)) {
-                    userData.badges.forEach(badge => {
-                        badgesHtml += `<span style="background: #ff8000; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 5px;" title="${badge.description}">🏅 ${badge.nom}</span>`;
-                    });
+            if (nomUserSpan) {
+                nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>`;
+            }
+            
+            if (selectCourse) {
+                const courseId = selectCourse.value;
+                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseId.replace('/', '_')}`).get();
+                if (doc.exists && nomUserSpan) {
+                    const data = doc.data();
+                    const pts = data.points !== undefined ? data.points : 0;
+                    nomUserSpan.innerHTML = `
+                        <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
+                        <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pts} pts</span>
+                    `;
                 }
             }
-
-            const badgeEligibleHtml = estEligible 
-                ? `<span style="background: #10b981; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">👑 ÉLIGIBLE</span>`
-                : `<span style="background: #ef4444; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">❌ NON ÉLIGIBLE</span>`;
-
-            if(nomUserSpan) {
-                nomUserSpan.innerHTML = `
-                    <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
-                    <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pointsGeneraux} pts</span>
-                    ${badgeEligibleHtml}
-                    ${badgesHtml}
-                `;
-            }
         } catch (error) {
-            console.error("Erreur récupération profil utilisateur:", error);
             if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
         }
 
@@ -285,7 +269,6 @@ document.getElementById('btn-connexion')?.addEventListener('click', () => {
     const mdp = document.getElementById('auth-mdp').value;
     auth.signInWithEmailAndPassword(email, mdp).catch(err => alert(err.message));
 });
-
 document.getElementById('btn-inscription')?.addEventListener('click', () => {
     const pseudo = document.getElementById('auth-pseudo').value;
     const email = document.getElementById('auth-email').value;
@@ -293,16 +276,14 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!pseudo) return alert("Pseudo requis !");
     auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
         res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true, badges: [] });
             location.reload();
         });
     }).catch(err => alert(err.message));
 });
-
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 // ==========================================
-// 4. CHARGEMENT ET GENERATION GRILLE TV
+// 3. CHARGEMENT ET GENERATION GRILLE TV
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
     try {
@@ -402,7 +383,7 @@ function mettreAJourDesignSlot(position, nomPilote) {
 }
 
 // ==========================================
-// 5. SECURITE CONTROLE DES DOUBLONS
+// 4. SECURITE CONTROLE DES DOUBLONS
 // ==========================================
 function controlerDoublonsPilotes() {
     const selections = [];
@@ -427,9 +408,7 @@ function controlerDoublonsPilotes() {
     }
 }
 
-// ==========================================
-// 6. INITIALISATIONS DES DROPDOWNS
-// ==========================================
+// INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
 function initialiserSelectCourse() {
     if (!selectCourse) return;
     selectCourse.innerHTML = ""; 
@@ -465,7 +444,6 @@ function initialiserPolePosition() {
         opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
     });
 }
-
 function initialiserEcuriesTopFlop() {
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         const select = document.getElementById(id); if(!select) return;
@@ -474,46 +452,38 @@ function initialiserEcuriesTopFlop() {
     });
 }
 
-// ==========================================
-// 7. SYNC FIRESTORE : RECUPERATION ET SAUVEGARDE
-// ==========================================
 async function chargerPronosticsUtilisateur() {
     if (!utilisateurActuel || !selectCourse) return;
     const courseId = selectCourse.value;
+    const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
-    try {
-        const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
-        
-        for (let i = 1; i <= 10; i++) {
-            const s = document.getElementById(`select-grid-p${i}`);
-            if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-        }
-        if(selectPole) selectPole.value = "";
-        if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = "";
-        if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = "";
-        if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = "";
-        if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = "";
+    for (let i = 1; i <= 10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`);
+        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+    }
+    if(selectPole) selectPole.value = "";
+    if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = "";
+    if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = "";
+    if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = "";
+    if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = "";
 
-        if (doc.exists) {
-            const data = doc.data();
-            if (data.classementPilotes) {
-                data.classementPilotes.forEach((nom, idx) => {
-                    const s = document.getElementById(`select-grid-p${idx+1}`);
-                    if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
-                });
-            }
-            if(selectPole && data.poleman) selectPole.value = data.poleman;
-            if(data.ecuriesTop) {
-                if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = data.ecuriesTop[0] || "";
-                if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = data.ecuriesTop[1] || "";
-            }
-            if(data.ecuriesFlop) {
-                if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = data.ecuriesFlop[0] || "";
-                if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = data.ecuriesFlop[1] || "";
-            }
+    if (doc.exists) {
+        const data = doc.data();
+        if (data.classementPilotes) {
+            data.classementPilotes.forEach((nom, idx) => {
+                const s = document.getElementById(`select-grid-p${idx+1}`);
+                if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
+            });
         }
-    } catch(err) {
-        console.error("Erreur lors du chargement des pronos:", err);
+        if(selectPole && data.poleman) selectPole.value = data.poleman;
+        if(data.ecuriesTop) {
+            if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = data.ecuriesTop[0] || "";
+            if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = data.ecuriesTop[1] || "";
+        }
+        if(data.ecuriesFlop) {
+            if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = data.ecuriesFlop[0] || "";
+            if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = data.ecuriesFlop[1] || "";
+        }
     }
     controlerDoublonsPilotes();
 }
@@ -522,43 +492,37 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
     const top10Selection = [];
-    
     for(let i=1; i<=10; i++) {
         const val = document.getElementById(`select-grid-p${i}`).value;
         if(!val) return alert(`Il manque la position P${i} !`);
         top10Selection.push(val);
     }
-    
-    try {
-        const pronoData = {
-            uidJoueur: utilisateurActuel.uid,
-            pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
-            course: courseId,
-            classementPilotes: top10Selection,
-            poleman: selectPole?.value || "",
-            // Correction ici : IDs synchronisés sans le 's' (ecurie-top-1)
-            ecuriesTop: [document.getElementById('ecurie-top-1')?.value || "", document.getElementById('ecurie-top-2')?.value || ""],
-            ecuriesFlop: [document.getElementById('ecurie-flop-1')?.value || "", document.getElementById('ecurie-flop-2')?.value || ""],
-            dateEnregistrement: new Date()
-        };
-        
-        await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
-        alert("🏁 Grille enregistrée avec succès !");
-    } catch (error) {
-        alert("Erreur de sauvegarde : " + error.message);
-    }
+    const pronoData = {
+        uidJoueur: utilisateurActuel.uid,
+        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+        course: courseId,
+        classementPilotes: top10Selection,
+        poleman: selectPole.value,
+        ecuriesTop: [document.getElementById('ecurie-top-1')?.value || "", document.getElementById('ecurie-top-2')?.value || ""],
+        ecuriesFlop: [document.getElementById('ecurie-flop-1')?.value || "", document.getElementById('ecurie-flop-2')?.value || ""],
+        dateEnregistrement: new Date()
+    };
+    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
+    alert("🏁 Grille enregistrée avec succès !");
+    chargerClassementGeneral();
 });
 
-// CHARGEMENT DU CLASSEMENT GÉNÉRAL BASÉ UNIQUEMENT SUR LA COLLECTION PRONOSTICS
+// CHARGEMENT DU CLASSEMENT DEPUIS LA COLLECTION PRONOSTICS
 async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
-    if(!liste || !selectCourse) return;
+    if(!liste) return;
+    if(!selectCourse) return;
     
-    const courseId = selectCourse.value; // Ex: "2026/1"
+    const courseId = selectCourse.value;
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        // On récupère tous les pronostics pour le Grand Prix sélectionné
+        // Recherche de tous les documents de pronostics correspondant à la course en cours
         const snapshot = await db.collection("pronostics").where("course", "==", courseId).get();
         liste.innerHTML = "";
         
@@ -567,46 +531,40 @@ async function chargerClassementGeneral() {
             return;
         }
 
-        // Extraction des joueurs et de leurs scores calculés par le script automatisé (cron)
         let joueurs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // On récupère les points calculés par ton cron, s'ils n'existent pas encore, on met 0
-            const pointsGagnes = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) ? data.bilanCalcul.pointsTotaux : 0;
-            
+            // On vérifie s'il y a un champ 'points' direct ou imbriqué
+            let pointsJoueur = 0;
+            if (data.points !== undefined) {
+                pointsJoueur = data.points;
+            } else if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
+                pointsJoueur = data.bilanCalcul.pointsTotaux;
+            }
+
             joueurs.push({
                 pseudo: data.pseudo || 'Pilote Anonyme',
-                points: pointsGagnes,
-                badges: data.badges || [] // Si tu ajoutes des badges plus tard dans le document
+                points: pointsJoueur
             });
         });
 
-        // Tri des joueurs du plus grand nombre de points au plus petit
+        // Tri décroissant du score
         joueurs.sort((a, b) => b.points - a.points);
 
         let pos = 1;
         joueurs.forEach(u => {
-            let badgesHtml = "";
-            
-            // Gestion des badges/distinctions si présents
-            if (u.badges && Array.isArray(u.badges)) {
-                u.badges.forEach(badge => {
-                    badgesHtml += `<span style="margin-left: 5px; cursor: help;" title="${badge.nom} : ${badge.description}">🏅</span>`;
-                });
-            }
-
             const div = document.createElement('div');
-            div.style = 'display:grid; grid-template-columns:50px 1fr 90px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
+            div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
             div.innerHTML = `
                 <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo} ${badgesHtml}</div>
+                <div>${u.pseudo}</div>
                 <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
             `;
             liste.appendChild(div); 
             pos++;
         });
     } catch (error) {
-        console.error("Erreur Firestore sur le classement:", error);
+        console.error("Erreur Firestore : ", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
@@ -620,9 +578,7 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     controlerDoublonsPilotes();
 });
 
-// ==========================================
-// 8. INITIALISATIONS DE BASE AU CHARGEMENT
-// ==========================================
+// INITIALISATIONS DE BASE AU CHARGEMENT
 initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
@@ -633,6 +589,6 @@ adapterEnTeteTitreEtReglement();
 if(selectCourse) {
     selectCourse.addEventListener('change', () => {
         chargerPronosticsUtilisateur();
-        chargerClassementGeneral(); // recharge le classement de la course sélectionnée !
+        chargerClassementGeneral();
     });
-};
+}
