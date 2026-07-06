@@ -514,69 +514,78 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     chargerClassementGeneral();
 });
 
-// CHARGEMENT DU CLASSEMENT DEPUIS LA COLLECTION PRONOSTICS
+// CHARGEMENT DU CLASSEMENT GENERAL TOTAL (TOP 5 DE LA SAISON)
 async function chargerClassementGeneral() {
-    // On cible le conteneur dans ton fichier HTML
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
     if(!liste) return;
-    if(!selectCourse) return;
     
-    // Sécurité : on récupère la valeur propre (ex: "2026/1")
-    const courseId = selectCourse.value ? selectCourse.value.trim() : "";
-    if(!courseId) return;
-
-    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
+    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
     
     try {
-        // Requête sur la collection pronostics filtrée par l'identifiant de la course en cours
-        const snapshot = await db.collection("pronostics").where("course", "==", courseId).get();
+        // 1. On récupère TOUS les pronostics de la base (toutes courses confondues)
+        const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
-            liste.innerHTML = `<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré pour la course (${courseId}).</div>`;
+            liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
             return;
         }
 
-        let joueurs = [];
+        // Dictionnaire pour cumuler les points par joueur : { "Pseudo": points_totaux }
+        let cumulPoints = {};
+
         snapshot.forEach(doc => {
             const data = doc.data();
-            let pointsJoueur = 0;
+            const pseudo = data.pseudo || 'Pilote Anonyme';
             
-            // Extraction intelligente des points (soit à la racine, soit dans l'objet de ton cron)
+            // Extraction des points (depuis l'objet du cron ou la racine)
+            let pointsCourse = 0;
             if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
-                pointsJoueur = data.bilanCalcul.pointsTotaux;
+                pointsCourse = data.bilanCalcul.pointsTotaux;
             } else if (data.points !== undefined) {
-                pointsJoueur = data.points;
+                pointsCourse = data.points;
             }
 
-            joueurs.push({
-                pseudo: data.pseudo || 'Pilote Anonyme',
-                points: Number(pointsJoueur) || 0
-            });
+            // Cumul par pseudo
+            if (!cumulPoints[pseudo]) {
+                cumulPoints[pseudo] = 0;
+            }
+            cumulPoints[pseudo] += Number(pointsCourse) || 0;
         });
 
-        // Tri des scores du plus grand au plus petit
+        // 2. On transforme le dictionnaire en tableau pour pouvoir le trier
+        let joueurs = Object.keys(cumulPoints).map(pseudo => {
+            return {
+                pseudo: pseudo,
+                points: cumulPoints[pseudo]
+            };
+        });
+
+        // 3. Tri décroissant (du plus grand nombre de points au plus petit)
         joueurs.sort((a, b) => b.points - a.points);
 
-        // Génération visuelle de la liste
+        // 4. On ne garde QUE les 5 premiers (Top 5)
+        let top5Joueurs = joueurs.slice(0, 5);
+
+        // 5. Génération visuelle du Top 5
         let pos = 1;
-        joueurs.forEach(u => {
+        top5Joueurs.forEach(u => {
             const div = document.createElement('div');
             div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
             div.innerHTML = `
-                <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
+                <div><strong style="color:${pos === 1 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
                 <div>${u.pseudo}</div>
                 <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
             `;
             liste.appendChild(div); 
             pos++;
         });
+
     } catch (error) {
-        console.error("Erreur Firestore sur le classement général:", error);
+        console.error("Erreur lors du calcul du classement général cumulé :", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
-
 document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     let tri = [...pilotesData].sort(() => 0.5 - Math.random());
     for(let i=1; i<=10; i++) {
