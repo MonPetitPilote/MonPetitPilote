@@ -109,21 +109,23 @@
                     <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)</h3>
                     
                     <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <div>
-                            <label style="color: #4cd137; display: block; margin-bottom: 5px; font-size: 0.85rem;">🔥 LES 2 TOPS :</label>
-                            <div style="display: flex; gap: 10px;">
-                               <div id="ecurie-top-1"></div>
-                                <div id="ecurie-top-2"></div>
-                                
-                            </div>
-                        </div>
+                       <div class="ecuries-block" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+    <div>
+        <h4 style="color: #00e6c3; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">🚀 Top Écuries (Bonus)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div id="ecurie-top-1" class="carte-selection-team"></div>
+            <div id="ecurie-top-2" class="carte-selection-team"></div>
+        </div>
+    </div>
 
-                        <div>
-                            <label style="color: #ff3f3f; display: block; margin-bottom: 5px; font-size: 0.85rem;">⚠️ LES 2 FLOPS :</label>
-                            <div style="display: flex; gap: 10px;">
-                                <div id="ecurie-flop-1"></div>
-                                <div id="ecurie-flop-2"></div>
-                            </div>
+    <div>
+        <h4 style="color: #ef4444; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">⚠️ Flop Écuries (Malus)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div id="ecurie-flop-1" class="carte-selection-team"></div>
+            <div id="ecurie-flop-2" class="carte-selection-team"></div>
+        </div>
+    </div>
+</div>
                         </div>
                     </div>
                 </div>
