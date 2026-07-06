@@ -15,20 +15,23 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Liens publics Wikipedia d'écuries et de silhouettes (100% ouverts pour l'intégration web)
+// Liens d'images publiques converties (100% compatibles et sans blocage)
 const LOGOS_2026 = {
-    redbull: "https://upload.wikimedia.org/wikipedia/en/1/15/Red_Bull_Racing_logo.svg",
-    ferrari: "https://upload.wikimedia.org/wikipedia/en/c/c0/Scuderia_Ferrari_Logo.svg",
-    mclaren: "https://upload.wikimedia.org/wikipedia/en/6/66/McLaren_Racing_logo.svg",
-    mercedes: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Mercedes-AMG_Petronas_F1_Team_Logo.svg",
-    aston: "https://upload.wikimedia.org/wikipedia/en/b/b8/Aston_Martin_F1_logo.svg",
-    alpine: "https://upload.wikimedia.org/wikipedia/fr/7/7e/Alpine_F1_Team_Logo.svg",
-    williams: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Williams_Racing_logo.svg",
-    racingbulls: "https://upload.wikimedia.org/wikipedia/en/0/02/Visa_Cash_App_RB_F1_Team_logo.svg",
-    audi: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Audi_F1_Team_logo.svg",
-    haas: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Haas_F1_Team_logo.svg",
-    cadillac: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Cadillac_Automobile_Logo.svg"
+    redbull: "https://upload.wikimedia.org/wikipedia/en/thumb/1/15/Red_Bull_Racing_logo.svg/512px-Red_Bull_Racing_logo.svg.png",
+    ferrari: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Scuderia_Ferrari_Logo.svg/388px-Scuderia_Ferrari_Logo.svg.png",
+    mclaren: "https://upload.wikimedia.org/wikipedia/en/thumb/6/66/McLaren_Racing_logo.svg/512px-McLaren_Racing_logo.svg.png",
+    mercedes: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Mercedes-AMG_Petronas_F1_Team_Logo.svg/512px-Mercedes-AMG_Petronas_F1_Team_Logo.svg.png",
+    aston: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b8/Aston_Martin_F1_logo.svg/512px-Aston_Martin_F1_logo.svg.png",
+    alpine: "https://upload.wikimedia.org/wikipedia/fr/thumb/7/7e/Alpine_F1_Team_Logo.svg/320px-Alpine_F1_Team_Logo.svg.png",
+    williams: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Williams_Racing_logo.svg/512px-Williams_Racing_logo.svg.png",
+    racingbulls: "https://upload.wikimedia.org/wikipedia/en/thumb/0/02/Visa_Cash_App_RB_F1_Team_logo.svg/512px-Visa_Cash_App_RB_F1_Team_logo.svg.png",
+    audi: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Audi_F1_Team_logo.svg/512px-Audi_F1_Team_logo.svg.png",
+    haas: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Haas_F1_Team_logo.svg/512px-Haas_F1_Team_logo.svg.png",
+    cadillac: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Cadillac_Automobile_Logo.svg/512px-Cadillac_Automobile_Logo.svg.png"
 };
+
+// Silhouette de casque universelle au format PNG propre
+const HELMET_PLACEHOLDER = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Helmet_font_awesome.svg/512px-Helmet_font_awesome.svg.png";
 
 // Silhouette de casque universelle stylisée en attendant les séances photo officielles 2026
 const HELMET_PLACEHOLDER = "https://upload.wikimedia.org/wikipedia/commons/e/ee/Helmet_font_awesome.svg";
