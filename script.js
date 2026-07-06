@@ -289,7 +289,7 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!pseudo) return alert("Pseudo requis !");
     auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
         res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
+            db.collection("pronostics").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
             location.reload();
         });
     }).catch(err => alert(err.message));
