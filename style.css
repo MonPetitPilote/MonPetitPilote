@@ -14,155 +14,59 @@ body {
     padding: 20px 20px 40px 20px;
 }
 
-/* ==========================================
-   BARRE MEMBRE SUPÉRIEURE (HAUT DROITE)
-   ========================================== */
+/* BARRE MEMBRE SUPÉRIEURE */
 .top-member-bar {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 12px;
     padding-right: 10px;
 }
-
-.auth-champs-header {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-}
-
+.auth-champs-header { display: flex; flex-direction: row; gap: 8px; align-items: center; }
 .auth-champs-header input {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    max-width: 140px;
-    background-color: #111622;
-    border: 1px solid #2d3954;
-    border-radius: 6px;
-    color: white;
-    outline: none;
+    padding: 6px 10px; font-size: 0.85rem; max-width: 140px;
+    background-color: #111622; border: 1px solid #2d3954; border-radius: 6px; color: white;
 }
-
-.auth-champs-header input:focus { border-color: #ff8000; }
-
-.btn-header-auth {
-    padding: 7px 12px;
-    font-size: 0.8rem;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
+.btn-header-auth { padding: 7px 12px; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
 .btn-conn { background-color: #242f46; color: white; }
-.btn-conn:hover { background-color: #2d3954; }
 .btn-insc { background-color: #ff8000; color: #111622; }
-.btn-insc:hover { background-color: #e07000; }
+.user-profile-badge { background: #111622; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid #2d3954; display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 8px; height: 8px; background-color: #4cd137; border-radius: 50%; box-shadow: 0 0 8px #4cd137; }
+.btn-logout { background: transparent; color: #ff3f3f; border: 1px solid #ff3f3f; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; }
 
-.user-profile-badge {
-    background: #111622;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid #2d3954;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #4cd137;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #4cd137;
-}
-
-.btn-logout {
-    background: transparent;
-    color: #ff3f3f;
-    border: 1px solid #ff3f3f;
-    padding: 8px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.btn-logout:hover {
-    background: #ff3f3f;
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 63, 63, 0.4);
-}
-
-/* ==========================================
-   HEADER PRINCIPAL (TITRE + RÈGLEMENT)
-   ========================================== */
+/* HEADER PRINCIPAL */
 .brand-header {
     background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
-    border-radius: 16px;
-    padding: 20px 30px;
-    margin-bottom: 35px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border-left: 6px solid #e10600;
-    display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
-    align-items: center;
+    border-radius: 16px; padding: 20px 30px; margin-bottom: 35px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 6px solid #e10600;
+    display: flex; flex-direction: row; justify-content: space-between; align-items: center;
 }
-
-.brand-title {
-    font-size: 2.2rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    margin: 0;
-    background: linear-gradient(90deg, #ffffff 0%, #a5b1c2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.brand-title span { color: #e10600; -webkit-text-fill-color: initial; }
-
-.brand-subtitle {
-    font-size: 0.95rem;
-    color: #ff8000;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 5px;
-}
+.brand-title { font-size: 2.2rem; font-weight: 900; text-transform: uppercase; margin: 0; color: white; }
+.brand-title span { color: #e10600; }
+.brand-subtitle { font-size: 0.95rem; color: #ff8000; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
 
 /* Structure Page */
-.main-layout {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 30px;
-}
-@media (max-width: 950px) {
-    .main-layout { grid-template-columns: 1fr; }
-}
+.main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
+@media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
 .colonne-gauche, .bloc-sub-droite, .section-top-flop {
-    background: #161c2a;
-    border-radius: 14px;
-    padding: 25px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    border: 1px solid #242f46;
+    background: #161c2a; border-radius: 14px; padding: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid #242f46;
 }
 
 /* ==========================================
-   GRILLE DE DÉPART ASYMÉTRIQUE TYPE F1 TV
+   GRILLE DE DÉPART DE TYPE F1 TV REVISITÉE
    ========================================== */
 .f1-starting-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px 25px;
+    gap: 20px 30px;
     margin-top: 20px;
-    background: rgba(15, 19, 28, 0.6);
-    padding: 20px;
+    background: rgba(15, 19, 28, 0.8);
+    padding: 25px;
     border-radius: 12px;
     border: 1px solid #242f46;
 }
 
+/* Style uniforme de chaque case */
 .grid-slot {
     display: flex;
     align-items: center;
@@ -171,59 +75,95 @@ body {
     padding: 6px 12px;
     position: relative;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border-right: 4px solid #2d3954;
-    height: 65px;
-}
-.grid-slot:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(255, 128, 0, 0.15);
+    border-left: 4px solid #2d3954; /* Bordure écurie à gauche pour le look F1 TV */
+    height: 75px;
 }
 
-/* Configuration asymétrique des cases (Quinconce) */
-.grid-slot[data-pos="1"] {
-    grid-column: 1 / span 2;
-    max-width: 48%;
-    margin-bottom: 10px;
-}
-.grid-slot:nth-child(odd):not([data-pos="1"]) {
+/* Alignement strict en quinconce sans étirement de la P1 */
+.grid-slot:nth-child(odd) {
     grid-column: 1;
-    margin-right: 15px;
+    margin-right: 10px;
 }
 .grid-slot:nth-child(even) {
     grid-column: 2;
-    margin-top: 25px; /* Décale le slot de droite vers le bas */
-    margin-left: 15px;
+    margin-left: 10px;
+    margin-top: 30px; /* Crée le décalage régulier sur la colonne de droite */
 }
 
-.grid-pos-badge { font-size: 1.2rem; font-weight: 900; font-style: italic; color: #a5b1c2; min-width: 30px; }
+.grid-pos-badge {
+    font-size: 1.4rem;
+    font-weight: 900;
+    font-style: italic;
+    color: #3b4b6b;
+    min-width: 35px;
+}
 
-.grid-driver-avatar { width: 65px; height: 65px; position: relative; margin-top: -10px; }
-.grid-driver-avatar img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); }
+/* Zone des médias (Photo Pilote + Photo Voiture) */
+.grid-media-zone {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 140px;
+    height: 75px;
+}
 
-.grid-driver-info { flex-grow: 1; margin-left: 10px; display: flex; flex-direction: column; justify-content: center; }
-.grid-driver-team { font-size: 0.75rem; color: #a5b1c2; margin-top: 2px; }
+/* Style Portrait Pilote */
+.grid-driver-avatar {
+    width: 65px;
+    height: 75px;
+    position: relative;
+    z-index: 2;
+}
+.grid-driver-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Style Image Voiture */
+.grid-car-avatar {
+    width: 90px;
+    height: 50px;
+    position: absolute;
+    right: -10px;
+    bottom: 2px;
+    z-index: 1;
+    opacity: 0.85;
+}
+.grid-car-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Masquer l'image proprement si elle est vide (pas de bug d'icône cassée) */
+img:not([src]), img[src=""] {
+    opacity: 0 !important;
+}
+
+.grid-driver-info {
+    flex-grow: 1;
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 3;
+}
+.grid-driver-team {
+    font-size: 0.75rem;
+    color: #ff8000;
+    font-weight: bold;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
 
 .grid-select-paddock {
     background: #0f131c; color: white; border: 1px solid #2d3954;
-    padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; width: 100%; cursor: pointer;
+    padding: 5px 8px; font-size: 0.85rem; border-radius: 4px; width: 100%; cursor: pointer;
 }
 
-/* Autres Formulaires & Sélections */
-select, input[type="text"] {
-    background-color: #0f131c; color: #ffffff; border: 1px solid #2d3954;
-    padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; outline: none;
-}
-select:focus { border-color: #ff8000; }
-
-#btn-valider {
-    width: 100%; background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
-    color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 700;
-    text-transform: uppercase; border-radius: 6px; cursor: pointer;
-    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.4); margin-top: 15px; transition: all 0.2s;
-}
-#btn-valider:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(225, 6, 0, 0.6); }
-
+/* Formulaires */
+select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 1px solid #2d3954; padding: 10px 14px; border-radius: 6px; }
+#btn-valider { width: 100%; background: linear-gradient(135deg, #e10600 0%, #b30500 100%); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 6px; cursor: pointer; margin-top: 15px; }
 .tableau-scores { background: #0f131c; border-radius: 8px; overflow: hidden; }
-.entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; text-transform: uppercase; }
-.ligne-joueur { border-bottom: 1px solid #1c2437; padding: 12px; transition: background 0.2s; }
+.entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
