@@ -15,30 +15,30 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Base de données des pilotes complétée avec les visuels de voitures officiels fonctionnels
+// Base de données locale nettoyée avec les URLs des logos d'écuries stables et autorisées
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/redbull"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/redbull"},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/ferrari"},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/ferrari"},
-  {nom: "Lando Norris", ecurie: "McLaren", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/mclaren"},
-  {nom: "Oscar Piastri", ecurie: "McLaren", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/mclaren"},
-  {nom: "George Russell", ecurie: "Mercedes", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/mercedes"},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/mercedes"},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/astonmartin"},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/astonmartin"},
-  {nom: "Pierre Gasly", ecurie: "Alpine", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/alpine"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/alpine"},
-  {nom: "Carlos Sainz", ecurie: "Williams", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/williams"},
-  {nom: "Alex Albon", ecurie: "Williams", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/williams"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/rb"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/rb"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/sauber"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/sauber"},
-  {nom: "Oliver Bearman", ecurie: "Haas", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/haas"},
-  {nom: "Esteban Ocon", ecurie: "Haas", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/haas"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/sauber"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", carImg: "https://media.formula1.com/image/upload/f_auto,c_limit,w_1440,q_auto/fom-website/2025/Lunches/redbull"}
+  {nom: "Max Verstappen", ecurie: "Red Bull", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/ferrari-logo.png"},
+  {nom: "Lando Norris", ecurie: "McLaren", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/mclaren-logo.png"},
+  {nom: "George Russell", ecurie: "Mercedes", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/mercedes-logo.png"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/aston-martin-logo.png"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/alpine-logo.png"},
+  {nom: "Carlos Sainz", ecurie: "Williams", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png"},
+  {nom: "Alex Albon", ecurie: "Williams", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/williams-logo.png"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png"},
+  {nom: "Oliver Bearman", ecurie: "Haas", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png"},
+  {nom: "Esteban Ocon", ecurie: "Haas", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/haas-logo.png"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", carImg: "https://media.formula1.com/content/dam/fom-website/teams/2024/red-bull-racing-logo.png"}
 ];
 
 const ecuriesSaison = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
@@ -117,7 +117,6 @@ function creerLaGrilleDeDepartTV() {
         slot.className = 'grid-slot';
         slot.setAttribute('data-pos', i);
 
-        // Nouveaux termes d'incitation à l'action
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
@@ -160,15 +159,14 @@ function mettreAJourDesignSlot(position, nomPilote) {
         imgTarget.src = openF1Info && openF1Info.photo ? openF1Info.photo : 'https://media.formula1.com/d_driver_fallback_image.png';
         carTarget.src = localData ? localData.carImg : '';
         teamTarget.innerText = localData ? localData.ecurie : (openF1Info ? openF1Info.ecurie : "Formule 1");
-        teamTarget.style.color = "#ff8000"; // Remet la couleur orange d'écurie
+        teamTarget.style.color = "#ff8000"; 
         teamTarget.style.fontStyle = "normal";
         if(slot) slot.style.borderLeft = `4px solid ${openF1Info ? openF1Info.couleur : '#ff8000'}`;
     } else {
-        // Nettoyage propre sans image cassée
         imgTarget.removeAttribute('src');
         carTarget.removeAttribute('src');
         teamTarget.innerText = "⚡ PLACE À PRENDRE";
-        teamTarget.style.color = "#616e88"; // Couleur grise discrète
+        teamTarget.style.color = "#616e88"; 
         teamTarget.style.fontStyle = "italic";
         if(slot) slot.style.borderLeft = `4px solid #2d3954`;
     }
