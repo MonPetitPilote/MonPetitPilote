@@ -182,7 +182,7 @@ function injecterStylesResponsifsGlobaux() {
     document.head.appendChild(styleSheet);
 }
 
-// GESTION DU TITRE ET DU BOUTON RÈGLEMENT
+// GESTION DU TITRE ET DESIGN DU BOUTON RÈGLEMENT
 function adapterEnTeteTitreEtReglement() {
     const boutonReglement = document.getElementById('btn-reglement') || document.querySelector('button[onclick*="reglement"]') || document.querySelector('.btn-reglement');
     if (!boutonReglement) return;
@@ -204,6 +204,30 @@ function adapterEnTeteTitreEtReglement() {
     }
 }
 
+// ==========================================
+// 2. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
+// ==========================================
+document.getElementById('btn-reglement')?.addEventListener('click', () => {
+    const modale = document.getElementById('modale-reglement');
+    if (modale) {
+        modale.style.display = 'flex'; 
+    }
+});
+
+document.getElementById('btn-fermer-reglement')?.addEventListener('click', () => {
+    const modale = document.getElementById('modale-reglement');
+    if (modale) {
+        modale.style.display = 'none'; 
+    }
+});
+
+window.addEventListener('click', (e) => {
+    const modale = document.getElementById('modale-reglement');
+    if (e.target === modale) {
+        modale.style.display = 'none';
+    }
+});
+
 // GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
 auth.onAuthStateChanged(async (user) => {
     const zoneDeconnecte = document.getElementById('auth-deconnecte');
@@ -219,7 +243,7 @@ auth.onAuthStateChanged(async (user) => {
         try {
             const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
             let pointsGeneraux = 0;
-            let estEligible = true; // Règle d'éligibilité personnalisable (ex: inscrit en BDD)
+            let estEligible = true;
 
             if (userDoc.exists) {
                 const userData = userDoc.data();
@@ -514,7 +538,7 @@ async function chargerClassementGeneral() {
     
     try {
         const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
-        liste.innerHTML = ""; // Vider l'attente
+        liste.innerHTML = "";
         
         if (snapshot.empty) {
             liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun joueur enregistré pour le moment.</div>";
