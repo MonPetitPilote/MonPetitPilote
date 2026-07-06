@@ -464,7 +464,7 @@ function initialiserPolePosition() {
         opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
     });
 }
-function initialiserEcuriesTopFlop() {
+function initialiserEcurieTopFlop() {
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         const select = document.getElementById(id); if(!select) return;
         select.innerHTML = '<option value="">-- Choisir --</option>';
