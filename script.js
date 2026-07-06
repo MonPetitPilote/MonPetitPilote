@@ -11,14 +11,11 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
-// Initialisation immédiate et sécurisée
-const app = firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore(app);
-db.settings({
-    host: "firestore.googleapis.com",
-    ssl: true,
-    experimentalAutoDetectLongPolling: true // Force le rafraîchissement réseau standard
-});
+// Initialisation standard et fiable à 100%
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+var db = firebase.firestore();
 var auth = firebase.auth();
 
 // Chemins locaux vers tes images AVIF
@@ -236,8 +233,9 @@ function initialiserEcuriesTopFlop() {
 // 6. LOGIQUE OPENF1 ET ESTHÉTIQUE DE LA GRILLE
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
-    // 🎯 Sécurité : On génère la grille d'abord pour qu'elle apparaisse instantanément
+    // 🎯 Sécurité vitale : On crée la grille immédiatement avant tout appel API externe
     creerLaGrilleDeDepartTV();
+    
     try {
         const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
         const drivers = await response.json();
@@ -247,13 +245,14 @@ async function chargerDonneesEsthetiquesOpenF1() {
                 couleur: `#${d.team_colour || '2d3954'}`
             };
         });
-        // Si l'API répond après coup, on applique les couleurs à la grille existante
+        
+        // Applique les couleurs chargées
         for(let i=1; i<=10; i++) {
             const s = document.getElementById(`select-grid-p${i}`);
             if(s && s.value) mettreAJourDesignSlot(i, s.value);
         }
     } catch (e) {
-        console.warn("OpenF1 hors-ligne, utilisation des styles par défaut.");
+        console.warn("OpenF1 inaccessible ou bloqué par AdBlock. Styles de secours activés.");
     }
 }
 
@@ -354,7 +353,6 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
 // 7. CHARGEMENT ET SAUVEGARDE DES PRONOSTICS
 // ==========================================
 function chargerPronosticsUtilisateur() {
-    // On s'assure d'abord que les champs sont vides à l'écran
     for(let i=1; i<=10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
         if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
