@@ -569,15 +569,17 @@ async function chargerPronosticsUtilisateur() {
     const courseId = selectCourse.value;
     const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
+    // Réinitialisation du Top 10 pilotes
     for (let i = 1; i <= 10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
         if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
     }
     if(selectPole) selectPole.value = "";
-    if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = "";
-    if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = "";
-    if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = "";
-    if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = "";
+    
+    // 🌟 NOUVEAU : Réinitialisation visuelle des 4 slots d'écuries
+    ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
+        appliquerSelectionEcurieVisuelle(id, "");
+    });
 
     if (doc.exists) {
         const data = doc.data();
@@ -588,13 +590,15 @@ async function chargerPronosticsUtilisateur() {
             });
         }
         if(selectPole && data.poleman) selectPole.value = data.poleman;
-        if(data.ecuriesTop) {
-            if(document.getElementById('ecurie-top-1')) document.getElementById('ecurie-top-1').value = data.ecuriesTop[0] || "";
-            if(document.getElementById('ecurie-top-2')) document.getElementById('ecurie-top-2').value = data.ecuriesTop[1] || "";
+        
+        // 🌟 NOUVEAU : Chargement et affichage visuel des écuries enregistrées
+        if (data.ecuriesTop) {
+            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || "");
+            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || "");
         }
-        if(data.ecuriesFlop) {
-            if(document.getElementById('ecurie-flop-1')) document.getElementById('ecurie-flop-1').value = data.ecuriesFlop[0] || "";
-            if(document.getElementById('ecurie-flop-2')) document.getElementById('ecurie-flop-2').value = data.ecuriesFlop[1] || "";
+        if (data.ecuriesFlop) {
+            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecuriesFlop[0] || "");
+            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecuriesFlop[1] || "");
         }
     }
     controlerDoublonsPilotes();
@@ -604,23 +608,33 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
     const top10Selection = [];
+    
     for(let i=1; i<=10; i++) {
         const val = document.getElementById(`select-grid-p${i}`).value;
         if(!val) return alert(`Il manque la position P${i} !`);
         top10Selection.push(val);
     }
+    
+    // 🌟 NOUVEAU : Construction des données avec la lecture des attributs visuels cachés
     const pronoData = {
         uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
         classementPilotes: top10Selection,
         poleman: selectPole.value,
-        ecuriesTop: [document.getElementById('ecurie-top-1')?.value || "", document.getElementById('ecurie-top-2')?.value || ""],
-        ecuriesFlop: [document.getElementById('ecurie-flop-1')?.value || "", document.getElementById('ecurie-flop-2')?.value || ""],
+        ecuriesTop: [
+            document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "", 
+            document.getElementById('ecurie-top-2')?.getAttribute('data-ecurie-value') || ""
+        ],
+        ecuriesFlop: [
+            document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "", 
+            document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
+        ],
         dateEnregistrement: new Date()
     };
+    
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
-    alert("🏁 Grille enregistrée avec succès !");
+    alert("🏁 Grille et Écuries enregistrées avec succès !");
     chargerClassementGeneral();
 });
 
