@@ -131,15 +131,48 @@
         </div>
 
 
-        <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 500px; width: 90%; border: 1px solid #2f3e56; color: #fff; position: relative;">
+      <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4;">
         
-        <button id="btn-fermer-reglement" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
+        <button id="btn-fermer-reglement" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
         
-        <h3 style="color: #ff8000; margin-top: 0;">📜 Règlement du Jeu</h3>
-        <p>1. Enregistrez votre Top 10 avant le début de chaque séance qualificative.</p>
-        <p>2. Les points sont attribués selon le barème officiel de la F1.</p>
-        <p>3. Un bonus de +5 points est accordé si vous trouvez le bon Poleman !</p>
+        <h3 style="color: #ff8000; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📜 Barème & Règlement du Jeu</h3>
+        
+        <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 15px; font-style: italic;">🚨 Vos pronostics doivent être validés et enregistrés sur le site avant le début officiel de la séance de qualifications de chaque week-end.</p>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">1. Le Top 10 Pilotes</h4>
+            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Vos choix pour les 10 premières places de la course sont comparés aux résultats officiels :</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0; list-style-type: square;">
+                <li style="margin-bottom: 4px;"><strong style="color: #22c55e;">Position exacte :</strong> Vous marquez l'intégralité des points du barème F1 officiel :<br>
+                    <span style="color: #cbd5e1; font-size: 0.8rem; display: block; margin-top: 2px;">
+                        P1: 25 | P2: 18 | P3: 15 | P4: 12 | P5: 10 <br>
+                        P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
+                    </span>
+                </li>
+                <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+1 pt)</strong>.</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">2. Le Bonus Poleman</h4>
+            <p style="margin: 0; font-size: 0.9rem;">Si le pilote sélectionné comme « Poleman » décroche la première place (P1) lors de la séance officielle de qualifications, vous empochez un bonus fixe de <strong style="color: #22c55e;">+5 points</strong>.</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
+            <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
+                <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
+                <li>Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 5px;">
+            <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
+            <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
+        </div>
+
     </div>
 </div>
     </div>
