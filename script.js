@@ -530,36 +530,49 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
 // CHARGEMENT DU CLASSEMENT GÉNÉRAL SÉCURISÉ
 async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
-    if(!liste) {
-        console.warn("Conteneur 'liste-classement' introuvable dans le HTML.");
-        return;
-    }
+    if(!liste) return;
+    
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
+        // On récupère tous les utilisateurs sans demander de tri à Firebase
+        const snapshot = await db.collection("utilisateurs").get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
-            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun joueur enregistré pour le moment.</div>";
+            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun joueur enregistré.</div>";
             return;
         }
 
-        let pos = 1;
+        // On extrait les données et on s'assure que "points" vaut au moins 0 si absent
+        let joueurs = [];
         snapshot.forEach(doc => {
-            const u = doc.data();
+            const data = doc.data();
+            joueurs.push({
+                pseudo: data.pseudo || data.email || 'Pilote Anonyme',
+                points: data.points !== undefined ? Number(data.points) : 0
+            });
+        });
+
+        // On trie les joueurs du plus grand nombre de points au plus petit
+        joueurs.sort((a, b) => b.points - a.points);
+
+        // On affiche le classement
+        joueurs.forEach((u, index) => {
+            const pos = index + 1;
             const div = document.createElement('div');
             div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
             div.innerHTML = `
                 <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo || 'Pilote Anonyme'}</div>
-                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>
+                <div>${u.pseudo}</div>
+                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
             `;
             liste.appendChild(div); 
-            pos++;
         });
+
     } catch (error) {
-        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
+        console.error("Erreur classement :", error);
+        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement.</div>";
     }
 }
 
