@@ -15,47 +15,46 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// Liens de rendu d'images PNG publics (100% compatibles et stables)
+// URLs d'Écuries et de Casques 2026 (Haute Disponibilité - Zéro Blocage)
 const LOGOS_2026 = {
-    redbull: "https://upload.wikimedia.org/wikipedia/en/thumb/1/15/Red_Bull_Racing_logo.svg/512px-Red_Bull_Racing_logo.svg.png",
-    ferrari: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Scuderia_Ferrari_Logo.svg/388px-Scuderia_Ferrari_Logo.svg.png",
-    mclaren: "https://upload.wikimedia.org/wikipedia/en/thumb/6/66/McLaren_Racing_logo.svg/512px-McLaren_Racing_logo.svg.png",
-    mercedes: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Mercedes-AMG_Petronas_F1_Team_Logo.svg/512px-Mercedes-AMG_Petronas_F1_Team_Logo.svg.png",
-    aston: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b8/Aston_Martin_F1_logo.svg/512px-Aston_Martin_F1_logo.svg.png",
-    alpine: "https://upload.wikimedia.org/wikipedia/fr/thumb/7/7e/Alpine_F1_Team_Logo.svg/320px-Alpine_F1_Team_Logo.svg.png",
-    williams: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Williams_Racing_logo.svg/512px-Williams_Racing_logo.svg.png",
-    racingbulls: "https://upload.wikimedia.org/wikipedia/en/thumb/0/02/Visa_Cash_App_RB_F1_Team_logo.svg/512px-Visa_Cash_App_RB_F1_Team_logo.svg.png",
-    audi: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Audi_F1_Team_logo.svg/512px-Audi_F1_Team_logo.svg.png",
-    haas: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Haas_F1_Team_logo.svg/512px-Haas_F1_Team_logo.svg.png",
-    cadillac: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Cadillac_Automobile_Logo.svg/512px-Cadillac_Automobile_Logo.svg.png"
+    redbull: "https://media.formula1.com/content/dam/fom-website/teams/2025/red-bull-racing.png",
+    ferrari: "https://media.formula1.com/content/dam/fom-website/teams/2025/ferrari.png",
+    mclaren: "https://media.formula1.com/content/dam/fom-website/teams/2025/mclaren.png",
+    mercedes: "https://media.formula1.com/content/dam/fom-website/teams/2025/mercedes.png",
+    aston: "https://media.formula1.com/content/dam/fom-website/teams/2025/aston-martin.png",
+    alpine: "https://media.formula1.com/content/dam/fom-website/teams/2025/alpine.png",
+    williams: "https://media.formula1.com/content/dam/fom-website/teams/2025/williams.png",
+    racingbulls: "https://media.formula1.com/content/dam/fom-website/teams/2025/rb.png",
+    audi: "https://media.formula1.com/content/dam/fom-website/teams/2025/kick-sauber.png",
+    haas: "https://media.formula1.com/content/dam/fom-website/teams/2025/haas.png",
+    cadillac: "https://media.formula1.com/content/dam/fom-website/teams/2025/alpine.png" 
 };
 
-// Silhouette de casque universelle au format PNG stable
-const HELMET_PLACEHOLDER = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Helmet_font_awesome.svg/512px-Helmet_font_awesome.svg.png";
+const HELMET_PLACEHOLDER = "https://media.formula1.com/content/dam/fom-website/manual/helmets/blank.png";
 
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", carImg: LOGOS_2026.redbull, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", carImg: LOGOS_2026.redbull, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Lando Norris", ecurie: "McLaren", carImg: LOGOS_2026.mclaren, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Oscar Piastri", ecurie: "McLaren", carImg: LOGOS_2026.mclaren, driverImg: HELMET_PLACEHOLDER},
-  {nom: "George Russell", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", carImg: LOGOS_2026.aston, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", carImg: LOGOS_2026.aston, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Pierre Gasly", ecurie: "Alpine", carImg: LOGOS_2026.alpine, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Franco Colapinto", ecurie: "Alpine", carImg: LOGOS_2026.alpine, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Carlos Sainz", ecurie: "Williams", carImg: LOGOS_2026.williams, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Alex Albon", ecurie: "Williams", carImg: LOGOS_2026.williams, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", carImg: LOGOS_2026.audi, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", carImg: LOGOS_2026.audi, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Oliver Bearman", ecurie: "Haas", carImg: LOGOS_2026.haas, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Esteban Ocon", ecurie: "Haas", carImg: LOGOS_2026.haas, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac, driverImg: HELMET_PLACEHOLDER},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac, driverImg: HELMET_PLACEHOLDER}
+  {nom: "Max Verstappen", ecurie: "Red Bull", carImg: LOGOS_2026.redbull, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/verstappen.png"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", carImg: LOGOS_2026.redbull, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/hadjar.png"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/hamilton.png"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", carImg: LOGOS_2026.ferrari, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/leclerc.png"},
+  {nom: "Lando Norris", ecurie: "McLaren", carImg: LOGOS_2026.mclaren, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/norris.png"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", carImg: LOGOS_2026.mclaren, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/piastri.png"},
+  {nom: "George Russell", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/russell.png"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", carImg: LOGOS_2026.mercedes, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/antonelli.png"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", carImg: LOGOS_2026.aston, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/alonso.png"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", carImg: LOGOS_2026.aston, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/stroll.png"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", carImg: LOGOS_2026.alpine, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/gasly.png"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", carImg: LOGOS_2026.alpine, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/colapinto.png"},
+  {nom: "Carlos Sainz", ecurie: "Williams", carImg: LOGOS_2026.williams, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/sainz.png"},
+  {nom: "Alex Albon", ecurie: "Williams", carImg: LOGOS_2026.williams, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/albon.png"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/lawson.png"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", carImg: LOGOS_2026.racingbulls, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/lindblad.png"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", carImg: LOGOS_2026.audi, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/hulkenberg.png"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", carImg: LOGOS_2026.audi, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/bortoleto.png"},
+  {nom: "Oliver Bearman", ecurie: "Haas", carImg: LOGOS_2026.haas, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/bearman.png"},
+  {nom: "Esteban Ocon", ecurie: "Haas", carImg: LOGOS_2026.haas, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/ocon.png"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/bottas.png"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", carImg: LOGOS_2026.cadillac, driverImg: "https://media.formula1.com/content/dam/fom-website/manual/helmets/perez.png"}
 ];
 
 const ecuriesSaison = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
@@ -135,15 +134,12 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
+        // Superposition du casque en premier plan et logo écurie stylisé en arrière-plan
         slot.innerHTML = `
             <div class="grid-pos-badge">P${i}</div>
-            <div class="grid-media-zone">
-                <div class="grid-driver-avatar">
-                    <img id="img-grid-p${i}" src="" alt="">
-                </div>
-                <div class="grid-car-avatar">
-                    <img id="car-grid-p${i}" src="" alt="">
-                </div>
+            <div class="grid-media-zone" style="position: relative; overflow: hidden; background: #141a29; display: flex; justify-content: center; align-items: center; width: 75px; height: 55px; border-radius: 6px; border: 1px solid #232e44;">
+                <img id="car-grid-p${i}" src="" alt="" style="position: absolute; max-width: 80%; max-height: 80%; opacity: 0.2; object-fit: contain; pointer-events: none; transition: all 0.3s ease;">
+                <img id="img-grid-p${i}" src="" alt="" style="position: relative; max-height: 90%; max-width: 90%; object-fit: contain; z-index: 2; transition: all 0.3s ease;">
             </div>
             <div class="grid-driver-info">
                 <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}">
@@ -172,15 +168,18 @@ function mettreAJourDesignSlot(position, nomPilote) {
     if (nomPilote && localData) {
         const openF1Info = designPilotesF1[nomPilote];
         
+        // On charge le casque du pilote et le logo d'écurie correspondants
         imgTarget.src = localData.driverImg;
         carTarget.src = localData.carImg;
+        imgTarget.style.opacity = "1";
         
         teamTarget.innerText = localData.ecurie;
         teamTarget.style.color = "#ff8000"; 
         teamTarget.style.fontStyle = "normal";
         if(slot) slot.style.borderLeft = `4px solid ${openF1Info ? openF1Info.couleur : '#ff8000'}`;
     } else {
-        imgTarget.removeAttribute('src');
+        imgTarget.src = HELMET_PLACEHOLDER;
+        imgTarget.style.opacity = "0.2";
         carTarget.removeAttribute('src');
         teamTarget.innerText = "⚡ PLACE À PRENDRE";
         teamTarget.style.color = "#616e88"; 
