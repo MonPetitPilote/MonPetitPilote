@@ -419,7 +419,7 @@ function initialiserSelectCourse() {
 
     calendrier2026.forEach(gp => {
         const opt = document.createElement('option');
-        opt.value = `2026/${gp.round}`;
+        opt.value = `2026/${gp.round}`; // Stocke uniquement "2026/1", "2026/2", etc.
         
         const dateObj = new Date(gp.date);
         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -434,6 +434,8 @@ function initialiserSelectCourse() {
     });
 
     selectCourse.value = prochainRoundValue;
+    // On force la mise à jour immédiate de la propriété de l'élément HTML
+    selectCourse.setAttribute('value', prochainRoundValue);
 }
 
 function initialiserPolePosition() {
@@ -514,43 +516,49 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
 
 // CHARGEMENT DU CLASSEMENT DEPUIS LA COLLECTION PRONOSTICS
 async function chargerClassementGeneral() {
+    // On cible le conteneur dans ton fichier HTML
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
     if(!liste) return;
     if(!selectCourse) return;
     
-    const courseId = selectCourse.value;
+    // Sécurité : on récupère la valeur propre (ex: "2026/1")
+    const courseId = selectCourse.value ? selectCourse.value.trim() : "";
+    if(!courseId) return;
+
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        // Recherche de tous les documents de pronostics correspondant à la course en cours
+        // Requête sur la collection pronostics filtrée par l'identifiant de la course en cours
         const snapshot = await db.collection("pronostics").where("course", "==", courseId).get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
-            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun pronostic enregistré pour ce Grand Prix.</div>";
+            liste.innerHTML = `<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré pour la course (${courseId}).</div>`;
             return;
         }
 
         let joueurs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // On vérifie s'il y a un champ 'points' direct ou imbriqué
             let pointsJoueur = 0;
-            if (data.points !== undefined) {
-                pointsJoueur = data.points;
-            } else if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
+            
+            // Extraction intelligente des points (soit à la racine, soit dans l'objet de ton cron)
+            if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
                 pointsJoueur = data.bilanCalcul.pointsTotaux;
+            } else if (data.points !== undefined) {
+                pointsJoueur = data.points;
             }
 
             joueurs.push({
                 pseudo: data.pseudo || 'Pilote Anonyme',
-                points: pointsJoueur
+                points: Number(pointsJoueur) || 0
             });
         });
 
-        // Tri décroissant du score
+        // Tri des scores du plus grand au plus petit
         joueurs.sort((a, b) => b.points - a.points);
 
+        // Génération visuelle de la liste
         let pos = 1;
         joueurs.forEach(u => {
             const div = document.createElement('div');
@@ -564,7 +572,7 @@ async function chargerClassementGeneral() {
             pos++;
         });
     } catch (error) {
-        console.error("Erreur Firestore : ", error);
+        console.error("Erreur Firestore sur le classement général:", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
