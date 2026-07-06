@@ -125,34 +125,38 @@ function creerLaGrilleDeDepartTV() {
     if (!conteneurGrille) return;
     conteneurGrille.innerHTML = "";
 
-    // Injection dynamique d'un style CSS adaptatif amélioré pour mobile
+    // Injection dynamique d'un style CSS adaptatif ultra-prioritaire pour mobile
     if (!document.getElementById('f1-mobile-styles')) {
         const styleSheet = document.createElement("style");
         styleSheet.id = "f1-mobile-styles";
         styleSheet.innerText = `
             .grid-slot {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                width: 100%;
-                margin-bottom: 12px;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 8px !important;
+                width: 100% !important;
+                margin-bottom: 12px !important;
             }
             @media (max-width: 576px) {
                 .grid-slot {
-                    flex-direction: column;
-                    align-items: stretch;
-                    gap: 4px;
-                    margin-bottom: 16px;
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                    gap: 0px !important;
+                    margin-bottom: 18px !important;
                 }
                 .grid-pos-badge {
                     width: 100% !important;
-                    height: 26px !important;
+                    max-width: 100% !important;
+                    height: 28px !important;
                     font-size: 13px !important;
-                    border-radius: 6px 6px 0 0 !important;
+                    border-radius: 8px 8px 0 0 !important;
                     justify-content: center !important;
                     padding: 0 !important;
+                    text-align: center !important;
                 }
                 .grid-card-f1 {
+                    width: 100% !important;
                     border-radius: 0 0 8px 8px !important;
                     padding: 8px 12px !important;
                 }
@@ -186,15 +190,13 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
-        // Structure HTML optimisée : le badge passe au-dessus de la carte en version bloc sur mobile
+        // Structure HTML optimisée : styles en ligne épurés pour laisser le CSS global (ci-dessus) piloter le responsive
         slot.innerHTML = `
             <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff; flex-shrink: 0; transition: background 0.3s ease;">P${i}</div>
             <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
                 
-                <!-- Voiture en arrière-plan étendue sur le cadre -->
                 <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
 
-                <!-- Zone gauche : Infos Pilote -->
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
@@ -206,7 +208,6 @@ function creerLaGrilleDeDepartTV() {
                     <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
                 </div>
 
-                <!-- Zone droite : Portrait Pilote zoomé (Coupé à la moitié/tiers supérieur) -->
                 <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
                     <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
