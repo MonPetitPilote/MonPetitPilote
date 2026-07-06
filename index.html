@@ -26,42 +26,43 @@
 </head>
 <body>
 
-   <div class="container">
+    <div class="container">
 
-    <div class="top-member-bar">
-        <div id="bloc-auth-header">
-            <div id="auth-deconnecte">
-                <div class="auth-champs-header">
-                    <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription)">
-                    <input type="email" id="auth-email" placeholder="Email">
-                    <input type="password" id="auth-mdp" placeholder="Mot de passe">
-                    <button id="btn-connexion" class="btn-header-auth btn-conn">Connexion</button>
-                    <button id="btn-inscription" class="btn-header-auth btn-insc">S'inscrire</button>
+        <div class="top-member-bar">
+            <div id="bloc-auth-header">
+                <div id="auth-deconnecte">
+                    <div class="auth-champs-header">
+                        <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription)">
+                        <input type="email" id="auth-email" placeholder="Email">
+                        <input type="password" id="auth-mdp" placeholder="Mot de passe">
+                        <button id="btn-connexion" class="btn-header-auth btn-conn">Connexion</button>
+                        <button id="btn-inscription" class="btn-header-auth btn-insc">S'inscrire</button>
+                    </div>
+                    <div style="text-align: right; margin-top: 4px;">
+                        <a href="#" id="link-recup-mdp" style="color: #a5b1c2; font-size: 0.75rem; text-decoration: underline;">Mot de passe oublié ?</a>
+                    </div>
                 </div>
-                <div style="text-align: right; margin-top: 4px;">
-                    <a href="#" id="link-recup-mdp" style="color: #a5b1c2; font-size: 0.75rem; text-decoration: underline;">Mot de passe oublié ?</a>
+                <div id="auth-connecte" style="display: none; align-items: center; gap: 15px;">
+                    <div class="user-profile-badge">
+                        <span class="status-dot"></span>
+                        <span id="nom-utilisateur">...</span>
+                    </div>
+                    <button id="btn-deconnexion" class="btn-logout">DÉCONNEXION</button>
                 </div>
             </div>
-            <div id="auth-connecte" style="display: none; align-items: center; gap: 15px;">
-                <div class="user-profile-badge">
-                    <span class="status-dot"></span>
-                    <span id="nom-utilisateur">...</span>
-                </div>
-                <button id="btn-deconnexion" class="btn-logout">DÉCONNEXION</button>
-            </div>
         </div>
-    </div>
 
-    <header class="brand-header">
-        <div class="brand-logo-zone">
-            <h1 class="brand-title">MON PETIT <span>PILOTE</span></h1>
-            <div class="brand-subtitle">🏆 Le Championnat des Potes 2026</div>
-        </div>
-        
-        <button id="btn-ouvrir-reglement" style="background: #ff8000; color: #111622; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">📜 RÈGLEMENT</button>
-    </header>
+        <header class="brand-header">
+            <div class="brand-logo-zone">
+                <h1 class="brand-title">MON PETIT <span>PILOTE</span></h1>
+                <div class="brand-subtitle">🏆 Le Championnat des Potes 2026</div>
+            </div>
+            
+            <button id="btn-ouvrir-reglement" style="background: #ff8000; color: #111622; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">📜 RÈGLEMENT</button>
+        </header>
 
         <div class="main-layout">
+            
             <div class="colonne-gauche">
                 
                 <div class="section-course">
@@ -75,18 +76,18 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
-                    <h2 style="margin: 0;" id="titre-grille">🏆 TON TOP 10 PILOTES :</h2>
+                    <h2 style="margin: 0;" id="titre-grille">🏆 TA GRILLE DE DÉPART TOP 10 :</h2>
                     <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
                 </div>
 
                 <div id="grille-pronos" class="f1-starting-grid"></div>
+
                 <div style="margin: 20px 0; background: #1b2436; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px dashed #FF8000;">
                     <input type="checkbox" id="check-joker" style="transform: scale(1.4); cursor: pointer;">
                     <span id="joker-status-text" style="color: #FF8000; font-weight: bold; font-size: 0.9rem;">🚀 Activer mon unique Joker (+300% de points !)</span>
                 </div>
 
                 <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
-
             </div>
 
             <div class="colonne-droite">
@@ -127,14 +128,12 @@
                 </div>
 
             </div>
-
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
-    
     <script src="script.js"></script>
 </body>
 </html>
