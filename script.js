@@ -30,6 +30,20 @@ const LOGOS_2026 = {
     cadillac: "images/cars/cadillac.avif"
 };
 
+// Chemins vers les logos officiels des écuries (dossier images/team)
+const LOGOS_ECURIES_2026 = {
+    "Red Bull": "images/team/redbull.avif",
+    "Ferrari": "images/team/ferrari.avif",
+    "McLaren": "images/team/mclaren.avif",
+    "Mercedes": "images/team/mercedes.avif",
+    "Aston Martin": "images/team/astonmartin.avif",
+    "Alpine": "images/team/alpine.avif",
+    "Williams": "images/team/williams.avif",
+    "Racing Bulls": "images/team/racingbulls.avif",
+    "Audi": "images/team/audi.avif",
+    "Haas": "images/team/haas.avif",
+    "Cadillac": "images/team/cadillac.avif"
+};
 // Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
@@ -447,10 +461,106 @@ function initialiserPolePosition() {
     });
 }
 function initialiserEcuriesTopFlop() {
-    ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
-        const select = document.getElementById(id); if(!select) return;
-        select.innerHTML = '<option value="">-- Choisir --</option>';
-        ecuriesSaison.forEach(e => { const opt = document.createElement('option'); opt.value = e; opt.innerText = e; select.appendChild(opt); });
+    const slots = ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"];
+    
+    slots.forEach(id => {
+        const conteneur = document.getElementById(id);
+        if (!conteneur) return;
+
+        // On transforme le conteneur en zone visuelle cliquable
+        conteneur.style = "background: #0f131c; border: 2px dashed #2d3954; border-radius: 8px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; padding: 5px;";
+        
+        // Contenu par défaut (vide)
+        conteneur.innerHTML = `
+            <div class="placeholder-team" style="text-align: center; color: #616e88; font-size: 12px; font-weight: bold;">
+                ➕ CHOISIR<br><span style="font-size: 10px; opacity: 0.7;">UNE ÉCURIE</span>
+            </div>
+            <img class="logo-selectionne" src="" style="display: none; height: 75%; max-width: 90%; object-fit: contain; z-index: 2;">
+            <div class="nom-selectionne" style="display: none; position: absolute; bottom: 2px; font-size: 10px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 4px; text-transform: uppercase;"></div>
+        `;
+
+        // Ajout de l'événement au clic pour ouvrir le sélecteur visuel
+        conteneur.addEventListener('click', () => ouvrirSelecteurVisuelEcurie(id));
+    });
+}
+
+// Fonction utilitaire pour mettre à jour l'affichage d'un slot d'écurie
+function appliquerSelectionEcurieVisuelle(slotId, nomEcurie) {
+    const conteneur = document.getElementById(slotId);
+    if (!conteneur) return;
+
+    // Sauvegarde du nom de l'écurie dans un attribut HTML secret pour la validation Firebase
+    conteneur.setAttribute('data-ecurie-value', nomEcurie);
+
+    const placeholder = conteneur.querySelector('.placeholder-team');
+    const img = conteneur.querySelector('.logo-selectionne');
+    const txt = conteneur.querySelector('.nom-selectionne');
+
+    if (nomEcurie && LOGOS_ECURIES_2026[nomEcurie]) {
+        placeholder.style.display = "none";
+        img.src = LOGOS_ECURIES_2026[nomEcurie];
+        img.style.display = "block";
+        txt.innerText = nomEcurie;
+        txt.style.display = "block";
+        conteneur.style.border = slotId.includes('top') ? "2px solid #00e6c3" : "2px solid #ef4444";
+        conteneur.style.background = "rgba(255,255,255,0.02)";
+    } else {
+        placeholder.style.display = "block";
+        img.style.display = "none";
+        img.src = "";
+        txt.style.display = "none";
+        txt.innerText = "";
+        conteneur.style.border = "2px dashed #2d3954";
+        conteneur.style.background = "#0f131c";
+    }
+}
+
+function ouvrirSelecteurVisuelEcurie(slotId) {
+    // Création dynamique de la modale de sélection si elle n'existe pas
+    let modale = document.getElementById('modale-choix-ecurie');
+    if (!modale) {
+        modale = document.createElement('div');
+        modale.id = 'modale-choix-ecurie';
+        modale.style = "position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center;";
+        document.body.appendChild(modale);
+    }
+    modale.style.display = "flex";
+
+    let grilleHtml = "";
+    ecuriesSaison.forEach(ecurie => {
+        const logoPath = LOGOS_ECURIES_2026[ecurie] || "";
+        grilleHtml += `
+            <div class="tuile-ecurie" data-name="${ecurie}" style="background:#111622; border:1px solid #2d3954; border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; min-height:80px;">
+                <img src="${logoPath}" style="max-height:45px; max-width:100%; object-fit:contain; margin-bottom:6px;">
+                <span style="font-size:11px; font-weight:bold; color:#a0aec0; text-align:center; text-transform:uppercase;">${ecurie}</span>
+            </div>
+        `;
+    });
+
+    modale.innerHTML = `
+        <div style="background:#1f293d; width:90%; max-width:500px; border-radius:12px; border:1px solid #2f3e56; padding:20px; position:relative; color:#fff;">
+            <button id="fermer-choix-ecurie" style="position:absolute; top:12px; right:12px; background:transparent; border:none; color:#616e88; font-size:16px; cursor:pointer;">❌</button>
+            <h3 style="margin-top:0; color:#ff8000; font-size:16px; margin-bottom:15px; text-transform:uppercase; letter-spacing:0.5px;">🏎️ Sélectionner l'écurie</h3>
+            
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;">
+                <div class="tuile-ecurie" data-name="" style="background:rgba(239,68,68,0.1); border:1px dashed #ef4444; border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold; color:#ef4444; font-size:12px;">❌ VIDER L'EMPLACEMENT</div>
+                ${grilleHtml}
+            </div>
+        </div>
+    `;
+
+    // Événement de fermeture
+    document.getElementById('fermer-choix-ecurie').onclick = () => modale.style.display = "none";
+
+    // Événement au clic sur une écurie
+    modale.querySelectorAll('.tuile-ecurie').forEach(tuile => {
+        tuile.onmouseenter = () => tuile.style.borderColor = "#ff8000";
+        tuile.onmouseleave = () => tuile.style.borderColor = "#2d3954";
+        tuile.onclick = function() {
+            const choix = this.getAttribute('data-name');
+            appliquerSelectionEcurieVisuelle(slotId, choix);
+            modale.style.display = "none";
+        };
     });
 }
 
