@@ -15,6 +15,10 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
+// 💡 Force l'utilisation du Long Polling pour contourner les bloqueurs de pubs agressifs (ERR_BLOCKED_BY_CLIENT)
+db.settings({
+    experimentalAutoDetectLongPolling: true
+});
 // Chemins locaux vers tes images AVIF
 const LOGOS_2026 = {
     redbull: "images/cars/redbull.avif",
@@ -353,25 +357,25 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
 // 7. CHARGEMENT ET SAUVEGARDE DES PRONOSTICS
 // ==========================================
 function chargerPronosticsUtilisateur() {
+    // 1. Reset visuel complet des champs d'abord, pour que la grille ne disparaisse jamais
+    for(let i=1; i<=10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`);
+        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+    }
+    const pole = document.getElementById('select-poleman'); if(pole) pole.value = "";
+    const t1 = document.getElementById('ecurie-top-1'); if(t1) t1.value = "";
+    const t2 = document.getElementById('ecurie-top-2'); if(t2) t2.value = "";
+    const f1 = document.getElementById('ecurie-flop-1'); if(f1) f1.value = "";
+    const f2 = document.getElementById('ecurie-flop-2'); if(f2) f2.value = "";
+    const jk = document.getElementById('check-joker'); if(jk) jk.checked = false;
+
     const user = auth.currentUser;
-    if(!user) return;
+    if(!user) return; // Si pas connecté, on s'arrête là mais les sélecteurs restent affichés et vides !
 
     const round = document.getElementById('select-course').value;
     const docId = round ? `gp_${round}` : 'gp_1';
     
     db.collection("pronostics").doc(user.uid).collection("grands_prix").doc(docId).get().then(doc => {
-        // Reset global des sélections avant l'injection
-        for(let i=1; i<=10; i++) {
-            const s = document.getElementById(`select-grid-p${i}`);
-            if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-        }
-        const pole = document.getElementById('select-poleman'); if(pole) pole.value = "";
-        const t1 = document.getElementById('ecurie-top-1'); if(t1) t1.value = "";
-        const t2 = document.getElementById('ecurie-top-2'); if(t2) t2.value = "";
-        const f1 = document.getElementById('ecurie-flop-1'); if(f1) f1.value = "";
-        const f2 = document.getElementById('ecurie-flop-2'); if(f2) f2.value = "";
-        const jk = document.getElementById('check-joker'); if(jk) jk.checked = false;
-
         if(doc.exists) {
             const data = doc.data();
             if(data.top10 && Array.isArray(data.top10)) {
@@ -388,6 +392,8 @@ function chargerPronosticsUtilisateur() {
             if(jk && data.jokerUtilise) jk.checked = data.jokerUtilise;
         }
         controlerDoublonsPilotes();
+    }).catch(err => {
+        console.error("Erreur de chargement des pronos :", err);
     });
 }
 
