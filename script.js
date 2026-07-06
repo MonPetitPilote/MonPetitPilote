@@ -133,12 +133,16 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
-        // Mise en place de la carte de style F1 Officiel
+        // Structure HTML ajustée pour le zoom portrait et la voiture couvrant le fond
         slot.innerHTML = `
             <div class="grid-pos-badge" id="badge-p${i}">P${i}</div>
-            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; width: 100%; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease;">
+            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; width: 100%; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
                 
-                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                <!-- Voiture en arrière-plan étendue sur le cadre -->
+                <img id="car-grid-p${i}" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
+
+                <!-- Zone gauche : Infos Pilote (z-index 2 pour rester au-dessus de la voiture) -->
+                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <span id="num-f1-p${i}" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
                         <img id="flag-f1-p${i}" src="" style="width: 18px; border-radius: 2px; display: none;">
@@ -149,9 +153,9 @@ function creerLaGrilleDeDepartTV() {
                     <div id="team-grid-p${i}" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">⚡ PLACE À PRENDRE</div>
                 </div>
 
-                <div style="position: relative; width: 85px; height: 55px; display: flex; justify-content: center; align-items: center; overflow: hidden; margin-left: 10px;">
-                    <img id="car-grid-p${i}" src="" style="position: absolute; max-width: 90%; max-height: 90%; opacity: 0.15; object-fit: contain; pointer-events: none; right: 0;">
-                    <img id="img-grid-p${i}" src="" style="position: relative; max-height: 100%; object-fit: contain; z-index: 2; transform: translateY(4px); display: none;">
+                <!-- Zone droite : Portrait Pilote zoomé (Coupé à la moitié/tiers supérieur) -->
+                <div style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2;">
+                    <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
             </div>
         `;
@@ -176,26 +180,21 @@ function mettreAJourDesignSlot(position, nomPilote) {
     const localData = pilotesData.find(p => p.nom === nomPilote);
 
     if (nomPilote && localData) {
-        // Changement de l'accentuation de couleur F1
         card.style.borderLeft = `5px solid ${localData.couleur}`;
         if(badge) badge.style.background = localData.couleur;
         
-        // Numéro et drapeau nationaux
         numTarget.innerText = localData.numero;
         numTarget.style.color = localData.couleur;
         flagTarget.src = `https://flagcdn.com/w20/${localData.pays}.png`;
         flagTarget.style.display = "inline-block";
         
-        // Images (Casque et Logo d'écurie)
         imgTarget.src = localData.driverImg;
         imgTarget.style.display = "block";
         carTarget.src = localData.carImg;
         
-        // Texte
         teamTarget.innerText = localData.ecurie;
         teamTarget.style.color = "#ff8000"; 
     } else {
-        // Reset mode par défaut (Vide)
         card.style.borderLeft = `1px solid #2f3e56`;
         if(badge) badge.style.background = "#232e44";
         numTarget.innerText = "--";
