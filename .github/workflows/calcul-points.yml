@@ -16,7 +16,7 @@ jobs:
       - name: Installer Node.js
         uses: actions/setup-node@v4
         with:
-          node-node: '20'
+          node-version: '24' # 🛠️ CORRIGÉ : 'node-version' au lieu de 'node-node' et passage à Node 24
 
       - name: Installer les dépendances (Firebase & Axios)
         run: npm install firebase-admin axios
