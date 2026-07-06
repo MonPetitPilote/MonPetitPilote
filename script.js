@@ -11,14 +11,19 @@ const firebaseConfig = {
     measurementId: "G-TY047XHDXW"
 };
 
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+// Initialisation de l'application
+const app = firebase.initializeApp(firebaseConfig);
+
+// 🎯 Initialisation propre de Firestore avec fusion des paramètres (évite le warning et le blocage)
+var db = firebase.firestore(app);
+db.settings({
+    host: "firestore.googleapis.com", // On remet le host par défaut explicitement
+    ssl: true,
+    experimentalAutoDetectLongPolling: true // Force le polling contre uBlock/AdBlock
+});
+
 var auth = firebase.auth();
 
-// 💡 Force l'utilisation du Long Polling pour contourner les bloqueurs de pubs agressifs (ERR_BLOCKED_BY_CLIENT)
-db.settings({
-    experimentalAutoDetectLongPolling: true
-});
 // Chemins locaux vers tes images AVIF
 const LOGOS_2026 = {
     redbull: "images/cars/redbull.avif",
