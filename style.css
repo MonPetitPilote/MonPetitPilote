@@ -1,313 +1,78 @@
-/* Base & Thème Sombre Racing */
-body {
-    background: radial-gradient(circle at top, #1e2538 0%, #0f131c 100%);
-    color: #f5f6fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 1250px;
-    margin: 0 auto;
-    padding: 30px 20px;
-}
-
-
-
 /* ==========================================
-   BARRE MEMBRE SUPÉRIEURE (HAUT DROITE)
+   GRILLE DE DÉPART STYLE F1 TV (TOP 10)
    ========================================== */
-.top-member-bar {
-    display: flex;
-    justify-content: flex-end; /* Pousse l'espace membre tout à droite */
-    margin-bottom: 12px;
-    padding-right: 10px;
-}
-
-.auth-champs-header {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-}
-
-.auth-champs-header input {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    max-width: 140px;
-    background-color: #111622;
-    border: 1px solid #2d3954;
-    border-radius: 6px;
-    color: white;
-}
-
-/* ==========================================
-   HEADER PRINCIPAL (TITRE + RÈGLEMENT À DROITE)
-   ========================================== */
-.brand-header {
-    background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
-    border-radius: 16px;
-    padding: 20px 30px;
-    margin-bottom: 35px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border-left: 6px solid #e10600;
-    
-    display: flex;
-    flex-direction: row; 
-    justify-content: space-between; /* Met le logo à gauche et le règlement tout à droite */
-    align-items: center; 
-}
-
-
-/* Reste du CSS pour les inputs du header */
-.auth-champs-header input {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-    max-width: 140px;
-    background-color: #0c1017;
-    border: 1px solid #2d3954;
-    border-radius: 6px;
-    color: white;
-}
-
-
-.brand-logo-zone {
-    display: flex;
-    flex-direction: column;
-}
-
-.brand-title {
-    font-size: 2.2rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -1px;
-    margin: 0;
-    background: linear-gradient(90deg, #ffffff 0%, #a5b1c2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.brand-title span {
-    color: #e10600;
-    -webkit-text-fill-color: initial;
-}
-
-.brand-subtitle {
-    font-size: 0.95rem;
-    color: #ff8000;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 5px;
-}
-
-/* Structure principale */
-.main-layout {
+.f1-starting-grid {
     display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 30px;
-}
-
-@media (max-width: 950px) {
-    .main-layout { grid-template-columns: 1fr; }
-}
-
-/* Cartes et Blocs "Paddock" */
-.colonne-gauche, .bloc-sub-droite, .section-top-flop, #bloc-auth {
-    background: #161c2a;
-    border-radius: 14px;
-    padding: 25px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    grid-template-columns: 1fr 1fr; /* Deux colonnes (Gauche / Droite) */
+    gap: 15px 25px; /* Espace vertical et horizontal entre les voitures */
+    margin-top: 20px;
+    background: rgba(15, 19, 28, 0.6);
+    padding: 20px;
+    border-radius: 12px;
     border: 1px solid #242f46;
 }
 
-/* Grille de Pronostics (Look TV Leaderboard) */
-.ligne-pilote {
-    background: #1c2437;
+/* Style de chaque emplacement sur la grille */
+.grid-slot {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #1c2437 0%, #111622 100%);
     border-radius: 8px;
-    padding: 10px 15px;
+    padding: 6px 12px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-right: 4px solid #2d3954; /* Changé dynamiquement en JS par la couleur écurie */
+    height: 65px; /* Hauteur fixe pour aligner les photos */
+}
+
+.grid-slot:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 128, 0, 0.15);
+}
+
+/* --- LE SECRET DU DÉCALAGE DE LA GRILLE --- */
+
+/* La Pole Position (P1) prend toute la largeur au début */
+.grid-slot[data-pos="1"] {
+    grid-column: 1 / span 2;
+    max-width: 50%; /* Elle reste alignée à gauche comme en vrai */
     margin-bottom: 10px;
-    border-right: 4px solid transparent;
-    transition: transform 0.2s, background 0.2s;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
-.ligne-pilote:hover {
-    transform: translateX(4px);
-    background: #222b42;
+/* Toutes les positions impaires (P3, P5, P7, P9) -> Colonne de gauche, avancées */
+.grid-slot:nth-child(odd):not([data-pos="1"]) {
+    grid-column: 1;
+    margin-right: 10px;
 }
 
-.badge-position {
-    font-weight: 800;
+/* Toutes les positions paires (P2, P4, P6, P8, P10) -> Colonne de droite, reculées */
+.grid-slot:nth-child(even) {
+    grid-column: 2;
+    margin-top: 25px; /* Crée le décalage vers le bas par rapport au pilote à sa gauche */
+    margin-left: 10px;
+}
+
+/* --- COMPOSANTS INTERNES D'UN PILOTE SUR LA GRILLE --- */
+
+.grid-pos-badge {
+    font-size: 1.2rem;
+    font-weight: 900;
+    font-style: italic;
     color: #a5b1c2;
-    background: #111622;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    min-width: 35px;
-    text-align: center;
+    min-width: 30px;
 }
 
-/* Sélections et Formulaires chaleureux */
-select, input[type="text"], input[type="email"], input[type="password"] {
-    background-color: #0f131c;
-    color: #ffffff;
-    border: 1px solid #2d3954;
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
+/* Zone de la photo détourée */
+.grid-driver-avatar {
+    width: 65px;
+    height: 65px;
+    position: relative;
+    margin-top: -10px; /* Fait dépasser légèrement la tête du cadre pour le style */
 }
 
-select:focus, input:focus {
-    border-color: #ff8000;
-}
-
-/* Boutons Racing */
-button {
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-#btn-valider {
+.grid-driver-avatar img {
     width: 100%;
-    background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
-    color: white;
-    border: none;
-    padding: 16px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.4);
-    margin-top: 15px;
-}
-
-#btn-valider:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(225, 6, 0, 0.6);
-}
-
-/* Tableau de bord des Scores */
-.tableau-scores {
-    background: #0f131c;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.entete-scores {
-    background: #242f46;
-    padding: 12px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #a5b1c2;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.ligne-joueur {
-    border-bottom: 1px solid #1c2437;
-    padding: 12px;
-    transition: background 0.2s;
-}
-
-.ligne-joueur:hover {
-    background-color: #1c2437;
-}
-
-/* Image de la monoplace */
-.img-monoplace {
-    height: 28px;
+    height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-}
-
-/* Alignement de la zone droite du Header */
-.header-right-zone {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.auth-champs-header {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-/* Réduction de la taille des inputs pour le header */
-.auth-champs-header input {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    max-width: 130px;
-    background-color: #0c1017;
-}
-
-/* Boutons d'authentification du Header */
-.btn-header-auth {
-    padding: 7px 12px;
-    font-size: 0.8rem;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.btn-conn { background-color: #242f46; color: white; }
-.btn-conn:hover { background-color: #2d3954; }
-.btn-insc { background-color: #ff8000; color: #111622; }
-.btn-insc:hover { background-color: #e07000; }
-
-/* Badge de l'utilisateur connecté */
-.user-profile-badge {
-    background: #0f131c;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid #2d3954;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #4cd137;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #4cd137;
-}
-
-/* Bouton Déconnexion Soigné (Look Écurie/Sport) */
-.btn-logout {
-    background: transparent;
-    color: #ff3f3f;
-    border: 1px solid #ff3f3f;
-    padding: 8px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: all 0.2s ease;
-}
-
-.btn-logout:hover {
-    background: #ff3f3f;
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 63, 63, 0.4);
-    transform: translateY(-1px);
-}
-
-/* Responsive pour mobile */
-@media (max-width: 768px) {
-    .brand-header { flex-direction: column; align-items: flex-start; }
-    .header-right-zone { width: 100%; flex-direction: column; align-items: stretch; }
-    .auth-champs-header { flex-wrap: wrap; }
-    .auth-champs-header input { max-width: none; flex: 1; }
-}
-
+    filter: drop
