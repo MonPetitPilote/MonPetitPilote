@@ -182,11 +182,12 @@ function injecterStylesResponsifsGlobaux() {
     document.head.appendChild(styleSheet);
 }
 
-// GESTION DU TITRE ET DU BOUTON RÈGLEMENT SANS CASSER SON ONCLICK
+// GESTION DU TITRE ET DU BOUTON RÈGLEMENT
 function adapterEnTeteTitreEtReglement() {
     const boutonReglement = document.getElementById('btn-reglement') || document.querySelector('button[onclick*="reglement"]') || document.querySelector('.btn-reglement');
     if (!boutonReglement) return;
 
+    // Sauvegarde et nettoyage des styles inline conflictuels du parent
     const conteneurParent = boutonReglement.parentElement;
     if (conteneurParent) {
         conteneurParent.style.display = 'flex';
@@ -203,16 +204,47 @@ function adapterEnTeteTitreEtReglement() {
     }
 }
 
-// GESTION AUTHENTIFICATION
-auth.onAuthStateChanged((user) => {
+// GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
+auth.onAuthStateChanged(async (user) => {
     const zoneDeconnecte = document.getElementById('auth-deconnecte');
     const zoneConnecte = document.getElementById('auth-connecte');
     const nomUserSpan = document.getElementById('nom-utilisateur');
+    
     if (user) {
         utilisateurActuel = user;
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
         if(zoneConnecte) zoneConnecte.style.display = 'flex';
-        if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
+        
+        // Récupération des données utilisateur de la base pour obtenir ses points généraux réels
+        try {
+            const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
+            let pointsGeneraux = 0;
+            let estEligible = true; // Règle d'éligibilité personnalisable (ex: inscrit en BDD)
+
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                pointsGeneraux = userData.points || 0;
+                if (userData.eligible !== undefined) {
+                    estEligible = userData.eligible;
+                }
+            }
+
+            // Création du bloc récapitulatif à côté du nom
+            const badgeEligibleHtml = estEligible 
+                ? `<span style="background: #10b981; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">👑 ÉLIGIBLE</span>`
+                : `<span style="background: #ef4444; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; margin-left: 8px;">❌ NON ÉLIGIBLE</span>`;
+
+            if(nomUserSpan) {
+                nomUserSpan.innerHTML = `
+                    <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
+                    <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pointsGeneraux} pts au Général</span>
+                    ${badgeEligibleHtml}
+                `;
+            }
+        } catch (error) {
+            if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
+        }
+
         chargerPronosticsUtilisateur();
     } else {
         utilisateurActuel = null;
@@ -233,7 +265,7 @@ document.getElementById('btn-inscription')?.addEventListener('click', () => {
     if(!pseudo) return alert("Pseudo requis !");
     auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
         res.user.updateProfile({ displayName: pseudo }).then(() => {
-            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0 });
+            db.collection("utilisateurs").doc(res.user.uid).set({ pseudo: pseudo, points: 0, eligible: true });
             location.reload();
         });
     }).catch(err => alert(err.message));
@@ -375,32 +407,28 @@ function controlerDoublonsPilotes() {
 // INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
 function initialiserSelectCourse() {
     if (!selectCourse) return;
-    selectCourse.innerHTML = ""; // Reset complet
+    selectCourse.innerHTML = ""; 
 
     const aujourdhui = new Date();
-    let prochainRoundValue = "2026/1"; // Valeur par défaut (Round 1)
+    let prochainRoundValue = "2026/1"; 
     let roundTrouve = false;
 
     calendrier2026.forEach(gp => {
         const opt = document.createElement('option');
         opt.value = `2026/${gp.round}`;
         
-        // Formatage de la date en français (ex: 15 mars 2026)
         const dateObj = new Date(gp.date);
         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         
-        // Texte enrichi complet demandé : Circuit + Pays + Date
         opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
         selectCourse.appendChild(opt);
 
-        // Détection automatique : On cherche le premier GP dont la date est aujourd'hui ou dans le futur
         if (!roundTrouve && dateObj >= aujourdhui) {
             prochainRoundValue = `2026/${gp.round}`;
-            roundTrouve = true; // Empêche de surcharger avec les suivants
+            roundTrouve = true; 
         }
     });
 
-    // Appliquer la sélection automatique du Grand Prix à venir
     selectCourse.value = prochainRoundValue;
 }
 
@@ -462,31 +490,53 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         top10Selection.push(val);
     }
     const pronoData = {
-        uidJoueur: '../../',
+        uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
         classementPilotes: top10Selection,
         poleman: selectPole.value,
-        ecuriesTop: [document.getElementById('ecurie-top-1').value, document.getElementById('ecurie-top-2').value],
-        ecuriesFlop: [document.getElementById('ecurie-flop-1').value, document.getElementById('ecurie-flop-2').value],
+        ecuriesTop: [document.getElementById('ecuries-top-1')?.value || "", document.getElementById('ecuries-top-2')?.value || ""],
+        ecuriesFlop: [document.getElementById('ecuries-flop-1')?.value || "", document.getElementById('ecuries-flop-2')?.value || ""],
         dateEnregistrement: new Date()
     };
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
     alert("🏁 Grille enregistrée avec succès !");
 });
 
+// CHARGEMENT DU CLASSEMENT GÉNÉRAL SÉCURISÉ
 async function chargerClassementGeneral() {
-    const liste = document.getElementById('liste-classement'); if(!liste) return;
-    liste.innerHTML = "";
-    const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
-    let pos = 1;
-    snapshot.forEach(doc => {
-        const u = doc.data();
-        const div = document.createElement('div');
-        div.style = 'display:grid; grid-template-columns:40px 1fr 60px; padding:12px; border-bottom:1px solid #1c2437;';
-        div.innerHTML = `<div><strong>#${pos}</strong></div><div>${u.pseudo}</div><div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>`;
-        liste.appendChild(div); pos++;
-    });
+    const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
+    if(!liste) {
+        console.warn("Conteneur 'liste-classement' introuvable dans le HTML.");
+        return;
+    }
+    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
+    
+    try {
+        const snapshot = await db.collection("utilisateurs").orderBy("points", "desc").get();
+        liste.innerHTML = ""; // Vider l'attente
+        
+        if (snapshot.empty) {
+            liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Aucun joueur enregistré pour le moment.</div>";
+            return;
+        }
+
+        let pos = 1;
+        snapshot.forEach(doc => {
+            const u = doc.data();
+            const div = document.createElement('div');
+            div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
+            div.innerHTML = `
+                <div><strong style="color:${pos <= 3 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
+                <div>${u.pseudo || 'Pilote Anonyme'}</div>
+                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points || 0} pts</div>
+            `;
+            liste.appendChild(div); 
+            pos++;
+        });
+    } catch (error) {
+        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
+    }
 }
 
 document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
