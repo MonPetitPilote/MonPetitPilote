@@ -125,6 +125,54 @@ function creerLaGrilleDeDepartTV() {
     if (!conteneurGrille) return;
     conteneurGrille.innerHTML = "";
 
+    // Injection dynamique d'un style CSS adaptatif pour mobile
+    if (!document.getElementById('f1-mobile-styles')) {
+        const styleSheet = document.createElement("style");
+        styleSheet.id = "f1-mobile-styles";
+        styleSheet.innerText = `
+            .grid-slot {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            @media (max-width: 576px) {
+                .grid-slot {
+                    gap: 4px;
+                }
+                .grid-pos-badge {
+                    min-width: 32px !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                    font-size: 12px !important;
+                }
+                .grid-card-f1 {
+                    padding: 4px 8px !important;
+                }
+                .grid-select-paddock {
+                    font-size: 13px !important;
+                }
+                .driver-team-text {
+                    font-size: 9px !important;
+                }
+                .driver-num-text {
+                    font-size: 16px !important;
+                }
+                .driver-portrait-container {
+                    width: 50px !important;
+                    height: 50px !important;
+                    margin-left: 4px !important;
+                }
+                .car-bg-image {
+                    max-width: 75% !important;
+                    height: 110% !important;
+                }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    }
+
     for (let i = 1; i <= 10; i++) {
         const slot = document.createElement('div');
         slot.className = 'grid-slot';
@@ -133,28 +181,25 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
-        // Structure HTML ajustée pour le zoom portrait et la voiture couvrant le fond
+        // Structure HTML ergonomique et optimisée mobile
         slot.innerHTML = `
-            <div class="grid-pos-badge" id="badge-p${i}">P${i}</div>
-            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; width: 100%; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
+            <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff;">P${i}</div>
+            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
                 
-                <!-- Voiture en arrière-plan étendue sur le cadre -->
-                <img id="car-grid-p${i}" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
+                <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
 
-                <!-- Zone gauche : Infos Pilote (z-index 2 pour rester au-dessus de la voiture) -->
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                        <span id="num-f1-p${i}" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
+                        <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
                         <img id="flag-f1-p${i}" src="" style="width: 18px; border-radius: 2px; display: none;">
                     </div>
-                    <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}" style="width: 95%; background: transparent; border: none; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; padding: 2px 0;">
+                    <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; padding: 2px 0; outline: none; text-overflow: ellipsis;">
                         ${optionsHtml}
                     </select>
-                    <div id="team-grid-p${i}" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">⚡ PLACE À PRENDRE</div>
+                    <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
                 </div>
 
-                <!-- Zone droite : Portrait Pilote zoomé (Coupé à la moitié/tiers supérieur) -->
-                <div style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2;">
+                <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
                     <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
             </div>
