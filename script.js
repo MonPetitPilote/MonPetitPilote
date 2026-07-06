@@ -241,7 +241,7 @@ auth.onAuthStateChanged(async (user) => {
         
         // Récupération des données utilisateur de la base pour obtenir ses points généraux réels
         try {
-            const userDoc = await db.collection("utilisateurs").doc(user.uid).get();
+            const userDoc = await db.collection("pronostics").doc(user.uid).get()
             let pointsGeneraux = 0;
             let estEligible = true;
 
@@ -535,8 +535,8 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Chargement du classement...</div>";
     
     try {
-        // On récupère tous les utilisateurs sans demander de tri à Firebase
-        const snapshot = await db.collection("utilisateurs").get();
+        // On va chercher dans "pronostics" au lieu de "utilisateurs"
+        const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
         
         if (snapshot.empty) {
@@ -544,20 +544,21 @@ async function chargerClassementGeneral() {
             return;
         }
 
-        // On extrait les données et on s'assure que "points" vaut au moins 0 si absent
         let joueurs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            joueurs.push({
-                pseudo: data.pseudo || data.email || 'Pilote Anonyme',
-                points: data.points !== undefined ? Number(data.points) : 0
-            });
+            // On s'assure de ne prendre que les documents qui ont un pseudo (pour éviter de lister des vieux docs vides)
+            if (data.pseudo) {
+                joueurs.push({
+                    pseudo: data.pseudo,
+                    points: data.points !== undefined ? Number(data.points) : 0
+                });
+            }
         });
 
-        // On trie les joueurs du plus grand nombre de points au plus petit
+        // Tri décroissant des points
         joueurs.sort((a, b) => b.points - a.points);
 
-        // On affiche le classement
         joueurs.forEach((u, index) => {
             const pos = index + 1;
             const div = document.createElement('div');
