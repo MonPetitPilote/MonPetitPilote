@@ -475,5 +475,5 @@ initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
-adapterEn-TeteTitreEtReglement();
+adapterEnTeteTitreEtReglement();
 if(selectCourse) selectCourse.addEventListener('change', chargerPronosticsUtilisateur);
