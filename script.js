@@ -63,6 +63,136 @@ let designPilotesF1 = {};
 const selectCourse = document.getElementById('select-course');
 const selectPole = document.getElementById('select-pole');
 
+// Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
+function injecterStylesResponsifsGlobaux() {
+    if (document.getElementById('f1-responsive-styles-globaux')) return;
+    
+    const styleSheet = document.createElement("style");
+    styleSheet.id = "f1-responsive-styles-globaux";
+    styleSheet.innerText = `
+        /* --- STYLE DE BASE DE LA GRILLE --- */
+        .grid-slot {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+            width: 100% !important;
+            margin-bottom: 12px !important;
+        }
+
+        /* --- STYLES ADAPTATIFS MOBILE (< 576px) --- */
+        @media (max-width: 576px) {
+            /* 1. Structure de la Grille de Pronos en Blocs */
+            #grille-pronos {
+                display: block !important;
+                width: 100% !important;
+            }
+            .grid-slot {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0px !important;
+                margin-bottom: 18px !important;
+            }
+            .grid-pos-badge {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 28px !important;
+                font-size: 13px !important;
+                border-radius: 8px 8px 0 0 !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                text-align: center !important;
+            }
+            .grid-card-f1 {
+                width: 100% !important;
+                border-radius: 0 0 8px 8px !important;
+                padding: 8px 12px !important;
+            }
+            .grid-select-paddock {
+                font-size: 14px !important;
+            }
+            .driver-team-text {
+                font-size: 10px !important;
+            }
+            .driver-num-text {
+                font-size: 18px !important;
+            }
+            .driver-portrait-container {
+                width: 60px !important;
+                height: 60px !important;
+            }
+            .car-bg-image {
+                max-width: 65% !important;
+                height: 120% !important;
+            }
+
+            /* 2. Adaptation Responsive de la Zone Connexion / Inscription */
+            #auth-deconnecte, #auth-connecte {
+                width: 100% !important;
+                box-sizing: border-box !important;
+                padding: 12px !important;
+            }
+            #auth-deconnecte > div, #auth-connecte > div {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                gap: 10px !important;
+            }
+            #auth-deconnecte input, #auth-connecte input {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                font-size: 14px !important;
+                padding: 10px !important;
+                margin: 2px 0 !important;
+            }
+            #auth-deconnecte button, #auth-connecte button {
+                width: 100% !important;
+                box-sizing: border-box !important;
+                padding: 12px !important;
+                margin: 4px 0 !important;
+                font-size: 14px !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+            
+            /* Ajustement pour séparer proprement la ligne ou le bloc de boutons */
+            .auth-actions-group {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+        }
+    `;
+    document.head.appendChild(styleSheet);
+}
+
+// GESTION DU TITRE ET DU BOUTON RÈGLEMENT
+function adapterEn-TeteTitreEtReglement() {
+    // On essaie de cibler le conteneur du titre à l'aide de structures courantes
+    // S'il n'y a pas d'ID, on cherche un conteneur contenant h1 ou l'élément du règlement
+    const boutonReglement = document.querySelector('button[onclick*="reglement"]') || document.getElementById('btn-reglement') || document.querySelector('.btn-reglement');
+    if (!boutonReglement) return;
+
+    const conteneurParent = boutonReglement.parentElement;
+    if (conteneurParent) {
+        // Applique un style flex en colonne centré au conteneur pour que le titre passe au-dessus et le bouton au-dessous
+        conteneurParent.style.display = 'flex';
+        conteneurParent.style.flexDirection = 'column';
+        conteneurParent.style.alignItems = 'center';
+        conteneurParent.style.justifyContent = 'center';
+        conteneurParent.style.textAlign = 'center';
+        conteneurParent.style.gap = '12px';
+        conteneurParent.style.width = '100%';
+        conteneurParent.style.margin = '20px auto';
+
+        // S'assurer que le bouton lui-même est bien centré et ne prend pas une taille disproportionnée
+        boutonReglement.style.margin = '0 auto';
+        boutonReglement.style.display = 'inline-block';
+    }
+}
+
 // GESTION AUTHENTIFICATION
 auth.onAuthStateChanged((user) => {
     const zoneDeconnecte = document.getElementById('auth-deconnecte');
@@ -125,62 +255,8 @@ function creerLaGrilleDeDepartTV() {
     if (!conteneurGrille) return;
     conteneurGrille.innerHTML = "";
 
-    // Injection dynamique d'un style CSS adaptatif ultra-prioritaire pour mobile
-    if (!document.getElementById('f1-mobile-styles')) {
-        const styleSheet = document.createElement("style");
-        styleSheet.id = "f1-mobile-styles";
-        styleSheet.innerText = `
-            .grid-slot {
-                display: flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                gap: 8px !important;
-                width: 100% !important;
-                margin-bottom: 12px !important;
-            }
-            @media (max-width: 576px) {
-                .grid-slot {
-                    flex-direction: column !important;
-                    align-items: stretch !important;
-                    gap: 0px !important;
-                    margin-bottom: 18px !important;
-                }
-                .grid-pos-badge {
-                    width: 100% !important;
-                    max-width: 100% !important;
-                    height: 28px !important;
-                    font-size: 13px !important;
-                    border-radius: 8px 8px 0 0 !important;
-                    justify-content: center !important;
-                    padding: 0 !important;
-                    text-align: center !important;
-                }
-                .grid-card-f1 {
-                    width: 100% !important;
-                    border-radius: 0 0 8px 8px !important;
-                    padding: 8px 12px !important;
-                }
-                .grid-select-paddock {
-                    font-size: 14px !important;
-                }
-                .driver-team-text {
-                    font-size: 10px !important;
-                }
-                .driver-num-text {
-                    font-size: 18px !important;
-                }
-                .driver-portrait-container {
-                    width: 60px !important;
-                    height: 60px !important;
-                }
-                .car-bg-image {
-                    max-width: 65% !important;
-                    height: 120% !important;
-                }
-            }
-        `;
-        document.head.appendChild(styleSheet);
-    }
+    // Injection des styles responsifs globaux (Grille, Écran de Connexion)
+    injecterStylesResponsifsGlobaux();
 
     for (let i = 1; i <= 10; i++) {
         const slot = document.createElement('div');
@@ -190,13 +266,14 @@ function creerLaGrilleDeDepartTV() {
         let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
         pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
 
-        // Structure HTML optimisée : styles en ligne épurés pour laisser le CSS global (ci-dessus) piloter le responsive
         slot.innerHTML = `
             <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff; flex-shrink: 0; transition: background 0.3s ease;">P${i}</div>
             <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
                 
+                <!-- Voiture en arrière-plan étendue sur le cadre -->
                 <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
 
+                <!-- Zone gauche : Infos Pilote -->
                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
@@ -208,6 +285,7 @@ function creerLaGrilleDeDepartTV() {
                     <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
                 </div>
 
+                <!-- Zone droite : Portrait Pilote zoomé -->
                 <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
                     <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
                 </div>
@@ -397,4 +475,5 @@ initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
+adapterEn-TeteTitreEtReglement();
 if(selectCourse) selectCourse.addEventListener('change', chargerPronosticsUtilisateur);
