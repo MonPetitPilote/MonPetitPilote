@@ -81,6 +81,107 @@ async function demarrer() {
                 driversMap[d.driver_number] = `${d.first_name} ${d.last_name}`;
             });
 
+            // =========================================================================
+// CONFIGURATION DES CATÉGORIES ET LOGIQUE DE CALCUL DU STATUT DES ÉCURIES
+// =========================================================================
+
+const CATEGORIES_ECURIES = {
+    "Mercedes": "toptier", "Ferrari": "toptier",
+    "Red Bull": "outsider", "McLaren": "outsider",
+    "Alpine": "midfield", "Racing Bulls": "midfield",
+    "Williams": "unpredictable", "Audi": "unpredictable", "Haas": "unpredictable",
+    "Aston Martin": "backmarker", "Cadillac": "backmarker"
+};
+
+/**
+ * Détermine le statut (Top, Flop ou Neutre) de chaque écurie à la fin d'un GP
+ * @param {Array} resultatsComplets - Tableau de tous les pilotes avec leur position finale (ex: 1 à 22) et leur statut (ex: "Finished", "DNF", "Accident")
+ * @returns {Object} Un dictionnaire avec le statut de chaque écurie { "Ferrari": "top", "Alpine": "neutre", ... }
+ */
+function determinerStatutsEcuries(resultatsComplets) {
+    let statutsEcuries = {};
+    const ecuriesSaison = Object.keys(CATEGORIES_ECURIES);
+
+    ecuriesSaison.forEach(ecurie => {
+        const categorie = CATEGORIES_ECURIES[ecurie];
+        
+        // 1. On filtre les résultats pour récupérer les données des 2 pilotes de cette écurie
+        const pilotesEcurie = resultatsComplets.filter(p => p.ecurie === ecurie);
+        
+        if (pilotesEcurie.length < 2) {
+            statutsEcuries[ecurie] = "neutre";
+            return;
+        }
+
+        const p1 = pilotesEcurie[0];
+        const p2 = pilotesEcurie[1];
+
+        // Raccourcis pour les positions (si DNF, on met une position infinie)
+        const pos1 = p1.status === "Finished" ? p1.position : 99;
+        const pos2 = p2.status === "Finished" ? p2.position : 99;
+
+        // --- RÈGLE UNIVERSELLE : DOUBLE DNF ---
+        if (p1.status !== "Finished" && p2.status !== "Finished") {
+            statutsEcuries[ecurie] = "flop";
+            return;
+        }
+
+        // --- APPLICATION DES RÈGLES PAR CATÉGORIE ---
+        switch (categorie) {
+            case "toptier": // Mercedes, Ferrari
+                if (pos1 <= 3 && pos2 <= 3) {
+                    statutsEcuries[ecurie] = "top";
+                } else if (pos1 > 5 && pos2 > 5) {
+                    statutsEcuries[ecurie] = "flop";
+                } else {
+                    statutsEcuries[ecurie] = "neutre";
+                }
+                break;
+
+            case "outsider": // Red Bull, McLaren
+                const unSurPodium = (pos1 <= 3 || pos2 <= 3);
+                const deuxDansTop10 = (pos1 <= 10 && pos2 <= 10);
+                
+                if (deuxDansTop10 && unSurPodium) {
+                    statutsEcuries[ecurie] = "top";
+                } else if (pos1 > 10 && pos2 > 10) {
+                    statutsEcuries[ecurie] = "flop";
+                } else {
+                    statutsEcuries[ecurie] = "neutre";
+                }
+                break;
+
+            case "midfield":        // Alpine, Racing Bulls
+            case "unpredictable":   // Williams, Audi, Haas
+                if (pos1 <= 10 && pos2 <= 10) {
+                    statutsEcuries[ecurie] = "top";
+                } else if (pos1 > 12 && pos2 > 12) {
+                    statutsEcuries[ecurie] = "flop";
+                } else {
+                    statutsEcuries[ecurie] = "neutre";
+                }
+                break;
+
+            case "backmarker": // Aston Martin, Cadillac
+                if (pos1 <= 10 || pos2 <= 10) {
+                    statutsEcuries[ecurie] = "top";
+                } else if (pos1 >= 16 && pos2 >= 16) {
+                    statutsEcuries[ecurie] = "flop";
+                } else {
+                    statutsEcuries[ecurie] = "neutre";
+                }
+                break;
+
+            default:
+                statutsEcuries[ecurie] = "neutre";
+        }
+    });
+
+    return statutsEcuries;
+}
+
+
+
             // Construction du Top 10 Officiel
             const top10Officiel = [];
             const vus = new Set();
