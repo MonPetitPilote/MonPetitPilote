@@ -146,25 +146,27 @@ async function demarrer() {
             console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
             // 5. Récupération du Poleman
+           // 5. Récupération du Poleman (Corrigé pour éviter le premier sorti en Q1)
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
                 if (resQualif.data && resQualif.data.length > 0) {
                     const qSessionKey = resQualif.data[0].session_key;
+                    
+                    // On demande toutes les lignes où un pilote a été P1 pendant la qualif
                     const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
+                    
                     if (resPositionsQ.data && resPositionsQ.data.length > 0) {
-                        polemanOfficiel = trouverNomPilote(resPositionsQ.data[0].driver_number);
+                        // 🔥 CORRECTION : On trie par date décroissante pour obtenir le TOUT DERNIER pilote 
+                        // ayant obtenu ou conservé la position 1 à la fin de la session (Fin de la Q3)
+                        const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        
+                        polemanOfficiel = trouverNomPilote(requetesTriees[0].driver_number);
                     }
                 }
             } catch (pErr) {
                 console.log(`ℹ️ Poleman introuvable pour la qualif de ${session.location}`);
             }
-
-            const vainqueurNumero = top10OfficielNums[0];
-            const ecurieGagnanteRelle = trouverEcuriePilote(vainqueurNumero);
-
-            console.log(`🎯 Résultats figés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
-
             // 6. Extraction et calcul des pronostics stockés sous l'id "2026/X"
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
