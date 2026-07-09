@@ -576,7 +576,7 @@ async function chargerPronosticsUtilisateur() {
     }
     if(selectPole) selectPole.value = "";
     
-    // 🌟 NOUVEAU : Réinitialisation visuelle des 4 slots d'écuries
+    
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         appliquerSelectionEcurieVisuelle(id, "");
     });
@@ -725,6 +725,82 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     }
     controlerDoublonsPilotes();
 });
+
+// --- GESTION DE L'AFFICHAGE DE L'ESPACE MEMBRE ---
+const btnVersProfil = document.getElementById('btn-vers-profil');
+const btnRetourPronos = document.getElementById('btn-retour-pronos');
+const logoAccueil = document.getElementById('logo-accueil');
+const sectionPronos = document.getElementById('main-content-pronos');
+const sectionProfil = document.getElementById('workspace-profil');
+
+if(btnVersProfil) {
+    btnVersProfil.addEventListener('click', () => {
+        sectionPronos.style.display = 'none';
+        sectionProfil.style.display = 'block';
+        chargerHistoriqueProfil(); // Appelle ta fonction pour lire Firestore
+    });
+}
+
+const retournerAuxPronos = () => {
+    sectionProfil.style.display = 'none';
+    sectionPronos.style.display = 'grid';
+};
+
+if(btnRetourPronos) btnRetourPronos.addEventListener('click', retournerAuxPronos);
+if(logoAccueil) logoAccueil.addEventListener('click', retournerAuxPronos);
+
+// --- FONCTIONS DE CHARGEMENT DES DONNÉES (FIRESTORE) ---
+function chargerHistoriqueProfil() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    // Récupère les pronos légers enregistrés par l'utilisateur connecté
+    db.collection("pronostics").where("userId", "==", user.uid).get().then((querySnapshot) => {
+        const listeGpsContainer = document.getElementById('profil-liste-gps');
+        listeGpsContainer.innerHTML = "";
+
+        if(querySnapshot.empty) {
+            listeGpsContainer.innerHTML = `<div style="padding: 15px; text-align: center; color: #aaa;">Aucun prono enregistré pour le moment.</div>`;
+            return;
+        }
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            // Création d'une ligne cliquable par GP
+            const ligne = document.createElement('div');
+            ligne.className = 'ligne-profil-gp';
+            ligne.innerHTML = `
+                <div style="font-weight: bold;">🏎️ ${data.gpId.replace('_', ' ').toUpperCase()}</div>
+                <div style="text-align: right; color: #4cd137; font-weight: bold;">${data.pointsGagnes || 0} pts</div>
+            `;
+            ligne.addEventListener('click', () => afficherDetailGP(data));
+            listeGpsContainer.appendChild(ligne);
+        });
+    });
+}
+
+function afficherDetailGP(data) {
+    const detailContainer = document.getElementById('profil-detail-gp');
+    
+    // Génère dynamiquement le récap sans stocker de gros textes en BDD
+    let top10Html = data.top10.map((pilote, index) => `<li>P${index+1} : <strong>${pilote}</strong></li>`).join('');
+
+    detailContainer.innerHTML = `
+        <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase;">GP : ${data.gpId.replace('_', ' ')}</h4>
+        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Score global : <strong style="color: #4cd137;">${data.pointsGagnes || 0} pts</strong> ${data.joker ? '🚀 (Joker Actif x2 !)' : ''}</p>
+        <hr style="border-color: #2d3954;">
+        <div class="detail-item-points"><span>⚡ Poleman choisi :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
+        <div class="detail-item-points"><span>🚀 Écurie Top 1 :</span> <strong>${data.ecurieTop1 || 'Aucune'}</strong></div>
+        <div class="detail-item-points"><span>🚀 Écurie Top 2 :</span> <strong>${data.ecurieTop2 || 'Aucune'}</strong></div>
+        <div class="detail-item-points"><span>⚠️ Écurie Flop 1 :</span> <strong>${data.ecurieFlop1 || 'Aucune'}</strong></div>
+        <div class="detail-item-points"><span>⚠️ Écurie Flop 2 :</span> <strong>${data.ecurieFlop2 || 'Aucune'}</strong></div>
+        
+        <h5 style="margin: 15px 0 5px 0; color: #00d2d3;">📋 Votre Top 10 pronostiqué :</h5>
+        <ol style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #e2e8f0;">
+            ${top10Html}
+        </ol>
+    `;
+}
 
 // INITIALISATIONS DE BASE AU CHARGEMENT
 initialiserSelectCourse();
