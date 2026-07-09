@@ -1,4 +1,6 @@
 const admin = require('firebase-admin');
+// 1. ON IMPORTE LE MODULE FIRESTORE MODERNE
+const { getFirestore } = require('firebase-admin/firestore'); 
 const axios = require('axios');
 
 try {
@@ -9,14 +11,14 @@ try {
     process.exit(1);
 }
 
-// CORRECTION : Utilisation de la méthode moderne pour récupérer l'instance Firestore
-const db = admin.firestore ? admin.firestore() : admin.apps[0].firestore();
+// 2. CORRECTION DE LA LIGNE QUI CRASHAIT : On appelle getFirestore() directement
+const db = getFirestore();
 
 const totalRounds = 24; 
-// Liste des pilotes
+
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
   {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
@@ -69,7 +71,7 @@ async function demarrer() {
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // Récupération du classement final
+            // Récupération du classement
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
@@ -96,7 +98,7 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Classement complet non atteint pour le GP ${round}.`);
+                console.log(`⚠️ Classement incomplet pour le GP ${round}.`);
                 continue;
             }
 
@@ -126,9 +128,9 @@ async function demarrer() {
             const vainqueurInfos = pilotesData.find(p => p.nom === vainqueurNom);
             const ecurieGagnanteRelle = vainqueurInfos ? vainqueurInfos.ecurie : "";
 
-            console.log(`🏁 Résultats GP ${round} validés : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
+            console.log(`🏁 Résultats GP ${round} : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
 
-            // Distribution des scores
+            // Traitement Firestore des Joueurs
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
