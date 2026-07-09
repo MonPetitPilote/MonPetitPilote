@@ -876,4 +876,27 @@ function afficherDetailGP(data) {
             <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 1 :</span> <strong>${ecoTop1}</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 2 :</span> <strong>${ecoTop2}</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 1 :</span> <strong>${ecoFlop1}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span> <strong>${ecoFlop2}</strong></div>
+        </div>
+
+        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 & Points</h5>
+        <ul style="margin: 0; padding: 0; list-style: none;">
+            ${top10Html}
+        </ul>
+    `;
+}
+
+// INITIALISATIONS DE BASE AU CHARGEMENT
+initialiserSelectCourse();
+initialiserPolePosition();
+initialiserEcuriesTopFlop();
+chargerClassementGeneral();
+chargerDonneesEsthetiquesOpenF1();
+adapterEnTeteTitreEtReglement();
+
+if(selectCourse) {
+    selectCourse.addEventListener('change', () => {
+        chargerPronosticsUtilisateur();
+        chargerClassementGeneral();
+    });
+}
