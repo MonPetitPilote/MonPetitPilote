@@ -779,7 +779,8 @@ function chargerHistoriqueProfil() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    db.collection("pronostics").where("userId", "==", user.uid).get().then((querySnapshot) => {
+    // Correction ici : on filtre par 'uidJoueur' au lieu de 'userId'
+    db.collection("pronostics").where("uidJoueur", "==", user.uid).get().then((querySnapshot) => {
         const listeGpsContainer = document.getElementById('profil-liste-gps');
         listeGpsContainer.innerHTML = "";
 
