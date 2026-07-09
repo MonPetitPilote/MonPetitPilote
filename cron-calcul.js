@@ -16,26 +16,36 @@ const db = getFirestore();
 // Fonction utilitaire pour créer une pause et éviter l'erreur 429 (Rate Limit)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 🗓️ CORRESPONDANCE OFFICIELLE DE TON SITE (Saison 2026)
-// Associe la "location" de l'API OpenF1 au bon numéro de Round de tes pronostics
+// 🗓️ CALENDRIER OFFICIEL DE TON SITE (Saison 2026)
+// Les clés à gauche reprennent STRICTEMENT le champ "location" de l'API OpenF1.
+// Les chiffres à droite correspondent aux identifiants "course" dans ta base (ex: 2026/12).
 const calendrier2026 = {
     "Melbourne": 1,
     "Shanghai": 2,
     "Suzuka": 3,
-    // Rounds 4 (Sakhir) et 5 (Jeddah) annulés par la FIA, absents de l'API
+    // Rounds 4 (Sakhir) et 5 (Jeddah) annulés par la FIA, absents de l'API OpenF1
     "Miami Gardens": 6,
     "Montréal": 7,
     "Monte Carlo": 8,
     "Barcelona": 9,
-    "Spielberg": 12,      // Grand Prix d'Autriche = Round 12 sur ton site
-    "Silverstone": 13,     // Grand Prix de Grande-Bretagne = Round 13 sur ton site
-    // Ajoute ici les circuits suivants dès qu'ils ont lieu :
-    // "Spa-Francorchamps": 14, 
-    // "Budapest": 15,
+    "Spielberg": 10,
+    "Silverstone": 11,
+    "Spa-Francorchamps": 12,
+    "Budapest": 13,
+    "Zandvoort": 14,
+    "Monza": 15,
+    "Baku": 16,
+    "Marina Bay": 17,
+    "Austin": 18,
+    "Mexico City": 19,
+    "São Paulo": 20,
+    "Las Vegas": 21,
+    "Lusail": 22,
+    "Yas Marina": 23
 };
 
 async function demarrer() {
-    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mapping Circuits)...");
+    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026...");
     
     try {
         // 1. Récupération de toutes les sessions "Race" de 2026
