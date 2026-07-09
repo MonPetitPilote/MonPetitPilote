@@ -92,7 +92,7 @@ body {
     box-sizing: border-box;
 }
 
-/* Alignement en quinconce sur PC */
+/* Alignement en quinconse sur PC */
 .grid-slot:nth-child(odd) {
     grid-column: 1;
     margin-right: 10px;
@@ -118,7 +118,7 @@ body {
     position: relative;
     width: 140px;
     height: 75px;
-    flex-shrink: 0; /* Empêche l'écrasement sur mobile */
+    flex-shrink: 0;
 }
 
 .grid-driver-avatar {
@@ -159,7 +159,7 @@ img:not([src]), img[src=""] {
     flex-direction: column;
     justify-content: center;
     z-index: 3;
-    min-width: 0; /* Évite les débordements de texte */
+    min-width: 0;
 }
 .grid-driver-team {
     font-size: 0.75rem;
@@ -180,6 +180,25 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 #btn-valider { width: 100%; background: linear-gradient(135deg, #e10600 0%, #b30500 100%); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 6px; cursor: pointer; margin-top: 15px; }
 .tableau-scores { background: #0f131c; border-radius: 8px; overflow: hidden; }
 .entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
+
+/* Éléments de liste pour l'espace membre */
+.ligne-profil-gp {
+    display: grid;
+    grid-template-columns: 1fr 100px;
+    padding: 12px;
+    border-bottom: 1px solid #1e2538;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.ligne-profil-gp:hover { background: #1c2437; }
+
+.detail-item-points {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #2d3954;
+    font-size: 0.9rem;
+}
 
 /* Cartes écuries */
 .carte-selection-team {
@@ -209,66 +228,24 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 /* ==========================================
    MEDIA QUERIES POUR SMARTPHONES & TABLETTES
    ========================================== */
-
-/* Tablettes et petits écrans d'ordinateurs */
 @media (max-width: 1024px) {
-    .main-layout {
-        grid-template-columns: 1fr; /* Passage sur une seule colonne principale */
-    }
+    .main-layout { grid-template-columns: 1fr; }
+    #workspace-profil .main-layout { grid-template-columns: 1fr; }
 }
 
-/* Smartphones (Écrans inférieurs à 768px) */
 @media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-    
-    .brand-header {
-        flex-direction: column;
-        text-align: center;
-        padding: 15px;
-    }
+    .container { padding: 10px; }
+    .brand-header { flex-direction: column; text-align: center; padding: 15px; }
     .brand-title { font-size: 1.8rem; }
-    
-    .top-member-bar {
-        justify-content: center;
-    }
-    .auth-champs-header {
-        justify-content: center;
-        flex-direction: column;
-        width: 100%;
-    }
-    .auth-champs-header input {
-        max-width: 100%;
-    }
+    .top-member-bar { justify-content: center; }
+    .auth-champs-header { justify-content: center; flex-direction: column; width: 100%; }
+    .auth-champs-header input { max-width: 100%; }
 
-    /* Remise à plat de la grille F1 TV en 1 seule colonne */
-    .f1-starting-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-        padding: 12px !important;
+    .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
+    .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
+        grid-column: auto !important; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important;
+        height: auto !important; min-height: 75px; flex-wrap: wrap; padding: 10px;
     }
-    
-    /* Annulation des décalages et marges gauches/droites du mode PC */
-    .grid-slot, 
-    .grid-slot:nth-child(odd), 
-    .grid-slot:nth-child(even) {
-        grid-column: auto !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        margin-top: 0 !important;
-        height: auto !important;
-        min-height: 75px;
-        flex-wrap: wrap; /* Permet aux éléments de respirer si l'écran est minuscule */
-        padding: 10px;
-    }
-
-    .grid-media-zone {
-        width: 120px; /* Légère réduction de la zone image pour laisser de la place au select */
-    }
-
-    /* Ajustement des blocs écuries Top / Flop sur mobile */
-    .ecuries-block {
-        grid-template-columns: 1fr !important; /* Les tops et les flops s'empilent */
-    }
+    .grid-media-zone { width: 120px; }
+    .ecuries-block { grid-template-columns: 1fr !important; }
 }
