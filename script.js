@@ -44,6 +44,7 @@ const LOGOS_ECURIES_2026 = {
     "Haas": "images/team/haas.avif",
     "Cadillac": "images/team/cadillac.avif"
 };
+
 // Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
@@ -195,9 +196,10 @@ function injecterStylesResponsifsGlobaux() {
     `;
     document.head.appendChild(styleSheet);
 }
+
 // --- GESTION DU MOT DE PASSE OUBLIÉ ---
 document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
-    e.preventDefault(); // Empêche le rechargement de la page
+    e.preventDefault(); 
     
     const email = document.getElementById('auth-email').value.trim();
     
@@ -277,18 +279,26 @@ auth.onAuthStateChanged(async (user) => {
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'none';
         if(zoneConnecte) zoneConnecte.style.display = 'flex';
         
-        // Extraction du score directement du prono de la course courante
         try {
             if (nomUserSpan) {
                 nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>`;
             }
             
             if (selectCourse) {
-                const courseId = selectCourse.value;
-                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseId.replace('/', '_')}`).get();
+                // Détermination dynamique de l'identifiant numérique du GP
+                const courseIdValue = selectCourse.value; 
+                const roundNum = parseInt(courseIdValue.split('/')[1]) || 1;
+                
+                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseIdValue.replace('/', '_')}`).get();
                 if (doc.exists && nomUserSpan) {
                     const data = doc.data();
-                    const pts = data.points !== undefined ? data.points : 0;
+                    let pts = 0;
+                    if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
+                        pts = data.bilanCalcul.pointsTotaux;
+                    } else if (data.points !== undefined) {
+                        pts = data.points;
+                    }
+                    
                     nomUserSpan.innerHTML = `
                         <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
                         <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pts} pts</span>
@@ -462,7 +472,7 @@ function initialiserSelectCourse() {
 
     calendrier2026.forEach(gp => {
         const opt = document.createElement('option');
-        opt.value = `2026/${gp.round}`; // Stocke uniquement "2026/1", "2026/2", etc.
+        opt.value = `2026/${gp.round}`; 
         
         const dateObj = new Date(gp.date);
         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -477,7 +487,6 @@ function initialiserSelectCourse() {
     });
 
     selectCourse.value = prochainRoundValue;
-    // On force la mise à jour immédiate de la propriété de l'élément HTML
     selectCourse.setAttribute('value', prochainRoundValue);
 }
 
@@ -489,6 +498,7 @@ function initialiserPolePosition() {
         opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
     });
 }
+
 function initialiserEcuriesTopFlop() {
     const slots = ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"];
     
@@ -496,10 +506,8 @@ function initialiserEcuriesTopFlop() {
         const conteneur = document.getElementById(id);
         if (!conteneur) return;
 
-        // On transforme le conteneur en zone visuelle cliquable
         conteneur.style = "background: #0f131c; border: 2px dashed #2d3954; border-radius: 8px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; padding: 5px;";
         
-        // Contenu par défaut (vide)
         conteneur.innerHTML = `
             <div class="placeholder-team" style="text-align: center; color: #616e88; font-size: 12px; font-weight: bold;">
                 ➕ CHOISIR<br><span style="font-size: 10px; opacity: 0.7;">UNE ÉCURIE</span>
@@ -508,17 +516,14 @@ function initialiserEcuriesTopFlop() {
             <div class="nom-selectionne" style="display: none; position: absolute; bottom: 2px; font-size: 10px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 4px; text-transform: uppercase;"></div>
         `;
 
-        // Ajout de l'événement au clic pour ouvrir le sélecteur visuel
         conteneur.addEventListener('click', () => ouvrirSelecteurVisuelEcurie(id));
     });
 }
 
-// Fonction utilitaire pour mettre à jour l'affichage d'un slot d'écurie
 function appliquerSelectionEcurieVisuelle(slotId, nomEcurie) {
     const conteneur = document.getElementById(slotId);
     if (!conteneur) return;
 
-    // Sauvegarde du nom de l'écurie dans un attribut HTML secret pour la validation Firebase
     conteneur.setAttribute('data-ecurie-value', nomEcurie);
 
     const placeholder = conteneur.querySelector('.placeholder-team');
@@ -545,7 +550,6 @@ function appliquerSelectionEcurieVisuelle(slotId, nomEcurie) {
 }
 
 function ouvrirSelecteurVisuelEcurie(slotId) {
-    // Création dynamique de la modale de sélection si elle n'existe pas
     let modale = document.getElementById('modale-choix-ecurie');
     if (!modale) {
         modale = document.createElement('div');
@@ -578,10 +582,8 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
         </div>
     `;
 
-    // Événement de fermeture
     document.getElementById('fermer-choix-ecurie').onclick = () => modale.style.display = "none";
 
-    // Événement au clic sur une écurie
     modale.querySelectorAll('.tuile-ecurie').forEach(tuile => {
         tuile.onmouseenter = () => tuile.style.borderColor = "#ff8000";
         tuile.onmouseleave = () => tuile.style.borderColor = "#2d3954";
@@ -605,7 +607,6 @@ async function chargerPronosticsUtilisateur() {
     }
     if(selectPole) selectPole.value = "";
     
-    
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         appliquerSelectionEcurieVisuelle(id, "");
     });
@@ -620,7 +621,6 @@ async function chargerPronosticsUtilisateur() {
         }
         if(selectPole && data.poleman) selectPole.value = data.poleman;
         
-        // 🌟 NOUVEAU : Chargement et affichage visuel des écuries enregistrées
         if (data.ecuriesTop) {
             appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || "");
             appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || "");
@@ -636,6 +636,7 @@ async function chargerPronosticsUtilisateur() {
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
+    const roundNum = parseInt(courseId.split('/')[1]) || 1;
     const top10Selection = [];
     
     for(let i=1; i<=10; i++) {
@@ -644,12 +645,14 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         top10Selection.push(val);
     }
     
-    // 🌟 NOUVEAU : Construction des données avec la lecture des attributs visuels cachés
     const pronoData = {
+        userId: utilisateurActuel.uid, 
         uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
+        gpId: roundNum, 
         classementPilotes: top10Selection,
+        top10: top10Selection, 
         poleman: selectPole.value,
         ecuriesTop: [
             document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "", 
@@ -659,6 +662,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
             document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "", 
             document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
         ],
+        jokerUtilise: false, 
         dateEnregistrement: new Date()
     };
     
@@ -675,7 +679,6 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
     
     try {
-        // 1. On récupère TOUS les pronostics de la base (toutes courses confondues)
         const snapshot = await db.collection("pronostics").get();
         liste.innerHTML = "";
         
@@ -684,31 +687,27 @@ async function chargerClassementGeneral() {
             return;
         }
 
-        // Dictionnaire pour cumuler les points par joueur : { "Pseudo": points_totaux }
         let cumulPoints = {};
 
         snapshot.forEach(doc => {
             const data = doc.data();
             const pseudo = data.pseudo || 'Pilote Anonyme';
             
-            // Extraction des points avec flexibilité (points, point ou bilanCalcul)
             let pointsCourse = 0;
             if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
                 pointsCourse = data.bilanCalcul.pointsTotaux;
             } else if (data.points !== undefined) {
                 pointsCourse = data.points;
-            } else if (data.point !== undefined) { // Sécurité si ton champ dans Firestore est au singulier "point"
+            } else if (data.point !== undefined) { 
                 pointsCourse = data.point;
             }
 
-            // Cumul par pseudo
             if (!cumulPoints[pseudo]) {
                 cumulPoints[pseudo] = 0;
             }
             cumulPoints[pseudo] += Number(pointsCourse) || 0;
         });
 
-        // 2. On transforme le dictionnaire en tableau pour pouvoir le trier
         let joueurs = Object.keys(cumulPoints).map(pseudo => {
             return {
                 pseudo: pseudo,
@@ -716,10 +715,7 @@ async function chargerClassementGeneral() {
             };
         });
 
-        // 3. Tri décroissant (du plus grand nombre de points au plus petit)
         joueurs.sort((a, b) => b.points - a.points);
-
-        // 4. On ne garde QUE les 5 premiers (Top 5)
         let top5Joueurs = joueurs.slice(0, 5);
 
         if (top5Joueurs.length === 0) {
@@ -727,7 +723,6 @@ async function chargerClassementGeneral() {
             return;
         }
 
-        // 5. Génération visuelle du Top 5
         let pos = 1;
         top5Joueurs.forEach(u => {
             const div = document.createElement('div');
@@ -746,6 +741,7 @@ async function chargerClassementGeneral() {
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
+
 document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     let tri = [...pilotesData].sort(() => 0.5 - Math.random());
     for(let i=1; i<=10; i++) {
@@ -766,7 +762,7 @@ if(btnVersProfil) {
     btnVersProfil.addEventListener('click', () => {
         sectionPronos.style.display = 'none';
         sectionProfil.style.display = 'block';
-        chargerHistoriqueProfil(); // Appelle ta fonction pour lire Firestore
+        chargerHistoriqueProfil(); 
     });
 }
 
@@ -778,12 +774,11 @@ const retournerAuxPronos = () => {
 if(btnRetourPronos) btnRetourPronos.addEventListener('click', retournerAuxPronos);
 if(logoAccueil) logoAccueil.addEventListener('click', retournerAuxPronos);
 
-// --- FONCTIONS DE CHARGEMENT DES DONNÉES (FIRESTORE) ---
+// --- FONCTIONS DE CHARGEMENT DE L'HISTORIQUE ---
 function chargerHistoriqueProfil() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // Récupère les pronos légers enregistrés par l'utilisateur connecté
     db.collection("pronostics").where("userId", "==", user.uid).get().then((querySnapshot) => {
         const listeGpsContainer = document.getElementById('profil-liste-gps');
         listeGpsContainer.innerHTML = "";
@@ -795,37 +790,79 @@ function chargerHistoriqueProfil() {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // Création d'une ligne cliquable par GP
+            const bilan = data.bilanCalcul || {}; 
+            const roundNumero = data.gpId || "Inconnu"; 
+            
             const ligne = document.createElement('div');
             ligne.className = 'ligne-profil-gp';
+            ligne.style.display = 'grid';
+            ligne.style.gridTemplateColumns = '1fr 100px';
+            ligne.style.padding = '12px';
+            ligne.style.borderBottom = '1px solid #1e2538';
+            ligne.style.cursor = 'pointer';
+            
             ligne.innerHTML = `
-                <div style="font-weight: bold;">🏎️ ${data.gpId.replace('_', ' ').toUpperCase()}</div>
-                <div style="text-align: right; color: #4cd137; font-weight: bold;">${data.pointsGagnes || 0} pts</div>
+                <div style="font-weight: bold; color: #fff;">🏎️ ROUND ${roundNumero}</div>
+                <div style="text-align: right; color: #4cd137; font-weight: bold;">${bilan.pointsTotaux !== undefined ? bilan.pointsTotaux + ' pts' : '-- pts'}</div>
             `;
+            
             ligne.addEventListener('click', () => afficherDetailGP(data));
             listeGpsContainer.appendChild(ligne);
         });
+    }).catch((err) => {
+        console.error("Erreur historique :", err);
     });
 }
 
 function afficherDetailGP(data) {
     const detailContainer = document.getElementById('profil-detail-gp');
+    const bilan = data.bilanCalcul || {};
     
-    // Génère dynamiquement le récap sans stocker de gros textes en BDD
-    let top10Html = data.top10.map((pilote, index) => `<li>P${index+1} : <strong>${pilote}</strong></li>`).join('');
+    let top10Html = "";
+    // Lecture adaptative (classementPilotes ou top10)
+    const listePilotes = data.classementPilotes || data.top10;
+    if (listePilotes && Array.isArray(listePilotes)) {
+        top10Html = listePilotes.map((pilote, index) => `<li style="margin-bottom:4px;">P${index+1} : <strong>${pilote}</strong></li>`).join('');
+    } else {
+        top10Html = "<li>Aucun pilote enregistré</li>";
+    }
+
+    // Gestion propre de l'affichage des écuries selon leur structure BDD
+    const t1 = data.ecuriesTop ? data.ecuriesTop[0] : (data.ecurieTop1 || 'Aucune');
+    const t2 = data.ecuriesTop ? data.ecuriesTop[1] : (data.ecurieTop2 || 'Aucune');
+    const f1 = data.ecuriesFlop ? data.ecuriesFlop[0] : (data.ecurieFlop1 || 'Aucune');
+    const f2 = data.ecuriesFlop ? data.ecuriesFlop[1] : (data.ecurieFlop2 || 'Aucune');
 
     detailContainer.innerHTML = `
-        <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase;">GP : ${data.gpId.replace('_', ' ')}</h4>
-        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Score global : <strong style="color: #4cd137;">${data.pointsGagnes || 0} pts</strong> ${data.joker ? '🚀 (Joker Actif x2 !)' : ''}</p>
-        <hr style="border-color: #2d3954;">
-        <div class="detail-item-points"><span>⚡ Poleman choisi :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 1 :</span> <strong>${data.ecurieTop1 || 'Aucune'}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 2 :</span> <strong>${data.ecurieTop2 || 'Aucune'}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 1 :</span> <strong>${data.ecurieFlop1 || 'Aucune'}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 2 :</span> <strong>${data.ecurieFlop2 || 'Aucune'}</strong></div>
+        <h4 style="color: #ff8000; margin: 0 0 5px 0; text-transform: uppercase; font-size: 1.2rem;">🏁 ROUND : ${data.gpId || 'Inconnu'}</h4>
+        <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
+            Statut : ${bilan.pointsTotaux !== undefined ? '<span style="color:#4cd137; font-weight:bold;">Calculé</span>' : '<span style="color:#ffb300; font-weight:bold;">En attente de la course</span>'}
+        </p>
         
-        <h5 style="margin: 15px 0 5px 0; color: #00d2d3;">📋 Votre Top 10 pronostiqué :</h5>
-        <ol style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #e2e8f0;">
+        <div style="background: #111622; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #2d3954;">
+            <span style="font-size: 0.85rem; color: #a5b1c2;">Score obtenu :</span>
+            <div style="font-size: 1.6rem; font-weight: bold; color: #4cd137; margin-top: 2px;">
+                ${bilan.pointsTotaux ?? 0} <span style="font-size:1rem;">pts</span>
+                ${data.jokerUtilise ? '<span style="font-size:0.9rem; color:#ff8000; margin-left:10px;">🚀 JOKER x2</span>' : ''}
+            </div>
+        </div>
+        
+        <h5 style="margin: 0 0 8px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📈 Répartition des points</h5>
+        <div class="detail-item-points"><span>🏎️ Prono Grille Top 10 :</span> <strong>+ ${bilan.detailTop10 ?? 0} pts</strong></div>
+        <div class="detail-item-points"><span>⚡ Bonus Pole Position :</span> <strong>+ ${bilan.bonusPole ?? 0} pts</strong></div>
+        <div class="detail-item-points"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong>+ ${bilan.bonusEcuries ?? 0} pts</strong></div>
+        
+        <hr style="border-color: #2d3954; margin: 15px 0; border-style: dashed;">
+        
+        <h5 style="margin: 0 0 8px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Tes choix enregistrés</h5>
+        <div class="detail-item-points"><span>⚡ Poleman :</span> <strong style="color:#fff;">${data.poleman || 'Aucun'}</strong></div>
+        <div class="detail-item-points"><span>🚀 Écurie Top 1 :</span> <strong style="color:#fff;">${t1}</strong></div>
+        <div class="detail-item-points"><span>🚀 Écurie Top 2 :</span> <strong style="color:#fff;">${t2}</strong></div>
+        <div class="detail-item-points"><span>⚠️ Écurie Flop 1 :</span> <strong style="color:#fff;">${f1}</strong></div>
+        <div class="detail-item-points"><span>⚠️ Écurie Flop 2 :</span> <strong style="color:#fff;">${f2}</strong></div>
+        
+        <h5 style="margin: 15px 0 8px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Ta Grille Top 10</h5>
+        <ol style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #e2e8f0; line-height: 1.5;">
             ${top10Html}
         </ol>
     `;
