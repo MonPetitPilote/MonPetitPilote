@@ -80,30 +80,28 @@ const selectPole = document.getElementById('select-pole');
 
 // Calendrier complet officiel 2026 avec pays, circuit et date de course
 const calendrier2026 = [
-    { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-15" },
-    { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-22" },
-    { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-04-05" },
-    { round: 4, nom: "Grand Prix de Bahreïn", circuit: "Sakhir", pays: "Bahreïn", date: "2026-04-19" },
-    { round: 5, nom: "Grand Prix d'Arabie Saoudite", circuit: "Djeddah", pays: "Arabie Saoudite", date: "2026-05-03" },
-    { round: 6, nom: "Grand Prix de Miami", circuit: "Miami", pays: "USA", date: "2026-05-10" },
-    { round: 7, nom: "Grand Prix d'Émilie-Romagne", circuit: "Imola", pays: "Italie", date: "2026-05-24" },
-    { round: 8, nom: "Grand Prix de Monaco", circuit: "Monaco", pays: "Monaco", date: "2026-05-31" },
-    { round: 9, nom: "Grand Prix d'Espagne", circuit: "Barcelone", pays: "Espagne", date: "2026-06-14" },
-    { round: 10, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-06-21" },
-    { round: 11, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-07-05" },
-    { round: 12, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-12" },
-    { round: 13, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-26" },
-    { round: 14, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-08-02" },
-    { round: 15, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-30" },
-    { round: 16, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
-    { round: 17, nom: "Grand Prix d'Azerbaïdjan", circuit: "Bakou", pays: "Azerbaïdjan", date: "2026-09-20" },
-    { round: 18, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-04" },
-    { round: 19, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-18" },
-    { round: 20, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-10-25" },
-    { round: 21, nom: "Grand Prix de São Paulo", circuit: "Interlagos", pays: "Brésil", date: "2026-11-08" },
-    { round: 22, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-22" },
-    { round: 23, nom: "Grand Prix du Qatar", circuit: "Losail", pays: "Qatar", date: "2026-11-29" },
-    { round: 24, nom: "Grand Prix d'Abou Dabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
+    { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-08" },
+    { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-15" },
+    { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-03-29" },
+    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami Gardens", pays: "USA", date: "2026-05-03" }, // "Miami Gardens" pour l'API
+    { round: 5, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-05-24" },
+    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monte Carlo", pays: "Monaco", date: "2026-06-07" }, // "Monte Carlo" pour l'API
+    { round: 7, nom: "Grand Prix d'Espagne (Barcelone)", circuit: "Barcelona", pays: "Espagne", date: "2026-06-14" }, // "Barcelona" pour l'API
+    { round: 8, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-06-28" },
+    { round: 9, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-05" },
+    { round: 10, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-19" },
+    { round: 11, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-07-26" },
+    { round: 12, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-23" },
+    { round: 13, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
+    { round: 14, nom: "Grand Prix d'Espagne (Madrid)", circuit: "Madrid", pays: "Espagne", date: "2026-09-13" }, // Ajouté et synchronisé !
+    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Baku", pays: "Azerbaïdjan", date: "2026-09-26" }, // "Baku" pour l'API
+    { round: 16, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-11" },
+    { round: 17, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-25" },
+    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-11-01" }, // "Mexico City" pour l'API
+    { round: 19, nom: "Grand Prix du Brésil", circuit: "São Paulo", pays: "Brésil", date: "2026-11-08" }, // "São Paulo" pour l'API
+    { round: 20, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-21" },
+    { round: 21, nom: "Grand Prix du Qatar", circuit: "Lusail", pays: "Qatar", date: "2026-11-29" }, // "Lusail" pour l'API
+    { round: 22, nom: "Grand Prix d'Abou Dhabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
 ];
 
 // Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
