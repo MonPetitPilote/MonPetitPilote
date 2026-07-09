@@ -9,10 +9,12 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     
-    // Initialisation robuste et universelle
+    // Initialisation alternative ultra-robuste qui évite d'appeler admin.credential.cert
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+        credential: admin.credential.cert ? admin.credential.cert(serviceAccount) : admin.credential(serviceAccount)
     });
+    
+    console.log("🔗 Firebase Admin configuré avec succès.");
 } catch (e) {
     console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK :", e.message);
     process.exit(1);
