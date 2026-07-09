@@ -11,7 +11,7 @@ body {
 .container {
     max-width: 1250px;
     margin: 0 auto;
-    padding: 20px 20px 40px 20px;
+    padding: 20px;
 }
 
 /* BARRE MEMBRE SUPÉRIEURE */
@@ -19,12 +19,19 @@ body {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 12px;
-    padding-right: 10px;
 }
-.auth-champs-header { display: flex; flex-direction: row; gap: 8px; align-items: center; }
+.auth-champs-header { 
+    display: flex; 
+    flex-direction: row; 
+    gap: 8px; 
+    align-items: center; 
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
 .auth-champs-header input {
-    padding: 6px 10px; font-size: 0.85rem; max-width: 140px;
+    padding: 6px 10px; font-size: 0.85rem; width: 100%; max-width: 140px;
     background-color: #111622; border: 1px solid #2d3954; border-radius: 6px; color: white;
+    box-sizing: border-box;
 }
 .btn-header-auth { padding: 7px 12px; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
 .btn-conn { background-color: #242f46; color: white; }
@@ -39,17 +46,22 @@ body {
     border-radius: 16px; padding: 20px 30px; margin-bottom: 35px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 6px solid #e10600;
     display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+    gap: 15px;
 }
 .brand-title { font-size: 2.2rem; font-weight: 900; text-transform: uppercase; margin: 0; color: white; }
 .brand-title span { color: #e10600; }
 .brand-subtitle { font-size: 0.95rem; color: #ff8000; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
 
-/* Structure Page */
+/* Structure Page (PC / Tablette par défaut) */
 .main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
-@media (max-width: 950px) { .main-layout { grid-template-columns: 1fr; } }
 
 .colonne-gauche, .bloc-sub-droite, .section-top-flop {
     background: #161c2a; border-radius: 14px; padding: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid #242f46;
+    box-sizing: border-box;
+}
+.section-course select, .section-pole select {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ==========================================
@@ -75,11 +87,12 @@ body {
     padding: 6px 12px;
     position: relative;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    border-left: 4px solid #2d3954; /* Bordure écurie à gauche pour le look F1 TV */
+    border-left: 4px solid #2d3954;
     height: 75px;
+    box-sizing: border-box;
 }
 
-/* Alignement strict en quinconce sans étirement de la P1 */
+/* Alignement en quinconce sur PC */
 .grid-slot:nth-child(odd) {
     grid-column: 1;
     margin-right: 10px;
@@ -87,7 +100,7 @@ body {
 .grid-slot:nth-child(even) {
     grid-column: 2;
     margin-left: 10px;
-    margin-top: 30px; /* Crée le décalage régulier sur la colonne de droite */
+    margin-top: 30px;
 }
 
 .grid-pos-badge {
@@ -98,16 +111,16 @@ body {
     min-width: 35px;
 }
 
-/* Zone des médias (Photo Pilote + Photo Voiture) */
+/* Zone des médias */
 .grid-media-zone {
     display: flex;
     align-items: center;
     position: relative;
     width: 140px;
     height: 75px;
+    flex-shrink: 0; /* Empêche l'écrasement sur mobile */
 }
 
-/* Style Portrait Pilote */
 .grid-driver-avatar {
     width: 65px;
     height: 75px;
@@ -120,7 +133,6 @@ body {
     object-fit: contain;
 }
 
-/* Style Image Voiture */
 .grid-car-avatar {
     width: 90px;
     height: 50px;
@@ -136,7 +148,6 @@ body {
     object-fit: contain;
 }
 
-/* Masquer l'image proprement si elle est vide (pas de bug d'icône cassée) */
 img:not([src]), img[src=""] {
     opacity: 0 !important;
 }
@@ -148,6 +159,7 @@ img:not([src]), img[src=""] {
     flex-direction: column;
     justify-content: center;
     z-index: 3;
+    min-width: 0; /* Évite les débordements de texte */
 }
 .grid-driver-team {
     font-size: 0.75rem;
@@ -160,6 +172,7 @@ img:not([src]), img[src=""] {
 .grid-select-paddock {
     background: #0f131c; color: white; border: 1px solid #2d3954;
     padding: 5px 8px; font-size: 0.85rem; border-radius: 4px; width: 100%; cursor: pointer;
+    box-sizing: border-box;
 }
 
 /* Formulaires */
@@ -168,8 +181,7 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 .tableau-scores { background: #0f131c; border-radius: 8px; overflow: hidden; }
 .entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
 
-
-/* Style pour les boutons de sélection visuelle d'écurie */
+/* Cartes écuries */
 .carte-selection-team {
     background: #111622 !important;
     border: 2px dashed #2d3954 !important;
@@ -184,9 +196,9 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     transition: all 0.2s ease-in-out !important;
     overflow: hidden !important;
     padding: 5px !important;
+    box-sizing: border-box !important;
 }
 
-/* Effet au survol de la souris */
 .carte-selection-team:hover {
     border-color: #ff8000 !important;
     background: #161d2d !important;
@@ -194,8 +206,69 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     box-shadow: 0 4px 12px rgba(255, 128, 0, 0.1);
 }
 
-@media (max-width: 576px) {
-    #grille-pronos {
-        display: block !important;
+/* ==========================================
+   MEDIA QUERIES POUR SMARTPHONES & TABLETTES
+   ========================================== */
+
+/* Tablettes et petits écrans d'ordinateurs */
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 1fr; /* Passage sur une seule colonne principale */
+    }
+}
+
+/* Smartphones (Écrans inférieurs à 768px) */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .brand-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    }
+    .brand-title { font-size: 1.8rem; }
+    
+    .top-member-bar {
+        justify-content: center;
+    }
+    .auth-champs-header {
+        justify-content: center;
+        flex-direction: column;
+        width: 100%;
+    }
+    .auth-champs-header input {
+        max-width: 100%;
+    }
+
+    /* Remise à plat de la grille F1 TV en 1 seule colonne */
+    .f1-starting-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+    
+    /* Annulation des décalages et marges gauches/droites du mode PC */
+    .grid-slot, 
+    .grid-slot:nth-child(odd), 
+    .grid-slot:nth-child(even) {
+        grid-column: auto !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        height: auto !important;
+        min-height: 75px;
+        flex-wrap: wrap; /* Permet aux éléments de respirer si l'écran est minuscule */
+        padding: 10px;
+    }
+
+    .grid-media-zone {
+        width: 120px; /* Légère réduction de la zone image pour laisser de la place au select */
+    }
+
+    /* Ajustement des blocs écuries Top / Flop sur mobile */
+    .ecuries-block {
+        grid-template-columns: 1fr !important; /* Les tops et les flops s'empilent */
     }
 }
