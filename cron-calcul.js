@@ -1,3 +1,4 @@
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
@@ -38,6 +39,8 @@ async function demarrer() {
             const gpId = `2026/${round}`;
 
             console.log(`\n🏁 --- Analyse du GP Round ${round} (${session.location}) | Clé Session: ${sessionKey} ---`);
+            // Pause de 2 secondes pour ne pas surcharger l'API OpenF1
+            await sleep(2000);
 
             // Anti-doublon : Vérifier si ce GP a déjà été archivé dans Firestore
             const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
