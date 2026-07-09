@@ -1,4 +1,3 @@
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
@@ -14,12 +13,33 @@ try {
 
 const db = getFirestore();
 
+// Fonction utilitaire pour créer une pause et éviter l'erreur 429 (Rate Limit)
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 🗓️ CORRESPONDANCE OFFICIELLE DE TON SITE (Saison 2026)
+// Associe la "location" de l'API OpenF1 au bon numéro de Round de tes pronostics
+const calendrier2026 = {
+    "Melbourne": 1,
+    "Shanghai": 2,
+    "Suzuka": 3,
+    // Rounds 4 (Sakhir) et 5 (Jeddah) annulés par la FIA, absents de l'API
+    "Miami Gardens": 6,
+    "Montréal": 7,
+    "Monte Carlo": 8,
+    "Barcelona": 9,
+    "Spielberg": 12,      // Grand Prix d'Autriche = Round 12 sur ton site
+    "Silverstone": 13,     // Grand Prix de Grande-Bretagne = Round 13 sur ton site
+    // Ajoute ici les circuits suivants dès qu'ils ont lieu :
+    // "Spa-Francorchamps": 14, 
+    // "Budapest": 15,
+};
+
 async function demarrer() {
-    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mode Dynamique)...");
+    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mapping Circuits)...");
     
     try {
-        // 1. Récupération automatique de toutes les sessions "Race" de 2026 ordonnées par date
-        console.log("📡 Récupération du calendrier des sessions 2026...");
+        // 1. Récupération de toutes les sessions "Race" de 2026
+        console.log("📡 Récupération du calendrier des sessions 2026 depuis OpenF1...");
         const resSessions = await axios.get("https://api.openf1.org/v1/sessions?year=2026&session_name=Race", { timeout: 10000 });
         
         if (!resSessions.data || resSessions.data.length === 0) {
@@ -27,41 +47,49 @@ async function demarrer() {
             return;
         }
 
-        // Trier les sessions par ordre chronologique
+        // Trier chronologiquement pour traiter les courses dans le bon ordre
         const sessionsChronologiques = resSessions.data.sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
-        console.log(`ℹ️ ${sessionsChronologiques.length} sessions de course détectées.`);
+        console.log(`ℹ️ ${sessionsChronologiques.length} sessions réelles détectées dans l'API.`);
 
-        // 2. Boucle sur les sessions (l'index détermine le numéro du Round)
+        // 2. Boucle sur les sessions de l'API
         for (let index = 0; index < sessionsChronologiques.length; index++) {
             const session = sessionsChronologiques[index];
-            const round = index + 1;
             const sessionKey = session.session_key;
-            const gpId = `2026/${round}`;
-
-            console.log(`\n🏁 --- Analyse du GP Round ${round} (${session.location}) | Clé Session: ${sessionKey} ---`);
-            // Pause de 2 secondes pour ne pas surcharger l'API OpenF1
-            await sleep(2000);
-
-            // Anti-doublon : Vérifier si ce GP a déjà été archivé dans Firestore
-            const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
-            const histoDoc = await histoRef.get();
-            if (histoDoc.exists) {
-                console.log(`ℹ️ Le GP ${round} a déjà été calculé et archivé. Passage au suivant.`);
+            
+            // Récupération dynamique du numéro de round de ton site via le nom du circuit
+            const round = calendrier2026[session.location];
+            
+            if (!round) {
+                console.log(`\nℹ️ Circuit "${session.location}" non configuré ou non requis pour le moment. Passage.`);
                 continue;
             }
 
-            // 3. Récupération dynamique de la liste des pilotes pour CETTE session spécifique
-            console.log(`📡 Récupération de l'annuaire des pilotes pour la session ${sessionKey}...`);
+            const gpId = `2026/${round}`;
+
+            console.log(`\n🏁 --- Analyse : ${session.location} | Associé au Round Site : ${round} | Clé Session : ${sessionKey} ---`);
+
+            // 🛑 SÉCURITÉ RATE-LIMIT : Pause de 2,5 secondes avant les requêtes lourdes
+            await sleep(2500);
+
+            // Anti-doublon : On vérifie si ce Round a déjà été calculé et enregistré
+            const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
+            const histoDoc = await histoRef.get();
+            if (histoDoc.exists) {
+                console.log(`ℹ️ Le GP ${round} (${session.location}) a déjà été calculé et archivé. Passage au suivant.`);
+                continue;
+            }
+
+            // 3. Récupération dynamique de l'annuaire des pilotes pour cette course
+            console.log(`📡 Récupération des pilotes pour la session ${sessionKey}...`);
             let pilotesSession = [];
             try {
                 const resDrivers = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`, { timeout: 10000 });
                 pilotesSession = resDrivers.data || [];
             } catch (driverErr) {
-                console.error(`❌ Impossible de récupérer les pilotes de la session ${sessionKey}:`, driverErr.message);
+                console.error(`❌ Impossible de récupérer les pilotes (Session ${sessionKey}):`, driverErr.message);
                 continue;
             }
 
-            // Fonction utilitaire pour trouver le nom d'un pilote via son numéro d'après l'API de cette session
             const trouverNomPilote = (driverNumber) => {
                 const match = pilotesSession.find(p => String(p.driver_number) === String(driverNumber));
                 return match ? match.full_name : `Numéro ${driverNumber}`;
@@ -72,21 +100,21 @@ async function demarrer() {
                 return match ? match.team_name : "";
             };
 
-            // 4. Récupération des positions en course
+            // 4. Récupération des données de position
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 15000 });
             } catch (posErr) {
-                console.error(`❌ Impossible de joindre l'API positions pour la session ${sessionKey}:`, posErr.message);
+                console.error(`❌ Impossible de charger les positions (Session ${sessionKey}):`, posErr.message);
                 continue;
             }
 
             if (!resPositions.data || resPositions.data.length === 0) {
-                console.log(`⚠️ Les données de position pour le GP ${round} sont vides (Course non courue).`);
+                console.log(`⚠️ Données de position vides pour ${session.location} (Course non courue ?).`);
                 continue;
             }
 
-            // Filtrage pour extraire la position finale (la plus récente en date) de chaque pilote
+            // Filtrage pour ne garder que la dernière ligne de position sous le drapeau à damier
             const records = resPositions.data;
             const derniersPositions = {};
             records.forEach(rec => {
@@ -100,15 +128,14 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Classement incomplet pour le GP ${round}.`);
+                console.log(`⚠️ Classement final incomplet pour le GP ${round}.`);
                 continue;
             }
 
-            // Traduction des numéros officiels en noms complets issus de l'API
             const top10OfficielNoms = top10OfficielNums.map(num => trouverNomPilote(num));
-            console.log(`📊 Classement Top 10 réel calculé :`, top10OfficielNoms);
+            console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
-            // 5. Récupération du Poleman de manière géolocalisée pour 2026
+            // 5. Récupération du Poleman
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
@@ -120,15 +147,15 @@ async function demarrer() {
                     }
                 }
             } catch (pErr) {
-                console.log(`ℹ️ Poleman introuvable pour le GP ${round}`);
+                console.log(`ℹ️ Poleman introuvable pour la qualif de ${session.location}`);
             }
 
             const vainqueurNumero = top10OfficielNums[0];
             const ecurieGagnanteRelle = trouverEcuriePilote(vainqueurNumero);
 
-            console.log(`🎯 Résultats validés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
+            console.log(`🎯 Résultats figés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
 
-            // 6. Traitement des pronostics des joueurs dans Firestore
+            // 6. Extraction et calcul des pronostics stockés sous l'id "2026/X"
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
@@ -150,7 +177,7 @@ async function demarrer() {
                             let bonusPole = 0;
                             let pointsDesEcuries = 0;
 
-                            // Calcul de la grille des pilotes (Comparaison insensible à la casse et souple)
+                            // Calcul des grilles pilotes
                             grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
                                 const indexReel = top10OfficielNoms.findIndex(pReel => 
                                     pReel.toLowerCase().includes(piloteChoisi.toLowerCase()) || 
@@ -180,9 +207,9 @@ async function demarrer() {
                                 bonusPole = 5;
                             }
 
-                            // Bonus/Malus Écuries
+                            // Bonus Écuries
                             if (ecurieGagnanteRelle) {
-                                const checkEcurie = (ecurieJoueur, ecurieReelle) => ecurieReelle.toLowerCase().includes(ecurieJoueur.toLowerCase()) || ecurieJoueur.toLowerCase().includes(ecurieReelle.toLowerCase());
+                                const checkEcurie = (ecJoueur, ecReelle) => ecReelle.toLowerCase().includes(ecJoueur.toLowerCase()) || ecJoueur.toLowerCase().includes(ecReelle.toLowerCase());
 
                                 if (ecuriesTopJoueur[0] && checkEcurie(ecuriesTopJoueur[0], ecurieGagnanteRelle)) pointsDesEcuries += 5;
                                 if (ecuriesTopJoueur[1] && checkEcurie(ecuriesTopJoueur[1], ecurieGagnanteRelle)) pointsDesEcuries += 2;
@@ -192,7 +219,7 @@ async function demarrer() {
                             let pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
                             if (pronoData.jokerUtilise === true) pointsGagnes *= 2;
 
-                            // Injection du bilan dans Firestore
+                            // Écriture des résultats
                             transaction.set(pronoRef, {
                                 bilanCalcul: {
                                     pointsTotaux: pointsGagnes,
@@ -204,21 +231,21 @@ async function demarrer() {
                                 }
                             }, { merge: true });
                             
-                            console.log(`   ✅ Score calculé mis à jour pour ${pseudo} : +${pointsGagnes} pts`);
+                            console.log(`   ✅ Points mis à jour pour [${pseudo}] : +${pointsGagnes} pts`);
                         });
                     } catch (txError) {
-                        console.error(`   ❌ Erreur transaction joueur ${doc.id}:`, txError.message);
+                        console.error(`   ❌ Erreur joueur ${doc.id}:`, txError.message);
                     }
                 }
             }
 
-            // Sauvegarder dans l'historique pour clore le traitement de cette session
+            // Clôture définitive du GP dans l'historique
             await histoRef.set({ calculeLe: new Date(), top10: top10OfficielNoms, poleman: polemanOfficiel });
-            console.log(`ℹ️ GP ${round} archivé avec succès.`);
+            console.log(`ℹ️ GP ${round} (${session.location}) archivé.`);
         }
         console.log("\n🤖 Fin du traitement global de la saison 2026.");
     } catch (globalErr) {
-        console.error("❌ Erreur générale de traitement :", globalErr.message);
+        console.error("❌ Erreur générale :", globalErr.message);
         process.exit(1);
     }
 }
