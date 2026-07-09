@@ -9,28 +9,27 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     
-    // Initialisation alternative ultra-robuste qui évite d'appeler admin.credential.cert
+    // MÉTHODE PROPRE ET UNIVERSELLE :
+    // On passe directement l'objet de clé privée en utilisant la fonction "cert" intégrée
     admin.initializeApp({
-        credential: admin.credential.cert ? admin.credential.cert(serviceAccount) : admin.credential(serviceAccount)
+        credential: admin.credential.cert(serviceAccount)
     });
     
-    console.log("🔗 Firebase Admin configuré avec succès.");
+    console.log("🔗 Authentification Firebase Admin réussie avec succès !");
 } catch (e) {
-    console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK :", e.message);
+    console.error("❌ Impossible d'initialiser Firebase. Vérifie que ton Secret contient un JSON valide :", e.message);
     process.exit(1);
 }
 
-// Déclaration unique de la base de données
 const db = admin.firestore();
-
 const totalRounds = 24; 
 
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
-  {nom: "Lando Norris", ecurie: "McLaren", numero: "1"},
+  {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
   {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81"},
   {nom: "George Russell", ecurie: "Mercedes", numero: "63"},
   {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12"},
@@ -64,10 +63,9 @@ async function demarrer() {
                 continue;
             }
 
-            // --- APPEL API SESSIONS ---
+            // Récupération de la session de course (simulation saison 2023 pour avoir des données valides)
             let resSessions;
             try {
-                // Utilisation de year=2023 à des fins de test car l'API n'a pas encore de données 2026 !
                 resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
             } catch (apiErr) {
                 console.error(`❌ Impossible de contacter l'API OpenF1 pour le round ${round}:`, apiErr.message);
@@ -75,23 +73,23 @@ async function demarrer() {
             }
 
             if (!resSessions.data || resSessions.data.length === 0) {
-                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round} sur l'API (Normal si le GP n'a pas encore eu lieu).`);
+                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round}.`);
                 continue; 
             }
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // --- APPEL API POSITIONS ---
+            // Récupération du classement
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
             } catch (posErr) {
-                console.error(`❌ Erreur lors de la récupération des positions pour la session ${sessionKey}:`, posErr.message);
+                console.error(`❌ Erreur positions session ${sessionKey}:`, posErr.message);
                 continue;
             }
 
             if (!resPositions.data || resPositions.data.length === 0) {
-                console.log(`⚠️ Données de positions vides pour le GP ${round}.`);
+                console.log(`⚠️ Positions vides pour le GP ${round}.`);
                 continue;
             }
 
@@ -108,7 +106,7 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Grille officielle incomplète (${top10OfficielNums.length}/10 pilotes trouvés) pour le GP ${round}. Calcul suspendu.`);
+                console.log(`⚠️ Classement incomplet pour le GP ${round}.`);
                 continue;
             }
 
@@ -117,7 +115,7 @@ async function demarrer() {
                 return match ? match.nom : `Numéro ${num}`;
             });
 
-            // --- APPEL API QUALIFYING (POLEMAN) ---
+            // Poleman
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
@@ -130,26 +128,22 @@ async function demarrer() {
                         if (matchPole) polemanOfficiel = matchPole.nom;
                     }
                 }
-            } catch (poleErr) {
-                console.log(`ℹ️ Impossible de récupérer le poleman pour le GP ${round} (Ignoré) :`, poleErr.message);
+            } catch (pErr) {
+                console.log(`ℹ️ Poleman introuvable pour le GP ${round}`);
             }
 
             const vainqueurNom = top10Officiel[0];
             const vainqueurInfos = pilotesData.find(p => p.nom === vainqueurNom);
             const ecurieGagnanteRelle = vainqueurInfos ? vainqueurInfos.ecurie : "";
 
-            console.log(`🏁 Résultats validés pour le GP ${round} :`);
-            console.log(`🥇 P1: ${vainqueurNom} (${ecurieGagnanteRelle}) | ⚡ Pole: ${polemanOfficiel}`);
+            console.log(`🏁 Résultats GP ${round} : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
 
-            // --- TRAITEMENT DES PRONOSTICS UTILISATEURS ---
+            // Traitement Firestore des Joueurs
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
-            if (querySnapshot.empty) {
-                console.log(`💡 Aucun pronostic utilisateur trouvé dans Firestore pour la clé de course "${gpId}".`);
-            } else {
+            if (!querySnapshot.empty) {
                 for (const doc of querySnapshot.docs) {
                     const pronoRef = doc.ref;
-                    
                     try {
                         await db.runTransaction(async (transaction) => {
                             const pronoDoc = await transaction.get(pronoRef);
@@ -197,9 +191,7 @@ async function demarrer() {
                             }
 
                             let pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
-                            if (pronoData.jokerUtilise === true) {
-                                pointsGagnes = pointsGagnes * 2;
-                            }
+                            if (pronoData.jokerUtilise === true) pointsGagnes *= 2;
 
                             transaction.set(pronoRef, {
                                 bilanCalcul: {
@@ -212,22 +204,19 @@ async function demarrer() {
                                 }
                             }, { merge: true });
                             
-                            console.log(`✅ Score calculé pour ${pseudo} : +${pointsGagnes} pts`);
+                            console.log(`✅ Score sauvegardé pour ${pseudo} : +${pointsGagnes} pts`);
                         });
                     } catch (txError) {
-                        console.error(`❌ Erreur de transaction Firestore pour le joueur ${doc.id}:`, txError.message);
+                        console.error(`❌ Erreur transaction joueur ${doc.id}:`, txError.message);
                     }
                 }
             }
 
             await histoRef.set({ calculeLe: new Date(), top10: top10Officiel, poleman: polemanOfficiel });
-            console.log(`🔒 GP ${round} archivé avec succès.`);
         }
-        
-        console.log("🤖 Fin d'exécution du cron avec succès.");
-        
+        console.log("🤖 Fin du traitement global sans erreur.");
     } catch (globalErr) {
-        console.error("❌ ERREUR FATALE D'EXÉCUTION DANS LA BOUCLE CRON :", globalErr);
+        console.error("❌ Erreur générale de boucle :", globalErr.message);
         process.exit(1);
     }
 }
