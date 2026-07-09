@@ -764,12 +764,10 @@ if(btnRetourPronos) btnRetourPronos.addEventListener('click', retournerAuxPronos
 if(logoAccueil) logoAccueil.addEventListener('click', retournerAuxPronos);
 
 // --- FONCTIONS DE CHARGEMENT DES DONNÉES (FIRESTORE) ---
-// --- MODIFICATION DE LA FONCTION DE CHARGEMENT ---
 function chargerHistoriqueProfil() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // CORRECTION : On cherche par "uidJoueur" et non "userId"
     db.collection("pronostics").where("uidJoueur", "==", user.uid).get().then((querySnapshot) => {
         const listeGpsContainer = document.getElementById('profil-liste-gps');
         if (!listeGpsContainer) return;
@@ -783,72 +781,26 @@ function chargerHistoriqueProfil() {
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             
-            // CORRECTION : Extraction souple des points calculés (points ou bilanCalcul.pointsTotaux)
-            let pointsGagnes = 0;
-            if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
-                pointsGagnes = data.bilanCalcul.pointsTotaux;
-            } else if (data.points !== undefined) {
-                pointsGagnes = data.points;
-            }
-
-            // CORRECTION : Utilisation de "course" au lieu de "gpId"
-            const nomCourse = data.course ? data.course.replace('_', ' / ') : "Round Inconnu";
+            const courseIdString = data.course || data.gpId || "Inconnu";
+            const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
+            const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+            const nomAffichageGP = gpInfo ? gpInfo.nom.toUpperCase() : `ROUND ${roundNumero}`;
+            
+            const pointsAffiches = (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) 
+                ? data.bilanCalcul.pointsTotaux 
+                : (data.pointsGagnes || data.points || 0);
 
             const ligne = document.createElement('div');
             ligne.className = 'ligne-profil-gp';
+            ligne.style = "display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #1c2437; cursor: pointer; color: #fff;";
             ligne.innerHTML = `
-                <div style="font-weight: bold;">🏎️ ROUND ${nomCourse}</div>
-                <div style="text-align: right; color: #4cd137; font-weight: bold;">${pointsGagnes} pts</div>
+                <div style="font-weight: bold;">🏎️ ${nomAffichageGP}</div>
+                <div style="text-align: right; color: #4cd137; font-weight: bold;">${pointsAffiches} pts</div>
             `;
-            
-            // On passe les données corrigées au clic
             ligne.addEventListener('click', () => afficherDetailGP(data));
             listeGpsContainer.appendChild(ligne);
         });
-    }).catch(err => console.error("Erreur historique:", err));
-}
-
-// --- MODIFICATION DE LA FONCTION DE DETAIL ---
-function afficherDetailGP(data) {
-    const detailContainer = document.getElementById('profil-detail-gp');
-    if (!detailContainer) return;
-    
-    // CORRECTION : On utilise "classementPilotes" à la place de "top10"
-    let top10Html = "";
-    if (data.classementPilotes && Array.from(data.classementPilotes).length > 0) {
-        top10Html = data.classementPilotes.map((pilote, index) => `<li>P${index+1} : <strong>${pilote}</strong></li>`).join('');
-    } else {
-        top10Html = "<li>Aucun pilote sélectionné</li>";
-    }
-
-    // CORRECTION : Extraction des écuries depuis les tableaux ecuriesTop et ecuriesFlop
-    const top1 = (data.ecuriesTop && data.ecuriesTop[0]) ? data.ecuriesTop[0] : 'Aucune';
-    const top2 = (data.ecuriesTop && data.ecuriesTop[1]) ? data.ecuriesTop[1] : 'Aucune';
-    const flop1 = (data.ecuriesFlop && data.ecuriesFlop[0]) ? data.ecuriesFlop[0] : 'Aucune';
-    const flop2 = (data.ecuriesFlop && data.ecuriesFlop[1]) ? data.ecuriesFlop[1] : 'Aucune';
-
-    let pointsTotaux = 0;
-    if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
-        pointsTotaux = data.bilanCalcul.pointsTotaux;
-    } else if (data.points !== undefined) {
-        pointsTotaux = data.points;
-    }
-
-    detailContainer.innerHTML = `
-        <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase;">Round : ${data.course || 'Inconnu'}</h4>
-        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Score global : <strong style="color: #4cd137;">${pointsTotaux} pts</strong></p>
-        <hr style="border-color: #2d3954;">
-        <div class="detail-item-points"><span>⚡ Poleman choisi :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 1 :</span> <strong>${top1}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 2 :</span> <strong>${top2}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 1 :</span> <strong>${flop1}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 2 :</span> <strong>${flop2}</strong></div>
-        
-        <h5 style="margin: 15px 0 5px 0; color: #00d2d3;">📋 Votre Top 10 pronostiqué :</h5>
-        <ol style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #e2e8f0;">
-            ${top10Html}
-        </ol>
-    `;
+    });
 }
 
 function afficherDetailGP(data) {
