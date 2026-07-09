@@ -6,71 +6,89 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     process.exit(1);
 }
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
-const db = admin.firestore();
+try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+} catch (e) {
+    console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK. Vérifie le format de ton Secret JSON !", e);
+    process.exit(1);
+}
 
-const totalRounds = 24; // La saison 2026 comporte 24 Grands Prix
+const db = admin.firestore();
+const totalRounds = 24; 
 
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", statut: "favori"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", statut: "outsider"},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", statut: "favori"},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", statut: "favori"},
-  {nom: "Lando Norris", ecurie: "McLaren", statut: "favori"},
-  {nom: "Oscar Piastri", ecurie: "McLaren", statut: "favori"},
-  {nom: "George Russell", ecurie: "Mercedes", statut: "favori"},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", statut: "favori"},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", statut: "outsider"},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", statut: "outsider"},
-  {nom: "Pierre Gasly", ecurie: "Alpine", statut: "outsider"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", statut: "outsider"},
-  {nom: "Carlos Sainz", ecurie: "Williams", statut: "outsider"},
-  {nom: "Alex Albon", ecurie: "Williams", statut: "outsider"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", statut: "outsider"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", statut: "outsider"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", statut: "outsider"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", statut: "outsider"},
-  {nom: "Oliver Bearman", ecurie: "Haas", statut: "outsider"},
-  {nom: "Esteban Ocon", ecurie: "Haas", statut: "outsider"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", statut: "outsider"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", statut: "outsider"}
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
+  {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
+  {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
+  {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
+  {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81"},
+  {nom: "George Russell", ecurie: "Mercedes", numero: "63"},
+  {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12"},
+  {nom: "Fernando Alonso", ecurie: "Aston Martin", numero: "14"},
+  {nom: "Lance Stroll", ecurie: "Aston Martin", numero: "18"},
+  {nom: "Pierre Gasly", ecurie: "Alpine", numero: "10"},
+  {nom: "Franco Colapinto", ecurie: "Alpine", numero: "43"},
+  {nom: "Carlos Sainz", ecurie: "Williams", numero: "55"},
+  {nom: "Alex Albon", ecurie: "Williams", numero: "23"},
+  {nom: "Liam Lawson", ecurie: "Racing Bulls", numero: "30"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "40"},
+  {nom: "Nico Hülkenberg", ecurie: "Audi", numero: "27"},
+  {nom: "Gabriel Bortoleto", ecurie: "Audi", numero: "5"},
+  {nom: "Oliver Bearman", ecurie: "Haas", numero: "87"},
+  {nom: "Esteban Ocon", ecurie: "Haas", numero: "31"},
+  {nom: "Valtteri Bottas", ecurie: "Cadillac", numero: "77"},
+  {nom: "Sergio Pérez", ecurie: "Cadillac", numero: "11"}
 ];
 
 async function demarrer() {
     console.log("🤖 Lancement du cron de calcul des points...");
     
-    for (let round = 1; round <= totalRounds; round++) {
-        const gpId = `2026/${round}`;
-        const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
-        
-        // On vérifie si ce GP a déjà été calculé et verrouillé par le passé
-        const histoDoc = await histoRef.get();
-        if (histoDoc.exists) {
-            console.log(`ℹ️ Le GP ${round} a déjà été archivé. Passage au suivant.`);
-            continue;
-        }
+    try {
+        for (let round = 1; round <= totalRounds; round++) {
+            const gpId = `2026/${round}`;
+            const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
+            
+            const histoDoc = await histoRef.get();
+            if (histoDoc.exists) {
+                console.log(`ℹ️ Le GP ${round} a déjà été archivé. Passage au suivant.`);
+                continue;
+            }
 
-        try {
-            // 1. Appel de l'API OpenF1 pour obtenir les données de la course (Session Race)
-            const resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&round=${round}&session_name=Race`);
+            // --- APPEL API SESSIONS ---
+            let resSessions;
+            try {
+                // Utilisation de year=2023 à des fins de test car l'API n'a pas encore de données 2026 !
+                resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
+            } catch (apiErr) {
+                console.error(`❌ Impossible de contacter l'API OpenF1 pour le round ${round}:`, apiErr.message);
+                continue;
+            }
+
             if (!resSessions.data || resSessions.data.length === 0) {
-                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round} (en attente que le GP ait lieu).`);
+                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round} sur l'API (Normal si le GP n'a pas encore eu lieu).`);
                 continue; 
             }
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // 2. Récupération des positions finales réelles (Classement final de la course)
-            const resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`);
+            // --- APPEL API POSITIONS ---
+            let resPositions;
+            try {
+                resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
+            } catch (posErr) {
+                console.error(`❌ Erreur lors de la récupération des positions pour la session ${sessionKey}:`, posErr.message);
+                continue;
+            }
+
             if (!resPositions.data || resPositions.data.length === 0) {
                 console.log(`⚠️ Données de positions vides pour le GP ${round}.`);
                 continue;
             }
 
-            // Extraction et tri des pilotes du premier au dernier
             const records = resPositions.data;
             const derniersPositions = {};
             records.forEach(rec => {
@@ -84,27 +102,30 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Grille officielle incomplète pour le GP ${round}. Calcul suspendu.`);
+                console.log(`⚠️ Grille officielle incomplète (${top10OfficielNums.length}/10 pilotes trouvés) pour le GP ${round}. Calcul suspendu.`);
                 continue;
             }
 
-            // Traduction des numéros en noms complets textuels
             const top10Officiel = top10OfficielNums.map(num => {
                 const match = pilotesData.find(p => p.numero === num);
                 return match ? match.nom : `Numéro ${num}`;
             });
 
-            // 3. Récupération du Poleman officiel (Session Qualifying)
+            // --- APPEL API QUALIFYING (POLEMAN) ---
             let polemanOfficiel = "Inconnu";
-            const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&round=${round}&session_name=Qualifying`);
-            if (resQualif.data && resQualif.data.length > 0) {
-                const qSessionKey = resQualif.data[0].session_key;
-                const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`);
-                if (resPositionsQ.data && resPositionsQ.data.length > 0) {
-                    const numPole = String(resPositionsQ.data[0].driver_number);
-                    const matchPole = pilotesData.find(p => p.numero === numPole);
-                    if (matchPole) polemanOfficiel = matchPole.nom;
+            try {
+                const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
+                if (resQualif.data && resQualif.data.length > 0) {
+                    const qSessionKey = resQualif.data[0].session_key;
+                    const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
+                    if (resPositionsQ.data && resPositionsQ.data.length > 0) {
+                        const numPole = String(resPositionsQ.data[0].driver_number);
+                        const matchPole = pilotesData.find(p => p.numero === numPole);
+                        if (matchPole) polemanOfficiel = matchPole.nom;
+                    }
                 }
+            } catch (poleErr) {
+                console.log(`ℹ️ Impossible de récupérer le poleman pour le GP ${round} (Ignoré) :`, poleErr.message);
             }
 
             const vainqueurNom = top10Officiel[0];
@@ -114,99 +135,95 @@ async function demarrer() {
             console.log(`🏁 Résultats validés pour le GP ${round} :`);
             console.log(`🥇 P1: ${vainqueurNom} (${ecurieGagnanteRelle}) | ⚡ Pole: ${polemanOfficiel}`);
 
-            // 4. Parcours des pronostics des joueurs pour ce Grand Prix précis
+            // --- TRAITEMENT DES PRONOSTICS UTILISATEURS ---
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (querySnapshot.empty) {
-                console.log(`💡 Aucun pronostic utilisateur trouvé pour le GP ${round}.`);
+                console.log(`💡 Aucun pronostic utilisateur trouvé dans Firestore pour la clé de course "${gpId}".`);
             } else {
-                // CORRECTION SÉCURISÉE : Utilisation d'un for...of pour gérer correctement l'asynchronisme
                 for (const doc of querySnapshot.docs) {
                     const pronoRef = doc.ref;
                     
-                    await db.runTransaction(async (transaction) => {
-                        const pronoDoc = await transaction.get(pronoRef);
-                        if (!pronoDoc.exists) return;
-                        
-                        const pronoData = pronoDoc.data();
-                        const grilleJoueur = pronoData.classementPilotes || [];
-                        const polemanJoueur = pronoData.poleman || "";
-                        const ecuriesTopJoueur = pronoData.ecuriesTop || [];
-                        const ecuriesFlopJoueur = pronoData.ecuriesFlop || [];
-                        const pseudo = pronoData.pseudo || "Anonyme";
+                    try {
+                        await db.runTransaction(async (transaction) => {
+                            const pronoDoc = await transaction.get(pronoRef);
+                            if (!pronoDoc.exists) return;
+                            
+                            const pronoData = pronoDoc.data();
+                            const grilleJoueur = pronoData.classementPilotes || [];
+                            const polemanJoueur = pronoData.poleman || "";
+                            const ecuriesTopJoueur = pronoData.ecuriesTop || [];
+                            const ecuriesFlopJoueur = pronoData.ecuriesFlop || [];
+                            const pseudo = pronoData.pseudo || "Anonyme";
 
-                        let pointsDuTop10 = 0;
-                        let bonusPole = 0;
-                        let pointsDesEcuries = 0;
+                            let pointsDuTop10 = 0;
+                            let bonusPole = 0;
+                            let pointsDesEcuries = 0;
 
-                        // Barème Prono Grille Top 10
-                        grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
-                            const indexReel = top10Officiel.indexOf(piloteChoisi);
-                            if (indexReel !== -1) {
-                                if (indexJoueur === indexReel) {
-                                    // Position exacte trouvée
-                                    if (indexJoueur === 0) pointsDuTop10 += 25;
-                                    else if (indexJoueur === 1) pointsDuTop10 += 18;
-                                    else if (indexJoueur === 2) pointsDuTop10 += 15;
-                                    else if (indexJoueur === 3) pointsDuTop10 += 12;
-                                    else if (indexJoueur === 4) pointsDuTop10 += 10;
-                                    else if (indexJoueur === 5) pointsDuTop10 += 8;
-                                    else if (indexJoueur === 6) pointsDuTop10 += 6;
-                                    else if (indexJoueur === 7) pointsDuTop10 += 4;
-                                    else if (indexJoueur === 8) pointsDuTop10 += 2;
-                                    else if (indexJoueur === 9) pointsDuTop10 += 1;
-                                } else {
-                                    // Présent dans le top 10 mais mauvaise place
-                                    pointsDuTop10 += 2;
+                            grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
+                                const indexReel = top10Officiel.indexOf(piloteChoisi);
+                                if (indexReel !== -1) {
+                                    if (indexJoueur === indexReel) {
+                                        if (indexJoueur === 0) pointsDuTop10 += 25;
+                                        else if (indexJoueur === 1) pointsDuTop10 += 18;
+                                        else if (indexJoueur === 2) pointsDuTop10 += 15;
+                                        else if (indexJoueur === 3) pointsDuTop10 += 12;
+                                        else if (indexJoueur === 4) pointsDuTop10 += 10;
+                                        else if (indexJoueur === 5) pointsDuTop10 += 8;
+                                        else if (indexJoueur === 6) pointsDuTop10 += 6;
+                                        else if (indexJoueur === 7) pointsDuTop10 += 4;
+                                        else if (indexJoueur === 8) pointsDuTop10 += 2;
+                                        else if (indexJoueur === 9) pointsDuTop10 += 1;
+                                    } else {
+                                        pointsDuTop10 += 2;
+                                    }
                                 }
+                            });
+
+                            if (polemanJoueur === polemanOfficiel && polemanOfficiel !== "Inconnu") {
+                                bonusPole = 5;
                             }
+
+                            if (ecurieGagnanteRelle) {
+                                if (ecuriesTopJoueur[0] === ecurieGagnanteRelle) pointsDesEcuries += 5;
+                                if (ecuriesTopJoueur[1] === ecurieGagnanteRelle) pointsDesEcuries += 2;
+                                if (ecuriesFlopJoueur.includes(ecurieGagnanteRelle)) pointsDesEcuries -= 5;
+                            }
+
+                            let pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
+                            if (pronoData.jokerUtilise === true) {
+                                pointsGagnes = pointsGagnes * 2;
+                            }
+
+                            transaction.set(pronoRef, {
+                                bilanCalcul: {
+                                    pointsTotaux: pointsGagnes,
+                                    detailTop10: pointsDuTop10,
+                                    bonusPole: bonusPole,
+                                    bonusEcuries: pointsDesEcuries,
+                                    jokerApplique: pronoData.jokerUtilise || false,
+                                    calculeLe: new Date()
+                                }
+                            }, { merge: true });
+                            
+                            console.log(`✅ Score calculé pour ${pseudo} : +${pointsGagnes} pts`);
                         });
-
-                        // Barème Bonus Pole Position (+5 points)
-                        if (polemanJoueur === polemanOfficiel && polemanOfficiel !== "Inconnu") {
-                            bonusPole = 5;
-                        }
-
-                        // Barème Bonus Écuries Constructeurs (basé sur l'écurie gagnante réelle de la course)
-                        if (ecurieGagnanteRelle) {
-                            if (ecuriesTopJoueur[0] === ecurieGagnanteRelle) pointsDesEcuries += 5;
-                            if (ecuriesTopJoueur[1] === ecurieGagnanteRelle) pointsDesEcuries += 2;
-                            if (ecuriesFlopJoueur.includes(ecurieGagnanteRelle)) pointsDesEcuries -= 5;
-                        }
-
-                        // Calcul global avec application du multiplicateur Joker (x2)
-                        let pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
-                        if (pronoData.jokerUtilise === true) {
-                            pointsGagnes = pointsGagnes * 2;
-                        }
-
-                        // 🎯 ÉCRITURE DU BILAN CALCULÉ DANS LE GRAND PRIX DE L'UTILISATEUR
-                        transaction.set(pronoRef, {
-                            bilanCalcul: {
-                                pointsTotaux: pointsGagnes,
-                                detailTop10: pointsDuTop10,
-                                bonusPole: bonusPole,
-                                bonusEcuries: pointsDesEcuries,
-                                jokerApplique: pronoData.jokerUtilise || false,
-                                calculeLe: new Date()
-                            }
-                        }, { merge: true });
-                        
-                        console.log(`✅ Score calculé pour ${pseudo} : +${pointsGagnes} pts`);
-                    });
+                    } catch (txError) {
+                        console.error(`❌ Erreur de transaction Firestore pour le joueur ${doc.id}:`, txError.message);
+                    }
                 }
             }
 
-            // Archivage final de la course pour éviter un re-calcul au prochain lancement du cron
             await histoRef.set({ calculeLe: new Date(), top10: top10Officiel, poleman: polemanOfficiel });
-            console.log(`🔒 GP ${round} archivé et validé avec succès.`);
-
-        } catch (error) {
-            console.error(`⚠️ Erreur lors du calcul réseau pour le GP ${round}:`, error.message);
-            break; 
+            console.log(`🔒 GP ${round} archivé avec succès.`);
         }
+        
+        console.log("🤖 Fin d'exécution du cron avec succès.");
+        
+    } catch (globalErr) {
+        console.error("❌ ERREUR FATALE D'EXÉCUTION DANS LA BOUCLE CRON :", globalErr);
+        process.exit(1);
     }
-    console.log("🤖 Fin d'exécution du cron avec succès.");
 }
 
 demarrer();
