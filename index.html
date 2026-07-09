@@ -43,6 +43,7 @@
                     </div>
                 </div>
                 <div id="auth-connecte" style="display: none; align-items: center; justify-content: flex-end; gap: 15px; flex-wrap: wrap;">
+                    <button id="btn-vers-profil" class="btn-header-auth btn-conn" style="border: 1px solid #2d3954;">👤 MON PROFIL</button>
                     <div class="user-profile-badge">
                         <span class="status-dot"></span>
                         <span id="nom-utilisateur">...</span>
@@ -54,14 +55,45 @@
 
         <header class="brand-header">
             <div class="brand-logo-zone">
-                <h1 class="brand-title">MON PETIT <span>PILOTE</span></h1>
+                <h1 class="brand-title" id="logo-accueil" style="cursor: pointer;">MON PETIT <span>PILOTE</span></h1>
                 <div class="brand-subtitle">🏆 Le Championnat des Potes 2026</div>
             </div>
             
             <button id="btn-reglement" style="background: #ff8000; color: #111622; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">📜 RÈGLEMENT</button>
         </header>
 
-        <div class="main-layout">
+        <div id="workspace-profil" style="display: none; margin-bottom: 35px;">
+            <div class="colonne-gauche" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2d3954; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #ff8000;">🏁 VOTRE ESPACE PERFORMANCES</h2>
+                    <button id="btn-retour-pronos" style="background: #242f46; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">← RETOUR AUX PRONOS</button>
+                </div>
+
+                <div class="main-layout" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                        <h3 style="margin-top: 0; color: #00d2d3;">📊 Analyse du GP sélectionné</h3>
+                        <div id="profil-detail-gp">
+                            <p style="color: #aaa; font-style: italic;">Sélectionnez un week-end ci-dessous pour voir le détail de vos points.</p>
+                        </div>
+                    </div>
+
+                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                        <h3 style="margin-top: 0; color: #ff8000;">🕒 Historique de la saison</h3>
+                        <div class="tableau-scores">
+                            <div class="entete-scores" style="grid-template-columns: 1fr 100px;">
+                                <div>Grand Prix</div>
+                                <div style="text-align: right;">Points</div>
+                            </div>
+                            <div id="profil-liste-gps">
+                                <div style="padding: 15px; text-align: center; color: #aaa;">Aucune donnée enregistrée.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-content-pronos" class="main-layout">
             
             <div class="colonne-gauche">
                 
