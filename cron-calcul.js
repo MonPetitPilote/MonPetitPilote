@@ -17,8 +17,8 @@ const db = getFirestore();
 const totalRounds = 24; 
 
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
   {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
@@ -57,7 +57,7 @@ async function demarrer() {
 
             let resSessions;
             try {
-                resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
+                resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&round=${round}&session_name=Race`, { timeout: 10000 });
             } catch (apiErr) {
                 console.error(`❌ Impossible de contacter l'API OpenF1 pour le round ${round}:`, apiErr.message);
                 continue;
