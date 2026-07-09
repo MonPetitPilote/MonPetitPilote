@@ -29,13 +29,29 @@ const LOGOS_2026 = {
     haas: "images/cars/haas.avif",
     cadillac: "images/cars/cadillac.avif"
 };
-// 🏎️ TABLEAU DES PILOTES CENTRALISÉ ET SYNCHRONISÉ AVEC LE CRON
+
+// Chemins vers les logos officiels des écuries (dossier images/team)
+const LOGOS_ECURIES_2026 = {
+    "Red Bull": "images/team/redbull.avif",
+    "Ferrari": "images/team/ferrari.avif",
+    "McLaren": "images/team/mclaren.avif",
+    "Mercedes": "images/team/mercedes.avif",
+    "Aston Martin": "images/team/astonmartin.avif",
+    "Alpine": "images/team/alpine.avif",
+    "Williams": "images/team/williams.avif",
+    "Racing Bulls": "images/team/racingbulls.avif",
+    "Audi": "images/team/audi.avif",
+    "Haas": "images/team/haas.avif",
+    "Cadillac": "images/team/cadillac.avif"
+};
+
+// Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6", pays: "fr", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/had.avif"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43", pays: "fr", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/had.avif"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44", pays: "gb", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/ham.avif"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16", pays: "mc", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/lec.avif"},
-  {nom: "Lando Norris", ecurie: "McLaren", numero: "1", pays: "gb", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/nor.avif"},
+  {nom: "Lando Norris", ecurie: "McLaren", numero: "4", pays: "gb", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/nor.avif"},
   {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81", pays: "au", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/pia.avif"},
   {nom: "George Russell", ecurie: "Mercedes", numero: "63", pays: "gb", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/rus.avif"},
   {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12", pays: "it", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/ant.avif"},
@@ -46,7 +62,7 @@ const pilotesData = [
   {nom: "Carlos Sainz", ecurie: "Williams", numero: "55", pays: "es", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/sai.avif"},
   {nom: "Alex Albon", ecurie: "Williams", numero: "23", pays: "th", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/alb.avif"},
   {nom: "Liam Lawson", ecurie: "Racing Bulls", numero: "30", pays: "nz", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/law.avif"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "41", pays: "gb", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/lin.avif"},
+  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "40", pays: "gb", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/lin.avif"},
   {nom: "Nico Hülkenberg", ecurie: "Audi", numero: "27", pays: "de", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/hul.avif"},
   {nom: "Gabriel Bortoleto", ecurie: "Audi", numero: "5", pays: "br", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/bor.avif"},
   {nom: "Oliver Bearman", ecurie: "Haas", numero: "87", pays: "gb", couleur: "#B6BABD", carImg: LOGOS_2026.haas, driverImg: "images/drivers/bea.avif"},
@@ -67,27 +83,27 @@ const calendrier2026 = [
     { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-15" },
     { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-22" },
     { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-04-05" },
-    //{ round: 4, nom: "Grand Prix de Bahreïn", circuit: "Sakhir", pays: "Bahreïn", date: "2026-04-19" },
-    //{ round: 5, nom: "Grand Prix d'Arabie Saoudite", circuit: "Djeddah", pays: "Arabie Saoudite", date: "2026-05-03" },
-    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami", pays: "USA", date: "2026-05-10" },
-    { round: 5, nom: "Grand Prix d'Émilie-Romagne", circuit: "Imola", pays: "Italie", date: "2026-05-24" },
-    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monaco", pays: "Monaco", date: "2026-05-31" },
-    { round: 7, nom: "Grand Prix d'Espagne", circuit: "Barcelone", pays: "Espagne", date: "2026-06-14" },
-    { round: 8, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-06-21" },
-    { round: 9, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-07-05" },
-    { round: 10, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-12" },
-    { round: 11, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-26" },
-    { round: 12, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-08-02" },
-    { round: 13, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-30" },
-    { round: 14, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
-    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Bakou", pays: "Azerbaïdjan", date: "2026-09-20" },
-    { round: 16, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-04" },
-    { round: 17, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-18" },
-    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-10-25" },
-    { round: 19, nom: "Grand Prix de São Paulo", circuit: "Interlagos", pays: "Brésil", date: "2026-11-08" },
-    { round: 20, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-22" },
-    { round: 21, nom: "Grand Prix du Qatar", circuit: "Losail", pays: "Qatar", date: "2026-11-29" },
-    { round: 22, nom: "Grand Prix d'Abou Dabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
+    { round: 4, nom: "Grand Prix de Bahreïn", circuit: "Sakhir", pays: "Bahreïn", date: "2026-04-19" },
+    { round: 5, nom: "Grand Prix d'Arabie Saoudite", circuit: "Djeddah", pays: "Arabie Saoudite", date: "2026-05-03" },
+    { round: 6, nom: "Grand Prix de Miami", circuit: "Miami", pays: "USA", date: "2026-05-10" },
+    { round: 7, nom: "Grand Prix d'Émilie-Romagne", circuit: "Imola", pays: "Italie", date: "2026-05-24" },
+    { round: 8, nom: "Grand Prix de Monaco", circuit: "Monaco", pays: "Monaco", date: "2026-05-31" },
+    { round: 9, nom: "Grand Prix d'Espagne", circuit: "Barcelone", pays: "Espagne", date: "2026-06-14" },
+    { round: 10, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-06-21" },
+    { round: 11, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-07-05" },
+    { round: 12, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-12" },
+    { round: 13, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-26" },
+    { round: 14, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-08-02" },
+    { round: 15, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-30" },
+    { round: 16, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
+    { round: 17, nom: "Grand Prix d'Azerbaïdjan", circuit: "Bakou", pays: "Azerbaïdjan", date: "2026-09-20" },
+    { round: 18, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-04" },
+    { round: 19, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-18" },
+    { round: 20, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-10-25" },
+    { round: 21, nom: "Grand Prix de São Paulo", circuit: "Interlagos", pays: "Brésil", date: "2026-11-08" },
+    { round: 22, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-22" },
+    { round: 23, nom: "Grand Prix du Qatar", circuit: "Losail", pays: "Qatar", date: "2026-11-29" },
+    { round: 24, nom: "Grand Prix d'Abou Dabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
 ];
 
 // Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
