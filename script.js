@@ -195,6 +195,35 @@ function injecterStylesResponsifsGlobaux() {
     `;
     document.head.appendChild(styleSheet);
 }
+// --- GESTION DU MOT DE PASSE OUBLIÉ ---
+document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
+    e.preventDefault(); // Empêche le rechargement de la page
+    
+    const email = document.getElementById('auth-email').value.trim();
+    
+    if (!email) {
+        alert("⚠️ Veuillez saisir votre adresse email dans le champ 'Email' avant de cliquer sur mot de passe oublié.");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            alert(`📨 Un email de réinitialisation de mot de passe a été envoyé à l'adresse : ${email}. Pensez à vérifier vos spams !`);
+        })
+        .catch((error) => {
+            console.error("Erreur de réinitialisation :", error);
+            switch (error.code) {
+                case 'auth/invalid-email':
+                    alert("❌ L'adresse email n'est pas valide.");
+                    break;
+                case 'auth/user-not-found':
+                    alert("❌ Aucun compte n'est associé à cette adresse email.");
+                    break;
+                default:
+                    alert("❌ Une erreur est survenue lors de l'envoi de l'email : " + error.message);
+            }
+        });
+});
 
 // GESTION DU TITRE ET DESIGN DU BOUTON RÈGLEMENT
 function adapterEnTeteTitreEtReglement() {
