@@ -3,7 +3,8 @@ const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
 
 try {
-    // Initialisation native moderne
+    // Initialisation native : va lire automatiquement le fichier firebase-secret.json
+    // indiqué par la variable GOOGLE_APPLICATION_CREDENTIALS dans ton YAML
     initializeApp();
     console.log("🚀 [Firebase] Connexion réussie de manière native !");
 } catch (e) {
@@ -11,7 +12,7 @@ try {
     process.exit(1);
 }
 
-// Extraction propre et directe de Firestore
+// Extraction moderne et fonctionnelle de Firestore (plus de admin.firestore() !)
 const db = getFirestore();
 const totalRounds = 24; 
 
