@@ -28,14 +28,15 @@ const calendrier2026 = {
     "Budapest": 11,
     "Zandvoort": 12,
     "Monza": 13,
-    "Baku": 14,
-    "Marina Bay": 15,
-    "Austin": 16,
-    "Mexico City": 17,
-    "São Paulo": 18,
-    "Las Vegas": 19,
-    "Lusail": 20,
-    "Yas Marina": 21
+    "Madrid": 14,
+    "Baku": 15,
+    "Marina Bay": 16,
+    "Austin": 17,
+    "Mexico City": 18,
+    "São Paulo": 19,
+    "Las Vegas": 20,
+    "Lusail": 21,
+    "Yas Marina": 22
 };
 // 🏎️ TABLEAU DES PILOTES CENTRALISÉ ET SYNCHRONISÉ AVEC LE CRON
 const pilotesData = [
