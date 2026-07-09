@@ -1,3 +1,4 @@
+// --- REMPLACE LES PREMIÈRES LIGNES (LIGNES 1 À 16) PAR CE BLOC ---
 const admin = require('firebase-admin');
 const axios = require('axios');
 
@@ -8,13 +9,18 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    
+    // CORRECTION : Utilisation de la méthode d'initialisation directe et sécurisée
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
     });
 } catch (e) {
-    console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK. Vérifie le format de ton Secret JSON !", e);
+    console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK :", e.message);
     process.exit(1);
 }
+
+const db = admin.firestore();
+// --- SUITE DU CODE DU SCRIPT INCHANGÉE ---
 
 const db = admin.firestore();
 const totalRounds = 24; 
