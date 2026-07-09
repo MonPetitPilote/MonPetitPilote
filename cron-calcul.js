@@ -1,5 +1,4 @@
-const { initializeApp, credential } = require('firebase-admin');
-const admin = require('firebase-admin'); 
+const admin = require('firebase-admin');
 const axios = require('axios');
 
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -10,25 +9,26 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     
-    initializeApp({
-        credential: credential.cert(serviceAccount)
+    // Initialisation robuste et universelle
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
     });
 } catch (e) {
     console.error("❌ Erreur lors de l'initialisation de Firebase Admin SDK :", e.message);
     process.exit(1);
 }
 
-// ON DECLARE LA VARIABLE DB UNE SEULE ET UNIQUE FOIS ICI :
+// Déclaration unique de la base de données
 const db = admin.firestore();
 
 const totalRounds = 24; 
 
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
-  {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
+  {nom: "Lando Norris", ecurie: "McLaren", numero: "1"},
   {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81"},
   {nom: "George Russell", ecurie: "Mercedes", numero: "63"},
   {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12"},
