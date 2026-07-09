@@ -2,9 +2,8 @@ name: Calcul Automatique des Points F1
 
 on:
   schedule:
-    # S'exécute tous les jours à 7h00 du matin (Heure de Paris)
     - cron: '0 5 * * *'
-  workflow_dispatch: # Te permet aussi de lancer le calcul à la main si besoin depuis GitHub !
+  workflow_dispatch: 
 
 jobs:
   calculer:
@@ -16,12 +15,16 @@ jobs:
       - name: Installer Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24' # 🛠️ Corrigé et configuré sur Node 24 pour effacer le warning
+          node-version: '24'
 
       - name: Installer les dépendances (Firebase & Axios)
         run: npm install firebase-admin axios
 
+      - name: Créer le fichier de clé Firebase Service Account
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-secret.json
+
       - name: Lancer le script de calcul des scores
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GOOGLE_APPLICATION_CREDENTIALS: firebase-secret.json
         run: node cron-calcul.js
