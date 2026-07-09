@@ -1,19 +1,18 @@
-const admin = require('firebase-admin');
-// 1. ON IMPORTE LE MODULE FIRESTORE MODERNE
-const { getFirestore } = require('firebase-admin/firestore'); 
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
 
 try {
-    admin.initializeApp();
+    // Initialisation native moderne
+    initializeApp();
     console.log("🚀 [Firebase] Connexion réussie de manière native !");
 } catch (e) {
     console.error("❌ Erreur critique d'initialisation de Firebase :", e.message);
     process.exit(1);
 }
 
-// 2. CORRECTION DE LA LIGNE QUI CRASHAIT : On appelle getFirestore() directement
+// Extraction propre et directe de Firestore
 const db = getFirestore();
-
 const totalRounds = 24; 
 
 const pilotesData = [
@@ -55,7 +54,6 @@ async function demarrer() {
                 continue;
             }
 
-            // Récupération de la session de course (simulation saison 2023 pour le test)
             let resSessions;
             try {
                 resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
@@ -71,7 +69,6 @@ async function demarrer() {
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // Récupération du classement
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
@@ -98,7 +95,7 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Classement incomplet pour le GP ${round}.`);
+                console.log(`⚠️ Classement complet non atteint pour le GP ${round}.`);
                 continue;
             }
 
@@ -107,7 +104,6 @@ async function demarrer() {
                 return match ? match.nom : `Numéro ${num}`;
             });
 
-            // Poleman
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
@@ -130,7 +126,6 @@ async function demarrer() {
 
             console.log(`🏁 Résultats GP ${round} : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
 
-            // Traitement Firestore des Joueurs
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
