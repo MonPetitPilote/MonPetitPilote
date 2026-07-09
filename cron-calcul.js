@@ -42,7 +42,7 @@ const pilotesData = [
 ];
 
 async function demarrer() {
-    console.log("🤖 Lancement du cron de calcul des points...");
+    console.log("🤖 Lancement du cron de calcul des points pour la saison 2026...");
     
     try {
         for (let round = 1; round <= totalRounds; round++) {
@@ -55,6 +55,7 @@ async function demarrer() {
                 continue;
             }
 
+            // 1. CORRECTION ICI : year=2026
             let resSessions;
             try {
                 resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&round=${round}&session_name=Race`, { timeout: 10000 });
@@ -64,7 +65,7 @@ async function demarrer() {
             }
 
             if (!resSessions.data || resSessions.data.length === 0) {
-                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round}.`);
+                console.log(`⚠️ Aucune session de course trouvée pour le GP ${round} en 2026.`);
                 continue; 
             }
             
@@ -105,9 +106,10 @@ async function demarrer() {
                 return match ? match.nom : `Numéro ${num}`;
             });
 
+            // 2. CORRECTION ICI AUSSI : year=2026 pour les qualifs
             let polemanOfficiel = "Inconnu";
             try {
-                const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
+                const resQualif = await axios.get(`https://api.openfif1.org/v1/sessions?year=2026&round=${round}&session_name=Qualifying`, { timeout: 10000 });
                 if (resQualif.data && resQualif.data.length > 0) {
                     const qSessionKey = resQualif.data[0].session_key;
                     const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
