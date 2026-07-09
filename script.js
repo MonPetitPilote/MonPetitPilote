@@ -199,10 +199,8 @@ function injecterStylesResponsifsGlobaux() {
 
 // --- GESTION DU MOT DE PASSE OUBLIÉ ---
 document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
-    e.preventDefault(); 
-    
+    e.preventDefault();
     const email = document.getElementById('auth-email').value.trim();
-    
     if (!email) {
         alert("⚠️ Veuillez saisir votre adresse email dans le champ 'Email' avant de cliquer sur mot de passe oublié.");
         return;
@@ -285,20 +283,11 @@ auth.onAuthStateChanged(async (user) => {
             }
             
             if (selectCourse) {
-                // Détermination dynamique de l'identifiant numérique du GP
-                const courseIdValue = selectCourse.value; 
-                const roundNum = parseInt(courseIdValue.split('/')[1]) || 1;
-                
-                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseIdValue.replace('/', '_')}`).get();
+                const courseId = selectCourse.value;
+                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseId.replace('/', '_')}`).get();
                 if (doc.exists && nomUserSpan) {
                     const data = doc.data();
-                    let pts = 0;
-                    if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
-                        pts = data.bilanCalcul.pointsTotaux;
-                    } else if (data.points !== undefined) {
-                        pts = data.points;
-                    }
-                    
+                    const pts = (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) ? data.bilanCalcul.pointsTotaux : (data.points || 0);
                     nomUserSpan.innerHTML = `
                         <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
                         <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pts} pts</span>
@@ -472,7 +461,7 @@ function initialiserSelectCourse() {
 
     calendrier2026.forEach(gp => {
         const opt = document.createElement('option');
-        opt.value = `2026/${gp.round}`; 
+        opt.value = `2026/${gp.round}`;
         
         const dateObj = new Date(gp.date);
         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -600,7 +589,6 @@ async function chargerPronosticsUtilisateur() {
     const courseId = selectCourse.value;
     const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
-    // Réinitialisation du Top 10 pilotes
     for (let i = 1; i <= 10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
         if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
@@ -613,21 +601,28 @@ async function chargerPronosticsUtilisateur() {
 
     if (doc.exists) {
         const data = doc.data();
-        if (data.classementPilotes) {
-            data.classementPilotes.forEach((nom, idx) => {
-                const s = document.getElementById(`select-grid-p${idx+1}`);
-                if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
-            });
-        }
+        const listePilotes = data.classementPilotes || data.top10 || [];
+        listePilotes.forEach((nom, idx) => {
+            const s = document.getElementById(`select-grid-p${idx+1}`);
+            if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
+        });
+        
         if(selectPole && data.poleman) selectPole.value = data.poleman;
         
         if (data.ecuriesTop) {
-            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || "");
-            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || "");
+            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || data.ecurieTop1 || "");
+            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || data.ecurieTop2 || "");
+        } else {
+            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecurieTop1 || "");
+            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecurieTop2 || "");
         }
+        
         if (data.ecuriesFlop) {
-            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecuriesFlop[0] || "");
-            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecuriesFlop[1] || "");
+            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecuriesFlop[0] || data.ecurieFlop1 || "");
+            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecuriesFlop[1] || data.ecurieFlop2 || "");
+        } else {
+            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecurieFlop1 || "");
+            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecurieFlop2 || "");
         }
     }
     controlerDoublonsPilotes();
@@ -636,7 +631,6 @@ async function chargerPronosticsUtilisateur() {
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
-    const roundNum = parseInt(courseId.split('/')[1]) || 1;
     const top10Selection = [];
     
     for(let i=1; i<=10; i++) {
@@ -646,13 +640,10 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     }
     
     const pronoData = {
-        userId: utilisateurActuel.uid, 
         uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
-        gpId: roundNum, 
         classementPilotes: top10Selection,
-        top10: top10Selection, 
         poleman: selectPole.value,
         ecuriesTop: [
             document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "", 
@@ -662,7 +653,6 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
             document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "", 
             document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
         ],
-        jokerUtilise: false, 
         dateEnregistrement: new Date()
     };
     
@@ -696,9 +686,11 @@ async function chargerClassementGeneral() {
             let pointsCourse = 0;
             if (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) {
                 pointsCourse = data.bilanCalcul.pointsTotaux;
+            } else if (data.pointsGagnes !== undefined) {
+                pointsCourse = data.pointsGagnes;
             } else if (data.points !== undefined) {
                 pointsCourse = data.points;
-            } else if (data.point !== undefined) { 
+            } else if (data.point !== undefined) {
                 pointsCourse = data.point;
             }
 
@@ -709,10 +701,7 @@ async function chargerClassementGeneral() {
         });
 
         let joueurs = Object.keys(cumulPoints).map(pseudo => {
-            return {
-                pseudo: pseudo,
-                points: cumulPoints[pseudo]
-            };
+            return { pseudo: pseudo, points: cumulPoints[pseudo] };
         });
 
         joueurs.sort((a, b) => b.points - a.points);
@@ -762,7 +751,7 @@ if(btnVersProfil) {
     btnVersProfil.addEventListener('click', () => {
         sectionPronos.style.display = 'none';
         sectionProfil.style.display = 'block';
-        chargerHistoriqueProfil(); 
+        chargerHistoriqueProfil();
     });
 }
 
@@ -774,14 +763,14 @@ const retournerAuxPronos = () => {
 if(btnRetourPronos) btnRetourPronos.addEventListener('click', retournerAuxPronos);
 if(logoAccueil) logoAccueil.addEventListener('click', retournerAuxPronos);
 
-// --- FONCTIONS DE CHARGEMENT DE L'HISTORIQUE ---
+// --- FONCTIONS DE CHARGEMENT DES DONNÉES (FIRESTORE) ---
 function chargerHistoriqueProfil() {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    // Correction ici : on filtre par 'uidJoueur' au lieu de 'userId'
     db.collection("pronostics").where("uidJoueur", "==", user.uid).get().then((querySnapshot) => {
         const listeGpsContainer = document.getElementById('profil-liste-gps');
+        if (!listeGpsContainer) return;
         listeGpsContainer.innerHTML = "";
 
         if(querySnapshot.empty) {
@@ -791,27 +780,26 @@ function chargerHistoriqueProfil() {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const bilan = data.bilanCalcul || {}; 
-            const roundNumero = data.gpId || "Inconnu"; 
             
+            const courseIdString = data.course || data.gpId || "Inconnu";
+            const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
+            const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+            const nomAffichageGP = gpInfo ? gpInfo.nom.toUpperCase() : `ROUND ${roundNumero}`;
+            
+            const pointsAffiches = (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) 
+                ? data.bilanCalcul.pointsTotaux 
+                : (data.pointsGagnes || data.points || 0);
+
             const ligne = document.createElement('div');
             ligne.className = 'ligne-profil-gp';
-            ligne.style.display = 'grid';
-            ligne.style.gridTemplateColumns = '1fr 100px';
-            ligne.style.padding = '12px';
-            ligne.style.borderBottom = '1px solid #1e2538';
-            ligne.style.cursor = 'pointer';
-            
+            ligne.style = "display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #1c2437; cursor: pointer; color: #fff;";
             ligne.innerHTML = `
-                <div style="font-weight: bold; color: #fff;">🏎️ ROUND ${roundNumero}</div>
-                <div style="text-align: right; color: #4cd137; font-weight: bold;">${bilan.pointsTotaux !== undefined ? bilan.pointsTotaux + ' pts' : '-- pts'}</div>
+                <div style="font-weight: bold;">🏎️ ${nomAffichageGP}</div>
+                <div style="text-align: right; color: #4cd137; font-weight: bold;">${pointsAffiches} pts</div>
             `;
-            
             ligne.addEventListener('click', () => afficherDetailGP(data));
             listeGpsContainer.appendChild(ligne);
         });
-    }).catch((err) => {
-        console.error("Erreur historique :", err);
     });
 }
 
@@ -819,56 +807,65 @@ function afficherDetailGP(data) {
     const detailContainer = document.getElementById('profil-detail-gp');
     if (!detailContainer) return;
 
-    // 1. Récupération des données du bilan de calcul du robot
     const bilan = data.bilanCalcul || {};
-    const detailPilotes = bilan.detailPilotes || []; // Tableau contenant le détail des points par position [{nom, points}, ...]
+    const detailPilotes = bilan.detailPilotes || []; 
     
-    // 2. Recherche du nom du Grand Prix dans le calendrier de la saison
-    const roundNumero = data.gpId || 12;
+    const courseIdString = data.course || data.gpId || "2026/12";
+    const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
+    
     const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
     const nomCompletGP = gpInfo ? `${gpInfo.nom} (${gpInfo.circuit})` : `ROUND ${roundNumero}`;
 
-    // 3. Génération dynamique de la liste du Top 10 ligne par ligne avec les points en face
+    const listePilotesPronostiques = data.classementPilotes || data.top10 || [];
+
     let top10Html = "";
     
-    // Si le robot n'a pas encore calculé, on affiche simplement la liste des choix
-    if (!bilan.pointsTotaux && data.classementPilotes) {
-        top10Html = data.classementPilotes.map((pilote, index) => {
-            return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
-                <span><strong>P${index + 1} :</strong> ${pilote}</span>
-                <span style="color: #616e88; font-weight: bold;">-- pts</span>
-            </li>`;
-        }).join('');
-    } else if (data.classementPilotes) {
-        // Si le robot a validé la course, on affiche le pilote choisi ET ses points obtenus à cette position
-        top10Html = data.classementPilotes.map((pilote, index) => {
-            // On cherche si un bonus/point a été attribué à cet index dans le bilan du robot
-            const pointsPosition = (detailPilotes[index] && detailPilotes[index].points !== undefined) ? detailPilotes[index].points : 0;
-            const textPoints = pointsPosition > 0 ? `+${pointsPosition} pts` : `0 pt`;
-            const colorPoints = pointsPosition > 0 ? `#4cd137` : `#ef4444`;
+    if (listePilotesPronostiques.length === 0) {
+        top10Html = `<li style="color: #616e88; font-style: italic;">Aucune grille enregistrée</li>`;
+    } else {
+        top10Html = listePilotesPronostiques.map((pilote, index) => {
+            if (bilan.pointsTotaux !== undefined) {
+                const pointsPosition = (detailPilotes[index] && detailPilotes[index].points !== undefined) ? detailPilotes[index].points : 0;
+                const textPoints = pointsPosition > 0 ? `+${pointsPosition} pts` : `0 pt`;
+                const colorPoints = pointsPosition > 0 ? `#4cd137` : `#ef4444`;
 
-            return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
-                <span><strong>P${index + 1} :</strong> ${pilote}</span>
-                <span style="color: ${colorPoints}; font-weight: bold;">${textPoints}</span>
-            </li>`;
+                return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
+                    <span><strong>P${index + 1} :</strong> ${pilote}</span>
+                    <span style="color: ${colorPoints}; font-weight: bold;">${textPoints}</span>
+                </li>`;
+            } else {
+                return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
+                    <span><strong>P${index + 1} :</strong> ${pilote}</span>
+                    <span style="color: #616e88; font-weight: bold;">-- pts</span>
+                </li>`;
+            }
         }).join('');
     }
 
-    // 4. Injection du code HTML structurel mis à jour
+    const ptsTotaux = bilan.pointsTotaux !== undefined ? bilan.pointsTotaux : (data.pointsGagnes || data.points || 0);
+    const ptsGrille = bilan.pointsGrille !== undefined ? bilan.pointsGrille : 0;
+    const ptsPole = bilan.pointsPole !== undefined ? bilan.pointsPole : 0;
+    const ptsEcuries = bilan.pointsEcuries !== undefined ? bilan.pointsEcuries : 0;
+
+    const ecoTop1 = (data.ecuriesTop && data.ecuriesTop[0]) || data.ecurieTop1 || 'Aucune';
+    const ecoTop2 = (data.ecuriesTop && data.ecuriesTop[1]) || data.ecurieTop2 || 'Aucune';
+    const ecoFlop1 = (data.ecuriesFlop && data.ecuriesFlop[0]) || data.ecurieFlop1 || 'Aucune';
+    const ecoFlop2 = (data.ecuriesFlop && data.ecuriesFlop[1]) || data.ecurieFlop2 || 'Aucune';
+
     detailContainer.innerHTML = `
         <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
         <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: #4cd137;">Calculé</strong></p>
         
         <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
             <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${bilan.pointsTotaux !== undefined ? bilan.pointsTotaux : (data.points || 0)} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
+            <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${ptsTotaux} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
         </div>
 
         <h5 style="margin: 0 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📊 Répartition des Points</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏎️ Prono Grille Top 10 :</span> <strong style="color: #fff;">+${bilan.pointsGrille !== undefined ? bilan.pointsGrille : 0} pts</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${bilan.pointsPole !== undefined ? bilan.pointsPole : 0} pts</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${bilan.pointsEcuries !== undefined ? bilan.pointsEcuries : 0} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏎️ Prono Grille Top 10 :</span> <strong style="color: #fff;">+${ptsGrille} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${ptsPole} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${ptsEcuries} pts</strong></div>
         </div>
         
         <hr style="border: 0; border-top: 1px solid #2d3954; margin: 15px 0;">
@@ -876,30 +873,7 @@ function afficherDetailGP(data) {
         <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Vos choix enregistrés</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 1 :</span> <strong>${(data.ecuriesTop && data.ecuriesTop[0]) || 'Aucune'}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 2 :</span> <strong>${(data.ecuriesTop && data.ecuriesTop[1]) || 'Aucune'}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 1 :</span> <strong>${(data.ecuriesFlop && data.ecuriesFlop[0]) || 'Aucune'}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span> <strong>${(data.ecuriesFlop && data.ecuriesFlop[1]) || 'Aucune'}</strong></div>
-        </div>
-
-        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 & Points</h5>
-        <ul style="margin: 0; padding: 0; list-style: none;">
-            ${top10Html}
-        </ul>
-    `;
-}
-
-// INITIALISATIONS DE BASE AU CHARGEMENT
-initialiserSelectCourse();
-initialiserPolePosition();
-initialiserEcuriesTopFlop();
-chargerClassementGeneral();
-chargerDonneesEsthetiquesOpenF1();
-adapterEnTeteTitreEtReglement();
-
-if(selectCourse) {
-    selectCourse.addEventListener('change', () => {
-        chargerPronosticsUtilisateur();
-        chargerClassementGeneral();
-    });
-}
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 1 :</span> <strong>${ecoTop1}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 2 :</span> <strong>${ecoTop2}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 1 :</span> <strong>${ecoFlop1}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span>
