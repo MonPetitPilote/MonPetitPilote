@@ -1,42 +1,19 @@
 const admin = require('firebase-admin');
 const axios = require('axios');
 
-if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-    console.error("❌ Erreur : Le secret FIREBASE_SERVICE_ACCOUNT est manquant.");
-    process.exit(1);
-}
-
 try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    
-    // METHODE DIRECTE SANS UTILLISER .credential.cert()
-    // On passe directement l'objet JSON contenant les clés privées de Firebase.
-    admin.initializeApp({
-        credential: admin.credential ? admin.credential.cert(serviceAccount) : {
-            getAccessToken: () => Promise.resolve({
-                access_token: '',
-                expires_in: 0
-            }),
-            ...serviceAccount
-        }
-    });
-    
-    console.log("🔗 Authentification Firebase Admin réussie avec succès !");
+    // Initialisation automatique ! Firebase va chercher tout seul la variable GOOGLE_APPLICATION_CREDENTIALS
+    admin.initializeApp();
+    console.log("🚀 [Firebase] Connexion réussie de manière native !");
 } catch (e) {
-    // Si cela échoue encore ici, on teste l'initialisation automatique par variables d'environnement
-    try {
-        admin.initializeApp();
-        console.log("🔗 Authentification Firebase Admin réussie via fallback automatique !");
-    } catch (fallbackError) {
-        console.error("❌ Impossible d'initialiser Firebase. Erreur de syntaxe ou de Secret JSON :", e.message);
-        process.exit(1);
-    }
+    console.error("❌ Erreur critique d'initialisation de Firebase :", e.message);
+    process.exit(1);
 }
 
 const db = admin.firestore();
 const totalRounds = 24; 
 
-// Liste des pilotes avec leurs numéros officiels F1 indispensables pour l'API OpenF1
+// Liste des pilotes
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
@@ -76,7 +53,7 @@ async function demarrer() {
                 continue;
             }
 
-            // Récupération de la session de course via l'API OpenF1 (Simulé sur l'année 2023 pour le test)
+            // Récupération de la session de course (simulation saison 2023 pour le test)
             let resSessions;
             try {
                 resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
@@ -92,7 +69,7 @@ async function demarrer() {
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // Récupération des positions finales de la course
+            // Récupération du classement final
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
@@ -128,7 +105,7 @@ async function demarrer() {
                 return match ? match.nom : `Numéro ${num}`;
             });
 
-            // Récupération du Poleman officiel de la session Qualifying
+            // Poleman
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
@@ -151,7 +128,7 @@ async function demarrer() {
 
             console.log(`🏁 Résultats GP ${round} validés : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
 
-            // Comparaison et distribution des scores aux pronostics des joueurs
+            // Distribution des scores
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
