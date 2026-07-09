@@ -3,7 +3,6 @@ const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
 
 try {
-    // Initialisation native (utilise GOOGLE_APPLICATION_CREDENTIALS du YAML)
     initializeApp();
     console.log("🚀 [Firebase] Connexion réussie de manière native !");
 } catch (e) {
@@ -12,43 +11,37 @@ try {
 }
 
 const db = getFirestore();
-
-// Fonction utilitaire pour créer une pause et éviter l'erreur 429 (Rate Limit)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 🗓️ CALENDRIER OFFICIEL DE TON SITE (Saison 2026)
-// Les clés à gauche reprennent STRICTEMENT le champ "location" de l'API OpenF1.
-// Les chiffres à droite correspondent aux identifiants "course" dans ta base (ex: 2026/12).
+// 🗓️ CALENDRIER ALIGNÉ AVEC OPENF1 (Sans les GP annulés)
 const calendrier2026 = {
     "Melbourne": 1,
     "Shanghai": 2,
     "Suzuka": 3,
-    // Rounds 4 (Sakhir) et 5 (Jeddah) annulés par la FIA, absents de l'API OpenF1
-    "Miami Gardens": 6,
-    "Montréal": 7,
-    "Monte Carlo": 8,
-    "Barcelona": 9,
-    "Spielberg": 10,
-    "Silverstone": 11,
-    "Spa-Francorchamps": 12,
-    "Budapest": 13,
-    "Zandvoort": 14,
-    "Monza": 15,
-    "Baku": 16,
-    "Marina Bay": 17,
-    "Austin": 18,
-    "Mexico City": 19,
-    "São Paulo": 20,
-    "Las Vegas": 21,
-    "Lusail": 22,
-    "Yas Marina": 23
+    "Miami Gardens": 4,
+    "Montréal": 5,
+    "Monte Carlo": 6,
+    "Barcelona": 7,
+    "Spielberg": 8,
+    "Silverstone": 9,
+    "Spa-Francorchamps": 10,
+    "Budapest": 11,
+    "Zandvoort": 12,
+    "Monza": 13,
+    "Baku": 14,
+    "Marina Bay": 15,
+    "Austin": 16,
+    "Mexico City": 17,
+    "São Paulo": 18,
+    "Las Vegas": 19,
+    "Lusail": 20,
+    "Yas Marina": 21
 };
 
 async function demarrer() {
-    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026...");
+    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mode Linéaire)...");
     
     try {
-        // 1. Récupération de toutes les sessions "Race" de 2026
         console.log("📡 Récupération du calendrier des sessions 2026 depuis OpenF1...");
         const resSessions = await axios.get("https://api.openf1.org/v1/sessions?year=2026&session_name=Race", { timeout: 10000 });
         
@@ -57,46 +50,40 @@ async function demarrer() {
             return;
         }
 
-        // Trier chronologiquement pour traiter les courses dans le bon ordre
         const sessionsChronologiques = resSessions.data.sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
         console.log(`ℹ️ ${sessionsChronologiques.length} sessions réelles détectées dans l'API.`);
 
-        // 2. Boucle sur les sessions de l'API
         for (let index = 0; index < sessionsChronologiques.length; index++) {
             const session = sessionsChronologiques[index];
             const sessionKey = session.session_key;
-            
-            // Récupération dynamique du numéro de round de ton site via le nom du circuit
             const round = calendrier2026[session.location];
             
             if (!round) {
-                console.log(`\nℹ️ Circuit "${session.location}" non configuré ou non requis pour le moment. Passage.`);
+                console.log(`\nℹ️ Circuit "${session.location}" non configuré ou non requis. Passage.`);
                 continue;
             }
 
             const gpId = `2026/${round}`;
+            console.log(`\n🏁 --- Analyse : ${session.location} | Round Site : ${round} | Clé Session : ${sessionKey} ---`);
 
-            console.log(`\n🏁 --- Analyse : ${session.location} | Associé au Round Site : ${round} | Clé Session : ${sessionKey} ---`);
-
-            // 🛑 SÉCURITÉ RATE-LIMIT : Pause de 2,5 secondes avant les requêtes lourdes
             await sleep(2500);
 
-            // Anti-doublon : On vérifie si ce Round a déjà été calculé et enregistré
+            // Anti-doublon
             const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
             const histoDoc = await histoRef.get();
             if (histoDoc.exists) {
-                console.log(`ℹ️ Le GP ${round} (${session.location}) a déjà été calculé et archivé. Passage au suivant.`);
+                console.log(`ℹ️ Le GP ${round} (${session.location}) a déjà été calculé. Passage.`);
                 continue;
             }
 
-            // 3. Récupération dynamique de l'annuaire des pilotes pour cette course
+            // Pilotes
             console.log(`📡 Récupération des pilotes pour la session ${sessionKey}...`);
             let pilotesSession = [];
             try {
                 const resDrivers = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`, { timeout: 10000 });
                 pilotesSession = resDrivers.data || [];
             } catch (driverErr) {
-                console.error(`❌ Impossible de récupérer les pilotes (Session ${sessionKey}):`, driverErr.message);
+                console.error(`❌ Impossible de récupérer les pilotes :`, driverErr.message);
                 continue;
             }
 
@@ -110,21 +97,20 @@ async function demarrer() {
                 return match ? match.team_name : "";
             };
 
-            // 4. Récupération des données de position
+            // Positions Course
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 15000 });
             } catch (posErr) {
-                console.error(`❌ Impossible de charger les positions (Session ${sessionKey}):`, posErr.message);
+                console.error(`❌ Impossible de charger les positions :`, posErr.message);
                 continue;
             }
 
             if (!resPositions.data || resPositions.data.length === 0) {
-                console.log(`⚠️ Données de position vides pour ${session.location} (Course non courue ?).`);
+                console.log(`⚠️ Données de position vides pour ${session.location}.`);
                 continue;
             }
 
-            // Filtrage pour ne garder que la dernière ligne de position sous le drapeau à damier
             const records = resPositions.data;
             const derniersPositions = {};
             records.forEach(rec => {
@@ -145,29 +131,30 @@ async function demarrer() {
             const top10OfficielNoms = top10OfficielNums.map(num => trouverNomPilote(num));
             console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
-            // 5. Récupération du Poleman
-           // 5. Récupération du Poleman (Corrigé pour éviter le premier sorti en Q1)
+            // 🎯 RECHERCHE DU POLEMAN CORRIGÉE (Prend la fin de la Q3, pas le début de la Q1)
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
                 if (resQualif.data && resQualif.data.length > 0) {
                     const qSessionKey = resQualif.data[0].session_key;
-                    
-                    // On demande toutes les lignes où un pilote a été P1 pendant la qualif
                     const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
                     
                     if (resPositionsQ.data && resPositionsQ.data.length > 0) {
-                        // 🔥 CORRECTION : On trie par date décroissante pour obtenir le TOUT DERNIER pilote 
-                        // ayant obtenu ou conservé la position 1 à la fin de la session (Fin de la Q3)
+                        // Tri par date décroissante pour attraper le tout dernier P1 sous le drapeau à damier
                         const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
                         polemanOfficiel = trouverNomPilote(requetesTriees[0].driver_number);
                     }
                 }
             } catch (pErr) {
                 console.log(`ℹ️ Poleman introuvable pour la qualif de ${session.location}`);
             }
-            // 6. Extraction et calcul des pronostics stockés sous l'id "2026/X"
+
+            const vainqueurNumero = top10OfficielNums[0];
+            const ecurieGagnanteRelle = trouverEcuriePilote(vainqueurNumero);
+
+            console.log(`🎯 Résultats validés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
+
+            // Traitement des pronostics
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
@@ -189,7 +176,6 @@ async function demarrer() {
                             let bonusPole = 0;
                             let pointsDesEcuries = 0;
 
-                            // Calcul des grilles pilotes
                             grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
                                 const indexReel = top10OfficielNoms.findIndex(pReel => 
                                     pReel.toLowerCase().includes(piloteChoisi.toLowerCase()) || 
@@ -214,15 +200,12 @@ async function demarrer() {
                                 }
                             });
 
-                            // Bonus Poleman
                             if (polemanJoueur && polemanOfficiel !== "Inconnu" && (polemanOfficiel.toLowerCase().includes(polemanJoueur.toLowerCase()) || polemanJoueur.toLowerCase().includes(polemanOfficiel.toLowerCase()))) {
                                 bonusPole = 5;
                             }
 
-                            // Bonus Écuries
                             if (ecurieGagnanteRelle) {
                                 const checkEcurie = (ecJoueur, ecReelle) => ecReelle.toLowerCase().includes(ecJoueur.toLowerCase()) || ecJoueur.toLowerCase().includes(ecReelle.toLowerCase());
-
                                 if (ecuriesTopJoueur[0] && checkEcurie(ecuriesTopJoueur[0], ecurieGagnanteRelle)) pointsDesEcuries += 5;
                                 if (ecuriesTopJoueur[1] && checkEcurie(ecuriesTopJoueur[1], ecurieGagnanteRelle)) pointsDesEcuries += 2;
                                 if (ecuriesFlopJoueur.some(ef => checkEcurie(ef, ecurieGagnanteRelle))) pointsDesEcuries -= 5;
@@ -231,7 +214,6 @@ async function demarrer() {
                             let pointsGagnes = pointsDuTop10 + bonusPole + pointsDesEcuries;
                             if (pronoData.jokerUtilise === true) pointsGagnes *= 2;
 
-                            // Écriture des résultats
                             transaction.set(pronoRef, {
                                 bilanCalcul: {
                                     pointsTotaux: pointsGagnes,
@@ -251,7 +233,6 @@ async function demarrer() {
                 }
             }
 
-            // Clôture définitive du GP dans l'historique
             await histoRef.set({ calculeLe: new Date(), top10: top10OfficielNoms, poleman: polemanOfficiel });
             console.log(`ℹ️ GP ${round} (${session.location}) archivé.`);
         }
