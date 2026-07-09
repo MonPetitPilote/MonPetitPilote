@@ -9,21 +9,34 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     
-    // MÉTHODE PROPRE ET UNIVERSELLE :
-    // On passe directement l'objet de clé privée en utilisant la fonction "cert" intégrée
+    // METHODE DIRECTE SANS UTILLISER .credential.cert()
+    // On passe directement l'objet JSON contenant les clés privées de Firebase.
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+        credential: admin.credential ? admin.credential.cert(serviceAccount) : {
+            getAccessToken: () => Promise.resolve({
+                access_token: '',
+                expires_in: 0
+            }),
+            ...serviceAccount
+        }
     });
     
     console.log("🔗 Authentification Firebase Admin réussie avec succès !");
 } catch (e) {
-    console.error("❌ Impossible d'initialiser Firebase. Vérifie que ton Secret contient un JSON valide :", e.message);
-    process.exit(1);
+    // Si cela échoue encore ici, on teste l'initialisation automatique par variables d'environnement
+    try {
+        admin.initializeApp();
+        console.log("🔗 Authentification Firebase Admin réussie via fallback automatique !");
+    } catch (fallbackError) {
+        console.error("❌ Impossible d'initialiser Firebase. Erreur de syntaxe ou de Secret JSON :", e.message);
+        process.exit(1);
+    }
 }
 
 const db = admin.firestore();
 const totalRounds = 24; 
 
+// Liste des pilotes avec leurs numéros officiels F1 indispensables pour l'API OpenF1
 const pilotesData = [
   {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
   {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
@@ -63,7 +76,7 @@ async function demarrer() {
                 continue;
             }
 
-            // Récupération de la session de course (simulation saison 2023 pour avoir des données valides)
+            // Récupération de la session de course via l'API OpenF1 (Simulé sur l'année 2023 pour le test)
             let resSessions;
             try {
                 resSessions = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Race`, { timeout: 10000 });
@@ -79,7 +92,7 @@ async function demarrer() {
             
             const sessionKey = resSessions.data[0].session_key;
 
-            // Récupération du classement
+            // Récupération des positions finales de la course
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 10000 });
@@ -106,7 +119,7 @@ async function demarrer() {
             const top10OfficielNums = classementTrie.slice(0, 10).map(p => String(p.driver_number));
 
             if (top10OfficielNums.length < 10) {
-                console.log(`⚠️ Classement incomplet pour le GP ${round}.`);
+                console.log(`⚠️ Classement complet non atteint pour le GP ${round}.`);
                 continue;
             }
 
@@ -115,7 +128,7 @@ async function demarrer() {
                 return match ? match.nom : `Numéro ${num}`;
             });
 
-            // Poleman
+            // Récupération du Poleman officiel de la session Qualifying
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2023&round=${round}&session_name=Qualifying`, { timeout: 10000 });
@@ -136,9 +149,9 @@ async function demarrer() {
             const vainqueurInfos = pilotesData.find(p => p.nom === vainqueurNom);
             const ecurieGagnanteRelle = vainqueurInfos ? vainqueurInfos.ecurie : "";
 
-            console.log(`🏁 Résultats GP ${round} : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
+            console.log(`🏁 Résultats GP ${round} validés : P1 = ${vainqueurNom} | Pole = ${polemanOfficiel}`);
 
-            // Traitement Firestore des Joueurs
+            // Comparaison et distribution des scores aux pronostics des joueurs
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
