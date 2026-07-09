@@ -1,5 +1,4 @@
 const admin = require('firebase-admin');
-const { getFirestore } = require('firebase-admin/firestore'); 
 const axios = require('axios');
 
 try {
@@ -10,7 +9,8 @@ try {
     process.exit(1);
 }
 
-const db = getFirestore();
+// CORRECTION : Utilisation de la méthode moderne pour récupérer l'instance Firestore
+const db = admin.firestore ? admin.firestore() : admin.apps[0].firestore();
 
 const totalRounds = 24; 
 // Liste des pilotes
