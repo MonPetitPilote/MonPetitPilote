@@ -817,55 +817,75 @@ function chargerHistoriqueProfil() {
 
 function afficherDetailGP(data) {
     const detailContainer = document.getElementById('profil-detail-gp');
+    if (!detailContainer) return;
+
+    // 1. Récupération des données du bilan de calcul du robot
     const bilan = data.bilanCalcul || {};
+    const detailPilotes = bilan.detailPilotes || []; // Tableau contenant le détail des points par position [{nom, points}, ...]
     
+    // 2. Recherche du nom du Grand Prix dans le calendrier de la saison
+    const roundNumero = data.gpId || 12;
+    const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+    const nomCompletGP = gpInfo ? `${gpInfo.nom} (${gpInfo.circuit})` : `ROUND ${roundNumero}`;
+
+    // 3. Génération dynamique de la liste du Top 10 ligne par ligne avec les points en face
     let top10Html = "";
-    // Lecture adaptative (classementPilotes ou top10)
-    const listePilotes = data.classementPilotes || data.top10;
-    if (listePilotes && Array.isArray(listePilotes)) {
-        top10Html = listePilotes.map((pilote, index) => `<li style="margin-bottom:4px;">P${index+1} : <strong>${pilote}</strong></li>`).join('');
-    } else {
-        top10Html = "<li>Aucun pilote enregistré</li>";
+    
+    // Si le robot n'a pas encore calculé, on affiche simplement la liste des choix
+    if (!bilan.pointsTotaux && data.classementPilotes) {
+        top10Html = data.classementPilotes.map((pilote, index) => {
+            return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
+                <span><strong>P${index + 1} :</strong> ${pilote}</span>
+                <span style="color: #616e88; font-weight: bold;">-- pts</span>
+            </li>`;
+        }).join('');
+    } else if (data.classementPilotes) {
+        // Si le robot a validé la course, on affiche le pilote choisi ET ses points obtenus à cette position
+        top10Html = data.classementPilotes.map((pilote, index) => {
+            // On cherche si un bonus/point a été attribué à cet index dans le bilan du robot
+            const pointsPosition = (detailPilotes[index] && detailPilotes[index].points !== undefined) ? detailPilotes[index].points : 0;
+            const textPoints = pointsPosition > 0 ? `+${pointsPosition} pts` : `0 pt`;
+            const colorPoints = pointsPosition > 0 ? `#4cd137` : `#ef4444`;
+
+            return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
+                <span><strong>P${index + 1} :</strong> ${pilote}</span>
+                <span style="color: ${colorPoints}; font-weight: bold;">${textPoints}</span>
+            </li>`;
+        }).join('');
     }
 
-    // Gestion propre de l'affichage des écuries selon leur structure BDD
-    const t1 = data.ecuriesTop ? data.ecuriesTop[0] : (data.ecurieTop1 || 'Aucune');
-    const t2 = data.ecuriesTop ? data.ecuriesTop[1] : (data.ecurieTop2 || 'Aucune');
-    const f1 = data.ecuriesFlop ? data.ecuriesFlop[0] : (data.ecurieFlop1 || 'Aucune');
-    const f2 = data.ecuriesFlop ? data.ecuriesFlop[1] : (data.ecurieFlop2 || 'Aucune');
-
+    // 4. Injection du code HTML structurel mis à jour
     detailContainer.innerHTML = `
-        <h4 style="color: #ff8000; margin: 0 0 5px 0; text-transform: uppercase; font-size: 1.2rem;">🏁 ROUND : ${data.gpId || 'Inconnu'}</h4>
-        <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
-            Statut : ${bilan.pointsTotaux !== undefined ? '<span style="color:#4cd137; font-weight:bold;">Calculé</span>' : '<span style="color:#ffb300; font-weight:bold;">En attente de la course</span>'}
-        </p>
+        <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
+        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: #4cd137;">Calculé</strong></p>
         
-        <div style="background: #111622; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #2d3954;">
-            <span style="font-size: 0.85rem; color: #a5b1c2;">Score obtenu :</span>
-            <div style="font-size: 1.6rem; font-weight: bold; color: #4cd137; margin-top: 2px;">
-                ${bilan.pointsTotaux ?? 0} <span style="font-size:1rem;">pts</span>
-                ${data.jokerUtilise ? '<span style="font-size:0.9rem; color:#ff8000; margin-left:10px;">🚀 JOKER x2</span>' : ''}
-            </div>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
+            <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${bilan.pointsTotaux !== undefined ? bilan.pointsTotaux : (data.points || 0)} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
+        </div>
+
+        <h5 style="margin: 0 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📊 Répartition des Points</h5>
+        <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏎️ Prono Grille Top 10 :</span> <strong style="color: #fff;">+${bilan.pointsGrille !== undefined ? bilan.pointsGrille : 0} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${bilan.pointsPole !== undefined ? bilan.pointsPole : 0} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${bilan.pointsEcuries !== undefined ? bilan.pointsEcuries : 0} pts</strong></div>
         </div>
         
-        <h5 style="margin: 0 0 8px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📈 Répartition des points</h5>
-        <div class="detail-item-points"><span>🏎️ Prono Grille Top 10 :</span> <strong>+ ${bilan.detailTop10 ?? 0} pts</strong></div>
-        <div class="detail-item-points"><span>⚡ Bonus Pole Position :</span> <strong>+ ${bilan.bonusPole ?? 0} pts</strong></div>
-        <div class="detail-item-points"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong>+ ${bilan.bonusEcuries ?? 0} pts</strong></div>
-        
-        <hr style="border-color: #2d3954; margin: 15px 0; border-style: dashed;">
-        
-        <h5 style="margin: 0 0 8px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Tes choix enregistrés</h5>
-        <div class="detail-item-points"><span>⚡ Poleman :</span> <strong style="color:#fff;">${data.poleman || 'Aucun'}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 1 :</span> <strong style="color:#fff;">${t1}</strong></div>
-        <div class="detail-item-points"><span>🚀 Écurie Top 2 :</span> <strong style="color:#fff;">${t2}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 1 :</span> <strong style="color:#fff;">${f1}</strong></div>
-        <div class="detail-item-points"><span>⚠️ Écurie Flop 2 :</span> <strong style="color:#fff;">${f2}</strong></div>
-        
-        <h5 style="margin: 15px 0 8px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Ta Grille Top 10</h5>
-        <ol style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #e2e8f0; line-height: 1.5;">
+        <hr style="border: 0; border-top: 1px solid #2d3954; margin: 15px 0;">
+
+        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Vos choix enregistrés</h5>
+        <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 1 :</span> <strong>${(data.ecuriesTop && data.ecuriesTop[0]) || 'Aucune'}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 2 :</span> <strong>${(data.ecuriesTop && data.ecuriesTop[1]) || 'Aucune'}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 1 :</span> <strong>${(data.ecuriesFlop && data.ecuriesFlop[0]) || 'Aucune'}</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span> <strong>${(data.ecuriesFlop && data.ecuriesFlop[1]) || 'Aucune'}</strong></div>
+        </div>
+
+        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 & Points</h5>
+        <ul style="margin: 0; padding: 0; list-style: none;">
             ${top10Html}
-        </ol>
+        </ul>
     `;
 }
 
