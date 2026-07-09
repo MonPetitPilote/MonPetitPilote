@@ -1,8 +1,8 @@
 const admin = require('firebase-admin');
+const { getFirestore } = require('firebase-admin/firestore'); 
 const axios = require('axios');
 
 try {
-    // Initialisation automatique ! Firebase va chercher tout seul la variable GOOGLE_APPLICATION_CREDENTIALS
     admin.initializeApp();
     console.log("🚀 [Firebase] Connexion réussie de manière native !");
 } catch (e) {
@@ -10,13 +10,13 @@ try {
     process.exit(1);
 }
 
-const db = admin.firestore();
-const totalRounds = 24; 
+const db = getFirestore();
 
+const totalRounds = 24; 
 // Liste des pilotes
 const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "1"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43"},
+  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3"},
+  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6"},
   {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44"},
   {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16"},
   {nom: "Lando Norris", ecurie: "McLaren", numero: "4"},
