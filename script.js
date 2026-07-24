@@ -588,47 +588,105 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
     });
 }
 
+// Helper pour vérifier si un GP est passé / verrouillé
+function estGPVerrouille(roundNumero) {
+    const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+    if (!gpInfo) return false;
+
+    // Bloque à partir du jour de la course à minuit (00:00:00)
+    const dateGP = new Date(gpInfo.date + "T00:00:00");
+    const maintenant = new Date();
+
+    return maintenant >= dateGP;
+}
+
+// Fonction globale de chargement des pronostics
 async function chargerPronosticsUtilisateur() {
     if (!utilisateurActuel || !selectCourse) return;
-    const courseId = selectCourse.value;
-    const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
+    const courseId = selectCourse.value;
+    const roundNumero = courseId.includes('/') ? courseId.split('/')[1] : courseId;
+    
+    // 🔒 1. Contrôle du verrouillage temporal du GP
+    const verrouille = estGPVerrouille(roundNumero);
+    const btnValider = document.getElementById('btn-valider');
+
+    // 🔒 2. Adaptation du bouton de validation
+    if (btnValider) {
+        btnValider.disabled = verrouille;
+        btnValider.style.opacity = verrouille ? "0.5" : "1";
+        btnValider.style.cursor = verrouille ? "not-allowed" : "pointer";
+        btnValider.innerText = verrouille ? "🔒 PRONOSTICS FERMÉS POUR CE GP" : "🏁 VALIDER MON PRONOSTIC";
+    }
+
+    // 🔒 3. Réinitialisation et état (activé/désactivé) des sélecteurs Top 10
     for (let i = 1; i <= 10; i++) {
         const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+        if (s) {
+            s.value = "";
+            s.disabled = verrouille;
+            mettreAJourDesignSlot(i, "");
+        }
     }
-    if(selectPole) selectPole.value = "";
-    
+
+    // 🔒 4. Réinitialisation et état du sélecteur Poleman
+    if (selectPole) {
+        selectPole.value = "";
+        selectPole.disabled = verrouille;
+    }
+
+    // 🔒 5. Réinitialisation et état des cartes Écuries Top / Flop
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         appliquerSelectionEcurieVisuelle(id, "");
+        const el = document.getElementById(id);
+        if (el) el.style.pointerEvents = verrouille ? "none" : "auto";
     });
 
-    if (doc.exists) {
-        const data = doc.data();
-        const listePilotes = data.classementPilotes || data.top10 || [];
-        listePilotes.forEach((nom, idx) => {
-            const s = document.getElementById(`select-grid-p${idx+1}`);
-            if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
-        });
-        
-        if(selectPole && data.poleman) selectPole.value = data.poleman;
-        
-        if (data.ecuriesTop) {
-            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || data.ecurieTop1 || "");
-            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || data.ecurieTop2 || "");
-        } else {
-            appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecurieTop1 || "");
-            appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecurieTop2 || "");
+    // 📥 6. Récupération des données déjà enregistrées dans Firestore
+    try {
+        const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
+
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // Rechargement du Top 10
+            const listePilotes = data.classementPilotes || data.top10 || [];
+            listePilotes.forEach((nom, idx) => {
+                const s = document.getElementById(`select-grid-p${idx + 1}`);
+                if (s) {
+                    s.value = nom;
+                    mettreAJourDesignSlot(idx + 1, nom);
+                }
+            });
+
+            // Rechargement du Poleman
+            if (selectPole && data.poleman) {
+                selectPole.value = data.poleman;
+            }
+
+            // Rechargement des Écuries Top
+            if (data.ecuriesTop) {
+                appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecuriesTop[0] || data.ecurieTop1 || "");
+                appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecuriesTop[1] || data.ecurieTop2 || "");
+            } else {
+                appliquerSelectionEcurieVisuelle("ecurie-top-1", data.ecurieTop1 || "");
+                appliquerSelectionEcurieVisuelle("ecurie-top-2", data.ecurieTop2 || "");
+            }
+
+            // Rechargement des Écuries Flop
+            if (data.ecuriesFlop) {
+                appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecuriesFlop[0] || data.ecurieFlop1 || "");
+                appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecuriesFlop[1] || data.ecurieFlop2 || "");
+            } else {
+                appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecurieFlop1 || "");
+                appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecurieFlop2 || "");
+            }
         }
-        
-        if (data.ecuriesFlop) {
-            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecuriesFlop[0] || data.ecurieFlop1 || "");
-            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecuriesFlop[1] || data.ecurieFlop2 || "");
-        } else {
-            appliquerSelectionEcurieVisuelle("ecurie-flop-1", data.ecurieFlop1 || "");
-            appliquerSelectionEcurieVisuelle("ecurie-flop-2", data.ecurieFlop2 || "");
-        }
+    } catch (error) {
+        console.error("Erreur lors du chargement des pronostics :", error);
     }
+
+    // Contrôle final des doublons pour la grille affichée
     controlerDoublonsPilotes();
 }
 
