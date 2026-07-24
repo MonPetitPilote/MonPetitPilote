@@ -875,8 +875,6 @@ function afficherDetailGP(data) {
     if (!detailContainer) return;
 
     const bilan = data.bilanCalcul || {};
-    
-    // Barème de points F1 standard pour la correspondance de position
     const baremeF1 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
     
     const courseIdString = data.course || data.gpId || "2026/1";
@@ -887,6 +885,9 @@ function afficherDetailGP(data) {
 
     const listePilotesPronostiques = data.classementPilotes || data.top10 || [];
 
+    // Détection si la course est déjà calculée
+    const estCalcule = (data.bilanCalcul && data.bilanCalcul.pointsTotaux !== undefined) || data.pointsGagnes !== undefined || data.points !== undefined;
+
     let top10Html = "";
     
     if (listePilotesPronostiques.length === 0) {
@@ -895,13 +896,12 @@ function afficherDetailGP(data) {
         top10Html = listePilotesPronostiques.map((pilote, index) => {
             let ptsPosition = 0;
             
-            if (bilan.pointsTotaux !== undefined) {
-                // Si la structure detailPilotes existe
+            if (estCalcule) {
                 if (bilan.detailPilotes && bilan.detailPilotes[index] !== undefined) {
                     ptsPosition = typeof bilan.detailPilotes[index] === 'object' ? (bilan.detailPilotes[index].points || 0) : bilan.detailPilotes[index];
-                } else if (bilan.detailTop10 !== undefined && index === 0) {
-                    // Fallback sur P1 si uniquement la somme est stockée
-                    ptsPosition = baremeF1[index] || 0;
+                } else {
+                    // Si le détail par pilote n'est pas renseigné, affichage par défaut du statut calculé
+                    ptsPosition = 0; 
                 }
                 
                 const textPoints = ptsPosition > 0 ? `+${ptsPosition} pts` : `0 pt`;
@@ -924,7 +924,6 @@ function afficherDetailGP(data) {
     const ptsGrille = bilan.detailTop10 !== undefined ? bilan.detailTop10 : (bilan.pointsGrille || 0);
     const ptsPole = bilan.bonusPole !== undefined ? bilan.bonusPole : (bilan.pointsPole || 0);
     const ptsEcuries = bilan.bonusEcuries !== undefined ? bilan.bonusEcuries : (bilan.pointsEcuries || 0);
-    const estCalcule = bilan.pointsTotaux !== undefined || data.pointsGagnes !== undefined;
 
     const ecoTop1 = (data.ecuriesTop && data.ecuriesTop[0]) || data.ecurieTop1 || 'Aucune';
     const ecoTop2 = (data.ecuriesTop && data.ecuriesTop[1]) || data.ecurieTop2 || 'Aucune';
