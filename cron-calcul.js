@@ -13,7 +13,7 @@ try {
 const db = getFirestore();
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 🗓️ CALENDRIER ALIGNÉ AVEC OPENF1 (Sans les GP annulés)
+// 🗓️ CALENDRIER AVEC TOUTES LES VARIANTES DE NOMS OPENF1
 const calendrier2026 = {
     "Melbourne": 1,
     "Shanghai": 2,
@@ -38,10 +38,8 @@ const calendrier2026 = {
     "Lusail": 21, "Qatar": 21,
     "Yas Marina": 22, "Abu Dhabi": 22
 };
-// 🏎️ TABLEAU DES PILOTES CENTRALISÉ ET SYNCHRONISÉ AVEC LE CRON
-// ==========================================
-// 🏎️ SOURCE DE VÉRITÉ : LES PILOTES OFFICIELS 2026 (Version épurée pour le Cron)
-// ==========================================
+
+// 🏎️ PILOTES OFFICIELS
 const pilotesData = [
   { nom: "Max Verstappen", ecurie: "Red Bull", numero: "3", pays: "nl", couleur: "#3671C6" },
   { nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6", pays: "fr", couleur: "#3671C6" },
@@ -68,7 +66,7 @@ const pilotesData = [
 ];
 
 async function demarrer() {
-    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mode Linéaire)...");
+    console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026...");
     
     try {
         console.log("📡 Récupération du calendrier des sessions 2026 depuis OpenF1...");
@@ -160,7 +158,7 @@ async function demarrer() {
             const top10OfficielNoms = top10OfficielNums.map(num => trouverNomPilote(num));
             console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
-            // 🎯 RECHERCHE DU POLEMAN CORRIGÉE (Prend la fin de la Q3, pas le début de la Q1)
+            // Poleman
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
@@ -169,7 +167,6 @@ async function demarrer() {
                     const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
                     
                     if (resPositionsQ.data && resPositionsQ.data.length > 0) {
-                        // Tri par date décroissante pour attraper le tout dernier P1 sous le drapeau à damier
                         const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
                         polemanOfficiel = trouverNomPilote(requetesTriees[0].driver_number);
                     }
@@ -202,8 +199,11 @@ async function demarrer() {
                             const pseudo = pronoData.pseudo || "Anonyme";
 
                             let pointsDuTop10 = 0;
+                            let tableauDetailPilotes = [];
                             let bonusPole = 0;
                             let pointsDesEcuries = 0;
+
+                            const baremeF1 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
                             grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
                                 const indexReel = top10OfficielNoms.findIndex(pReel => 
@@ -211,22 +211,16 @@ async function demarrer() {
                                     piloteChoisi.toLowerCase().includes(pReel.toLowerCase())
                                 );
 
+                                let ptsPilote = 0;
                                 if (indexReel !== -1) {
                                     if (indexJoueur === indexReel) {
-                                        if (indexJoueur === 0) pointsDuTop10 += 25;
-                                        else if (indexJoueur === 1) pointsDuTop10 += 18;
-                                        else if (indexJoueur === 2) pointsDuTop10 += 15;
-                                        else if (indexJoueur === 3) pointsDuTop10 += 12;
-                                        else if (indexJoueur === 4) pointsDuTop10 += 10;
-                                        else if (indexJoueur === 5) pointsDuTop10 += 8;
-                                        else if (indexJoueur === 6) pointsDuTop10 += 6;
-                                        else if (indexJoueur === 7) pointsDuTop10 += 4;
-                                        else if (indexJoueur === 8) pointsDuTop10 += 2;
-                                        else if (indexJoueur === 9) pointsDuTop10 += 1;
+                                        ptsPilote = baremeF1[indexJoueur] || 0;
                                     } else {
-                                        pointsDuTop10 += 2;
+                                        ptsPilote = 2; // Bonus présence dans le Top 10
                                     }
                                 }
+                                pointsDuTop10 += ptsPilote;
+                                tableauDetailPilotes.push({ pilote: piloteChoisi, points: ptsPilote });
                             });
 
                             if (polemanJoueur && polemanOfficiel !== "Inconnu" && (polemanOfficiel.toLowerCase().includes(polemanJoueur.toLowerCase()) || polemanJoueur.toLowerCase().includes(polemanOfficiel.toLowerCase()))) {
@@ -247,6 +241,7 @@ async function demarrer() {
                                 bilanCalcul: {
                                     pointsTotaux: pointsGagnes,
                                     detailTop10: pointsDuTop10,
+                                    detailPilotes: tableauDetailPilotes, // Enregistrement du détail
                                     bonusPole: bonusPole,
                                     bonusEcuries: pointsDesEcuries,
                                     jokerApplique: pronoData.jokerUtilise || false,
