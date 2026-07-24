@@ -44,6 +44,43 @@ const calendrier2026 = {
     "Yas Marina": 22, "Abu Dhabi": 22
 };
 
+async function afficherBandeauStatutCalcul() {
+    const conteneur = document.getElementById('bandeau-statut-container');
+    if (!conteneur) return;
+
+    try {
+        // On récupère le dernier GP calculé dans l'historique
+        const snapshot = await db.collection("historique_courses")
+            .orderBy("calculeLe", "desc")
+            .limit(1)
+            .get();
+
+        if (snapshot.empty) {
+            conteneur.innerHTML = `
+                <div style="background: rgba(255, 128, 0, 0.15); border: 1px solid #ff8000; color: #ff8000; padding: 10px 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 0.9rem;">
+                    ⏳ <strong>Mise à jour des scores :</strong> Le calcul automatique est en attente du traitement du week-end de course.
+                </div>`;
+            return;
+        }
+
+        const dernierGP = snapshot.docs[0].data();
+        const dateCalcul = dernierGP.calculeLe ? new Date(dernierGP.calculeLe.toDate()).toLocaleDateString("fr-FR", { hour: '2-digit', minute: '2-digit' }) : "récemment";
+
+        conteneur.innerHTML = `
+            <div style="background: rgba(76, 209, 55, 0.15); border: 1px solid #4cd137; color: #4cd137; padding: 10px 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 0.9rem;">
+                ✅ <strong>Derniers résultats mis à jour :</strong> Les scores du dernier GP ont été calculés le ${dateCalcul}.
+            </div>`;
+
+    } catch (error) {
+        console.error("Erreur d'affichage du bandeau :", error);
+    }
+}
+
+// Appeler la fonction au chargement de la page
+document.addEventListener("DOMContentLoaded", () => {
+    afficherBandeauStatutCalcul();
+});
+
 async function demarrer() {
     console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026...");
     
