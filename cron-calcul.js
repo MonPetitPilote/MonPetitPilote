@@ -13,6 +13,11 @@ try {
 const db = getFirestore();
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// En-têtes HTTP pour éviter les erreurs 401 d'OpenF1
+const axiosHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+};
+
 // 🗓️ CALENDRIER AVEC TOUTES LES VARIANTES DE NOMS OPENF1
 const calendrier2026 = {
     "Melbourne": 1,
@@ -39,38 +44,15 @@ const calendrier2026 = {
     "Yas Marina": 22, "Abu Dhabi": 22
 };
 
-// 🏎️ PILOTES OFFICIELS
-const pilotesData = [
-  { nom: "Max Verstappen", ecurie: "Red Bull", numero: "3", pays: "nl", couleur: "#3671C6" },
-  { nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6", pays: "fr", couleur: "#3671C6" },
-  { nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44", pays: "gb", couleur: "#E80020" },
-  { nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16", pays: "mc", couleur: "#E80020" },
-  { nom: "Lando Norris", ecurie: "McLaren", numero: "1", pays: "gb", couleur: "#FF8000" },
-  { nom: "Oscar Piastri", ecurie: "McLaren", numero: "81", pays: "au", couleur: "#FF8000" },
-  { nom: "George Russell", ecurie: "Mercedes", numero: "63", pays: "gb", couleur: "#27CCB4" },
-  { nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12", pays: "it", couleur: "#27CCB4" },
-  { nom: "Fernando Alonso", ecurie: "Aston Martin", numero: "14", pays: "es", couleur: "#229971" },
-  { nom: "Lance Stroll", ecurie: "Aston Martin", numero: "18", pays: "ca", couleur: "#229971" },
-  { nom: "Pierre Gasly", ecurie: "Alpine", numero: "10", pays: "fr", couleur: "#0093CC" },
-  { nom: "Franco Colapinto", ecurie: "Alpine", numero: "43", pays: "ar", couleur: "#0093CC" },
-  { nom: "Carlos Sainz", ecurie: "Williams", numero: "55", pays: "es", couleur: "#37BEDD" },
-  { nom: "Alex Albon", ecurie: "Williams", numero: "23", pays: "th", couleur: "#37BEDD" },
-  { nom: "Liam Lawson", ecurie: "Racing Bulls", numero: "30", pays: "nz", couleur: "#6692FF" },
-  { nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "41", pays: "gb", couleur: "#6692FF" },
-  { nom: "Nico Hülkenberg", ecurie: "Audi", numero: "27", pays: "de", couleur: "#00E6C3" },
-  { nom: "Gabriel Bortoleto", ecurie: "Audi", numero: "5", pays: "br", couleur: "#00E6C3" },
-  { nom: "Oliver Bearman", ecurie: "Haas", numero: "87", pays: "gb", couleur: "#B6BABD" },
-  { nom: "Esteban Ocon", ecurie: "Haas", numero: "31", pays: "fr", couleur: "#B6BABD" },
-  { nom: "Valtteri Bottas", ecurie: "Cadillac", numero: "77", pays: "fi", couleur: "#900C3F" },
-  { nom: "Sergio Pérez", ecurie: "Cadillac", numero: "11", pays: "mx", couleur: "#900C3F" }
-];
-
 async function demarrer() {
     console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026...");
     
     try {
         console.log("📡 Récupération du calendrier des sessions 2026 depuis OpenF1...");
-        const resSessions = await axios.get("https://api.openf1.org/v1/sessions?year=2026&session_name=Race", { timeout: 10000 });
+        const resSessions = await axios.get("https://api.openf1.org/v1/sessions?year=2026&session_name=Race", { 
+            timeout: 10000,
+            headers: axiosHeaders
+        });
         
         if (!resSessions.data || resSessions.data.length === 0) {
             console.log("⚠️ Aucune session de course trouvée pour 2026 sur OpenF1.");
@@ -103,11 +85,14 @@ async function demarrer() {
                 continue;
             }
 
-            // Pilotes
+            // Récupération des pilotes
             console.log(`📡 Récupération des pilotes pour la session ${sessionKey}...`);
             let pilotesSession = [];
             try {
-                const resDrivers = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`, { timeout: 10000 });
+                const resDrivers = await axios.get(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`, { 
+                    timeout: 10000,
+                    headers: axiosHeaders
+                });
                 pilotesSession = resDrivers.data || [];
             } catch (driverErr) {
                 console.error(`❌ Impossible de récupérer les pilotes :`, driverErr.message);
@@ -124,10 +109,13 @@ async function demarrer() {
                 return match ? match.team_name : "";
             };
 
-            // Positions Course
+            // Positions de Course
             let resPositions;
             try {
-                resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 15000 });
+                resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { 
+                    timeout: 15000,
+                    headers: axiosHeaders
+                });
             } catch (posErr) {
                 console.error(`❌ Impossible de charger les positions :`, posErr.message);
                 continue;
@@ -158,13 +146,19 @@ async function demarrer() {
             const top10OfficielNoms = top10OfficielNums.map(num => trouverNomPilote(num));
             console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
-            // Poleman
+            // Recherche du Poleman
             let polemanOfficiel = "Inconnu";
             try {
-                const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
+                const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { 
+                    timeout: 10000,
+                    headers: axiosHeaders
+                });
                 if (resQualif.data && resQualif.data.length > 0) {
                     const qSessionKey = resQualif.data[0].session_key;
-                    const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
+                    const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { 
+                        timeout: 10000,
+                        headers: axiosHeaders
+                    });
                     
                     if (resPositionsQ.data && resPositionsQ.data.length > 0) {
                         const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -180,7 +174,7 @@ async function demarrer() {
 
             console.log(`🎯 Résultats validés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
 
-            // Traitement des pronostics
+            // Traitement des pronostics des joueurs dans Firestore
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
@@ -241,7 +235,7 @@ async function demarrer() {
                                 bilanCalcul: {
                                     pointsTotaux: pointsGagnes,
                                     detailTop10: pointsDuTop10,
-                                    detailPilotes: tableauDetailPilotes, // Enregistrement du détail
+                                    detailPilotes: tableauDetailPilotes,
                                     bonusPole: bonusPole,
                                     bonusEcuries: pointsDesEcuries,
                                     jokerApplique: pronoData.jokerUtilise || false,
@@ -262,7 +256,7 @@ async function demarrer() {
         }
         console.log("\n🤖 Fin du traitement global de la saison 2026.");
     } catch (globalErr) {
-        console.error("❌ Erreur générale :", globalErr.message);
+        console.error("❌ ERREUR DÉTAILLÉE :", globalErr.response ? JSON.stringify(globalErr.response.data) : globalErr.message);
         process.exit(1);
     }
 }
