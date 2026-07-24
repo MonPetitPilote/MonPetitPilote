@@ -256,9 +256,16 @@ async function demarrer() {
         }
         console.log("\n🤖 Fin du traitement global de la saison 2026.");
     } catch (globalErr) {
-        console.error("❌ ERREUR DÉTAILLÉE :", globalErr.response ? JSON.stringify(globalErr.response.data) : globalErr.message);
-        process.exit(1);
+        const detailErreur = globalErr.response ? JSON.stringify(globalErr.response.data) : globalErr.message;
+        
+        // Si l'accès est restreint à cause d'une session en cours, on ne fait pas crasher le workflow
+        if (detailErreur.includes("Live F1 session in progress")) {
+            console.log("⏸️ Une session F1 est en cours en direct ! L'API OpenF1 est temporairement restreinte.");
+            console.log("⏳ Le calcul des points sera effectué automatiquement à la fin du week-end de GP.");
+            process.exit(0); // Exit code 0 pour valider le job GitHub sans erreur
+        } else {
+            console.error("❌ ERREUR DÉTAILLÉE :", detailErreur);
+            process.exit(1);
+        }
     }
-}
-
 demarrer();
