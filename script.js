@@ -12,7 +12,18 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
+// Configuration anti-blocage réseau / AdBlocker
 var db = firebase.firestore();
+try {
+    db.settings({
+        experimentalForceLongPolling: true,
+        useFetchStreams: false
+    });
+} catch (e) {
+    console.warn("Settings Firestore déjà appliqués :", e);
+}
+
 var auth = firebase.auth();
 
 // Chemins locaux vers tes images AVIF
@@ -83,28 +94,28 @@ const calendrier2026 = [
     { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-08" },
     { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-15" },
     { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-03-29" },
-    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami Gardens", pays: "USA", date: "2026-05-03" }, // "Miami Gardens" pour l'API
+    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami Gardens", pays: "USA", date: "2026-05-03" },
     { round: 5, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-05-24" },
-    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monte Carlo", pays: "Monaco", date: "2026-06-07" }, // "Monte Carlo" pour l'API
-    { round: 7, nom: "Grand Prix d'Espagne (Barcelone)", circuit: "Barcelona", pays: "Espagne", date: "2026-06-14" }, // "Barcelona" pour l'API
+    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monte Carlo", pays: "Monaco", date: "2026-06-07" },
+    { round: 7, nom: "Grand Prix d'Espagne (Barcelone)", circuit: "Barcelona", pays: "Espagne", date: "2026-06-14" },
     { round: 8, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-06-28" },
     { round: 9, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-05" },
     { round: 10, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-19" },
     { round: 11, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-07-26" },
     { round: 12, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-23" },
     { round: 13, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
-    { round: 14, nom: "Grand Prix d'Espagne (Madrid)", circuit: "Madrid", pays: "Espagne", date: "2026-09-13" }, // Ajouté et synchronisé !
-    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Baku", pays: "Azerbaïdjan", date: "2026-09-26" }, // "Baku" pour l'API
+    { round: 14, nom: "Grand Prix d'Espagne (Madrid)", circuit: "Madrid", pays: "Espagne", date: "2026-09-13" },
+    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Baku", pays: "Azerbaïdjan", date: "2026-09-26" },
     { round: 16, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-11" },
     { round: 17, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-25" },
-    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-11-01" }, // "Mexico City" pour l'API
-    { round: 19, nom: "Grand Prix du Brésil", circuit: "São Paulo", pays: "Brésil", date: "2026-11-08" }, // "São Paulo" pour l'API
+    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-11-01" },
+    { round: 19, nom: "Grand Prix du Brésil", circuit: "São Paulo", pays: "Brésil", date: "2026-11-08" },
     { round: 20, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-21" },
-    { round: 21, nom: "Grand Prix du Qatar", circuit: "Lusail", pays: "Qatar", date: "2026-11-29" }, // "Lusail" pour l'API
+    { round: 21, nom: "Grand Prix du Qatar", circuit: "Lusail", pays: "Qatar", date: "2026-11-29" },
     { round: 22, nom: "Grand Prix d'Abou Dhabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
 ];
 
-// Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
+// Injection dynamique des styles responsifs globaux
 function injecterStylesResponsifsGlobaux() {
     if (document.getElementById('f1-responsive-styles-globaux')) return;
     
@@ -331,8 +342,7 @@ async function chargerDonneesEsthetiquesOpenF1() {
         const drivers = await response.json();
         
         drivers.forEach(d => {
-            const nomComplet = `${d.first_name} ${d.last_name}`;
-            designPilotesF1[nomComplet] = { couleur: `#${d.team_colour || '2d3954'}` };
+            designPilotesF1[`${d.first_name} ${d.last_name}`] = { couleur: `#${d.team_colour || '2d3954'}` };
         });
     } catch (e) {
         console.error("OpenF1 hors-ligne.");
@@ -439,11 +449,7 @@ function controlerDoublonsPilotes() {
 
         Array.from(select.options).forEach(option => {
             if(option.value === "") return;
-            if(selections.includes(option.value) && option.value !== valeurActuelle) {
-                option.disabled = true;
-            } else {
-                option.disabled = false;
-            }
+            option.disabled = selections.includes(option.value) && option.value !== valeurActuelle;
         });
     }
 }
@@ -688,8 +694,6 @@ async function chargerClassementGeneral() {
                 pointsCourse = data.pointsGagnes;
             } else if (data.points !== undefined) {
                 pointsCourse = data.points;
-            } else if (data.point !== undefined) {
-                pointsCourse = data.point;
             }
 
             if (!cumulPoints[pseudo]) {
@@ -724,7 +728,7 @@ async function chargerClassementGeneral() {
         });
 
     } catch (error) {
-        console.error("Erreur lors du calcul du classement général cumulé :", error);
+        console.error("Erreur lors du calcul du classement général :", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
@@ -761,7 +765,7 @@ const retournerAuxPronos = () => {
 if(btnRetourPronos) btnRetourPronos.addEventListener('click', retournerAuxPronos);
 if(logoAccueil) logoAccueil.addEventListener('click', retournerAuxPronos);
 
-// --- FONCTIONS DE CHARGEMENT DES DONNÉES (FIRESTORE) ---
+// --- FONCTIONS DE CHARGEMENT DES DONNÉES DE PROFIL ---
 function chargerHistoriqueProfil() {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -806,9 +810,11 @@ function afficherDetailGP(data) {
     if (!detailContainer) return;
 
     const bilan = data.bilanCalcul || {};
-    const detailPilotes = bilan.detailPilotes || []; 
     
-    const courseIdString = data.course || data.gpId || "2026/12";
+    // Barème de points F1 standard pour la correspondance de position
+    const baremeF1 = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+    
+    const courseIdString = data.course || data.gpId || "2026/1";
     const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
     
     const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
@@ -822,10 +828,19 @@ function afficherDetailGP(data) {
         top10Html = `<li style="color: #616e88; font-style: italic;">Aucune grille enregistrée</li>`;
     } else {
         top10Html = listePilotesPronostiques.map((pilote, index) => {
+            let ptsPosition = 0;
+            
             if (bilan.pointsTotaux !== undefined) {
-                const pointsPosition = (detailPilotes[index] && detailPilotes[index].points !== undefined) ? detailPilotes[index].points : 0;
-                const textPoints = pointsPosition > 0 ? `+${pointsPosition} pts` : `0 pt`;
-                const colorPoints = pointsPosition > 0 ? `#4cd137` : `#ef4444`;
+                // Si la structure detailPilotes existe
+                if (bilan.detailPilotes && bilan.detailPilotes[index] !== undefined) {
+                    ptsPosition = typeof bilan.detailPilotes[index] === 'object' ? (bilan.detailPilotes[index].points || 0) : bilan.detailPilotes[index];
+                } else if (bilan.detailTop10 !== undefined && index === 0) {
+                    // Fallback sur P1 si uniquement la somme est stockée
+                    ptsPosition = baremeF1[index] || 0;
+                }
+                
+                const textPoints = ptsPosition > 0 ? `+${ptsPosition} pts` : `0 pt`;
+                const colorPoints = ptsPosition > 0 ? `#4cd137` : `#ef4444`;
 
                 return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
                     <span><strong>P${index + 1} :</strong> ${pilote}</span>
@@ -834,16 +849,17 @@ function afficherDetailGP(data) {
             } else {
                 return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
                     <span><strong>P${index + 1} :</strong> ${pilote}</span>
-                    <span style="color: #616e88; font-weight: bold;">-- pts</span>
+                    <span style="color: #616e88; font-weight: bold;">En attente du GP</span>
                 </li>`;
             }
         }).join('');
     }
 
     const ptsTotaux = bilan.pointsTotaux !== undefined ? bilan.pointsTotaux : (data.pointsGagnes || data.points || 0);
-    const ptsGrille = bilan.pointsGrille !== undefined ? bilan.pointsGrille : 0;
-    const ptsPole = bilan.pointsPole !== undefined ? bilan.pointsPole : 0;
-    const ptsEcuries = bilan.pointsEcuries !== undefined ? bilan.pointsEcuries : 0;
+    const ptsGrille = bilan.detailTop10 !== undefined ? bilan.detailTop10 : (bilan.pointsGrille || 0);
+    const ptsPole = bilan.bonusPole !== undefined ? bilan.bonusPole : (bilan.pointsPole || 0);
+    const ptsEcuries = bilan.bonusEcuries !== undefined ? bilan.bonusEcuries : (bilan.pointsEcuries || 0);
+    const estCalcule = bilan.pointsTotaux !== undefined || data.pointsGagnes !== undefined;
 
     const ecoTop1 = (data.ecuriesTop && data.ecuriesTop[0]) || data.ecurieTop1 || 'Aucune';
     const ecoTop2 = (data.ecuriesTop && data.ecuriesTop[1]) || data.ecurieTop2 || 'Aucune';
@@ -852,7 +868,7 @@ function afficherDetailGP(data) {
 
     detailContainer.innerHTML = `
         <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
-        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: #4cd137;">Calculé</strong></p>
+        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: ${estCalcule ? '#4cd137' : '#ff8000'};">${estCalcule ? 'Calculé' : 'En attente des résultats'}</strong></p>
         
         <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
             <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
