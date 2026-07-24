@@ -692,15 +692,22 @@ async function chargerPronosticsUtilisateur() {
 
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
+
     const courseId = selectCourse.value;
+    const roundNumero = courseId.includes('/') ? courseId.split('/')[1] : courseId;
+
+    // Sécurité côté script lors du clic
+    if (estGPVerrouille(roundNumero)) {
+        return alert("⛔ Les pronostics pour ce Grand Prix sont fermés !");
+    }
+
     const top10Selection = [];
-    
-    for(let i=1; i<=10; i++) {
+    for (let i = 1; i <= 10; i++) {
         const val = document.getElementById(`select-grid-p${i}`).value;
-        if(!val) return alert(`Il manque la position P${i} !`);
+        if (!val) return alert(`Il manque la position P${i} !`);
         top10Selection.push(val);
     }
-    
+
     const pronoData = {
         uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
@@ -708,16 +715,16 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         classementPilotes: top10Selection,
         poleman: selectPole.value,
         ecuriesTop: [
-            document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "", 
+            document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "",
             document.getElementById('ecurie-top-2')?.getAttribute('data-ecurie-value') || ""
         ],
         ecuriesFlop: [
-            document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "", 
+            document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "",
             document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
         ],
         dateEnregistrement: new Date()
     };
-    
+
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
     alert("🏁 Grille et Écuries enregistrées avec succès !");
     chargerClassementGeneral();
