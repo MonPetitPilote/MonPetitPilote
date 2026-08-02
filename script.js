@@ -169,18 +169,11 @@ function injecterStylesResponsifsGlobaux() {
                 box-sizing: border-box !important;
                 padding: 12px !important;
             }
-            #auth-deconnecte > div, #auth-connecte > div {
+            #auth-deconnecte, #auth-connecte {
+                display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                width: 100% !important;
                 gap: 10px !important;
-            }
-            #auth-deconnecte input, #auth-connecte input {
-                width: 100% !important;
-                max-width: 100% !important;
-                box-sizing: border-box !important;
-                font-size: 14px !important;
-                padding: 10px !important;
             }
             #auth-deconnecte button, #auth-connecte button {
                 width: 100% !important;
@@ -195,32 +188,130 @@ function injecterStylesResponsifsGlobaux() {
     document.head.appendChild(styleSheet);
 }
 
-// --- GESTION DU MOT DE PASSE OUBLIÉ ---
+// ==========================================
+// 2. GESTION DE LA MODALE DE CONNEXION / INSCRIPTION
+// ==========================================
+const modaleConnexion = document.getElementById('modale-connexion');
+
+// Traduit les codes d'erreur Firebase en messages compréhensibles
+function traduireErreurFirebase(error) {
+    switch (error.code) {
+        case 'auth/invalid-email': return "L'adresse email n'est pas valide.";
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential': return "Email ou mot de passe incorrect.";
+        case 'auth/email-already-in-use': return "Un compte existe déjà avec cet email.";
+        case 'auth/weak-password': return "Le mot de passe doit contenir au moins 6 caractères.";
+        default: return "Une erreur est survenue : " + error.message;
+    }
+}
+
+function ouvrirModaleConnexion() {
+    if (!modaleConnexion) return;
+    document.getElementById('login-erreur').innerText = "";
+    document.getElementById('inscription-erreur').innerText = "";
+    modaleConnexion.style.display = 'flex';
+}
+
+function fermerModaleConnexion() {
+    if (modaleConnexion) modaleConnexion.style.display = 'none';
+}
+
+document.getElementById('btn-ouvrir-connexion')?.addEventListener('click', ouvrirModaleConnexion);
+document.getElementById('btn-fermer-connexion')?.addEventListener('click', fermerModaleConnexion);
+window.addEventListener('click', (e) => {
+    if (e.target === modaleConnexion) fermerModaleConnexion();
+});
+
+// Bascule entre l'onglet "Connexion" et l'onglet "Inscription"
+document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('actif'));
+        document.querySelectorAll('.auth-panel').forEach(p => p.style.display = 'none');
+        tab.classList.add('actif');
+        document.getElementById(tab.dataset.panel).style.display = 'block';
+    });
+});
+
+// --- Mot de passe oublié ---
 document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
     e.preventDefault();
-    const email = document.getElementById('auth-email').value.trim();
+    const erreurZone = document.getElementById('login-erreur');
+    const email = document.getElementById('login-email').value.trim();
     if (!email) {
-        alert("⚠️ Veuillez saisir votre adresse email dans le champ 'Email' avant de cliquer sur mot de passe oublié.");
+        erreurZone.innerText = "Saisis d'abord ton email ci-dessus.";
+        return;
+    }
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            erreurZone.style.color = "#4cd137";
+            erreurZone.innerText = `📨 Email de réinitialisation envoyé à ${email} (pense à vérifier tes spams).`;
+        })
+        .catch((error) => {
+            erreurZone.style.color = "#ef4444";
+            erreurZone.innerText = traduireErreurFirebase(error);
+        });
+});
+
+// --- Connexion ---
+document.getElementById('btn-connexion')?.addEventListener('click', async () => {
+    const bouton = document.getElementById('btn-connexion');
+    const erreurZone = document.getElementById('login-erreur');
+    const email = document.getElementById('login-email').value.trim();
+    const mdp = document.getElementById('login-mdp').value;
+
+    erreurZone.style.color = "#ef4444";
+    if (!email || !mdp) {
+        erreurZone.innerText = "Merci de renseigner ton email et ton mot de passe.";
         return;
     }
 
-    auth.sendPasswordResetEmail(email)
-        .then(() => {
-            alert(`📨 Un email de réinitialisation de mot de passe a été envoyé à l'adresse : ${email}. Pensez à vérifier vos spams !`);
-        })
-        .catch((error) => {
-            console.error("Erreur de réinitialisation :", error);
-            switch (error.code) {
-                case 'auth/invalid-email':
-                    alert("❌ L'adresse email n'est pas valide.");
-                    break;
-                case 'auth/user-not-found':
-                    alert("❌ Aucun compte n'est associé à cette adresse email.");
-                    break;
-                default:
-                    alert("❌ Une erreur est survenue lors de l'envoi de l'email : " + error.message);
-            }
-        });
+    bouton.disabled = true;
+    bouton.innerText = "Connexion en cours...";
+    try {
+        await auth.signInWithEmailAndPassword(email, mdp);
+        fermerModaleConnexion();
+    } catch (error) {
+        erreurZone.innerText = traduireErreurFirebase(error);
+    } finally {
+        bouton.disabled = false;
+        bouton.innerText = "🏁 Se connecter";
+    }
+});
+
+// --- Inscription ---
+document.getElementById('btn-inscription')?.addEventListener('click', async () => {
+    const bouton = document.getElementById('btn-inscription');
+    const erreurZone = document.getElementById('inscription-erreur');
+    const pseudo = document.getElementById('inscription-pseudo').value.trim();
+    const email = document.getElementById('inscription-email').value.trim();
+    const mdp = document.getElementById('inscription-mdp').value;
+
+    erreurZone.style.color = "#ef4444";
+    if (!pseudo) {
+        erreurZone.innerText = "Le pseudo est obligatoire (c'est ce que verront tes potes).";
+        return;
+    }
+    if (!email || !mdp) {
+        erreurZone.innerText = "Merci de renseigner un email et un mot de passe.";
+        return;
+    }
+
+    bouton.disabled = true;
+    bouton.innerText = "Création en cours...";
+    try {
+        const resultat = await auth.createUserWithEmailAndPassword(email, mdp);
+        await resultat.user.updateProfile({ displayName: pseudo });
+        // Met à jour l'affichage tout de suite, sans recharger la page
+        const nomUserSpan = document.getElementById('nom-utilisateur');
+        if (nomUserSpan) nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${pseudo}</span>`;
+        fermerModaleConnexion();
+    } catch (error) {
+        erreurZone.innerText = traduireErreurFirebase(error);
+    } finally {
+        bouton.disabled = false;
+        bouton.innerText = "🏆 Créer mon compte";
+    }
 });
 
 // GESTION DU TITRE ET DESIGN DU BOUTON RÈGLEMENT
@@ -245,7 +336,7 @@ function adapterEnTeteTitreEtReglement() {
 }
 
 // ==========================================
-// 2. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
+// 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================
 document.getElementById('btn-reglement')?.addEventListener('click', () => {
     const modale = document.getElementById('modale-reglement');
@@ -303,27 +394,10 @@ auth.onAuthStateChanged(async (user) => {
         if(zoneConnecte) zoneConnecte.style.display = 'none';
     }
 });
-
-document.getElementById('btn-connexion')?.addEventListener('click', () => {
-    const email = document.getElementById('auth-email').value;
-    const mdp = document.getElementById('auth-mdp').value;
-    auth.signInWithEmailAndPassword(email, mdp).catch(err => alert(err.message));
-});
-document.getElementById('btn-inscription')?.addEventListener('click', () => {
-    const pseudo = document.getElementById('auth-pseudo').value;
-    const email = document.getElementById('auth-email').value;
-    const mdp = document.getElementById('auth-mdp').value;
-    if(!pseudo) return alert("Pseudo requis !");
-    auth.createUserWithEmailAndPassword(email, mdp).then((res) => {
-        res.user.updateProfile({ displayName: pseudo }).then(() => {
-            location.reload();
-        });
-    }).catch(err => alert(err.message));
-});
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 // ==========================================
-// 3. CHARGEMENT ET GENERATION GRILLE TV
+// 4. CHARGEMENT ET GENERATION GRILLE TV
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
     try {
@@ -423,7 +497,7 @@ function mettreAJourDesignSlot(position, nomPilote) {
 }
 
 // ==========================================
-// 4. SECURITE CONTROLE DES DOUBLONS
+// 5. SECURITE CONTROLE DES DOUBLONS
 // ==========================================
 function controlerDoublonsPilotes() {
     const selections = [];
@@ -645,7 +719,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         dateEnregistrement: new Date()
     };
     
-    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData);
+    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
     alert("🏁 Grille et Écuries enregistrées avec succès !");
     chargerClassementGeneral();
 });
