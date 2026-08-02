@@ -20,25 +20,95 @@ body {
     justify-content: flex-end;
     margin-bottom: 12px;
 }
-.auth-champs-header { 
-    display: flex; 
-    flex-direction: row; 
-    gap: 8px; 
-    align-items: center; 
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-.auth-champs-header input {
-    padding: 6px 10px; font-size: 0.85rem; width: 100%; max-width: 140px;
-    background-color: #111622; border: 1px solid #2d3954; border-radius: 6px; color: white;
-    box-sizing: border-box;
-}
 .btn-header-auth { padding: 7px 12px; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
 .btn-conn { background-color: #242f46; color: white; }
 .btn-insc { background-color: #ff8000; color: #111622; }
 .user-profile-badge { background: #111622; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid #2d3954; display: flex; align-items: center; gap: 8px; }
 .status-dot { width: 8px; height: 8px; background-color: #4cd137; border-radius: 50%; box-shadow: 0 0 8px #4cd137; }
 .btn-logout { background: transparent; color: #ff3f3f; border: 1px solid #ff3f3f; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; }
+
+/* ==========================================
+   MODALE DE CONNEXION / INSCRIPTION
+   ========================================== */
+.modal-auth {
+    max-width: 400px;
+}
+.auth-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #3b4b6b;
+}
+.auth-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #a5b1c2;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 10px 0;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+.auth-tab:hover { color: #fff; }
+.auth-tab.actif {
+    color: #ff8000;
+    border-bottom-color: #ff8000;
+}
+.auth-field { margin-bottom: 14px; }
+.auth-field label {
+    display: block;
+    font-size: 0.8rem;
+    color: #a5b1c2;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.auth-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    background-color: #111622;
+    border: 1px solid #2d3954;
+    border-radius: 6px;
+    color: white;
+}
+.auth-field input:focus {
+    outline: none;
+    border-color: #ff8000;
+}
+.auth-erreur {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin: -4px 0 14px 0;
+    min-height: 1em;
+}
+.btn-auth-principal {
+    width: 100%;
+    background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
+    color: white;
+    border: none;
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.btn-auth-principal:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+#link-recup-mdp {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    color: #a5b1c2;
+    font-size: 0.8rem;
+    text-decoration: underline;
+}
 
 /* HEADER PRINCIPAL */
 .brand-header {
@@ -238,8 +308,6 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     .brand-header { flex-direction: column; text-align: center; padding: 15px; }
     .brand-title { font-size: 1.8rem; }
     .top-member-bar { justify-content: center; }
-    .auth-champs-header { justify-content: center; flex-direction: column; width: 100%; }
-    .auth-champs-header input { max-width: 100%; }
 
     .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
     .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
