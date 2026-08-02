@@ -27,21 +27,11 @@
 <body>
 
     <div class="container">
-        <div id="bandeau-statut-container"></div>
 
         <div class="top-member-bar">
             <div id="bloc-auth-header" style="width: 100%;">
                 <div id="auth-deconnecte">
-                    <div class="auth-champs-header">
-                        <input type="text" id="auth-pseudo" placeholder="Pseudo (inscription)">
-                        <input type="email" id="auth-email" placeholder="Email">
-                        <input type="password" id="auth-mdp" placeholder="Mot de passe">
-                        <button id="btn-connexion" class="btn-header-auth btn-conn">Connexion</button>
-                        <button id="btn-inscription" class="btn-header-auth btn-insc">S'inscrire</button>
-                    </div>
-                    <div style="text-align: right; margin-top: 4px;">
-                        <a href="#" id="link-recup-mdp" style="color: #a5b1c2; font-size: 0.75rem; text-decoration: underline;">Mot de passe oublié ?</a>
-                    </div>
+                    <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">🔑 CONNEXION / INSCRIPTION</button>
                 </div>
                 <div id="auth-connecte" style="display: none; align-items: center; justify-content: flex-end; gap: 15px; flex-wrap: wrap;">
                     <button id="btn-vers-profil" class="btn-header-auth btn-conn" style="border: 1px solid #2d3954;">👤 MON PROFIL</button>
@@ -160,6 +150,48 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <div id="modale-connexion" class="modal-back" style="display: none;">
+            <div class="modal-content-inner modal-auth">
+                <span class="close-modal" id="btn-fermer-connexion">&times;</span>
+
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab actif" id="tab-connexion" data-panel="panneau-connexion">Connexion</button>
+                    <button type="button" class="auth-tab" id="tab-inscription" data-panel="panneau-inscription">Inscription</button>
+                </div>
+
+                <div id="panneau-connexion" class="auth-panel">
+                    <div class="auth-field">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="toi@exemple.com" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label for="login-mdp">Mot de passe</label>
+                        <input type="password" id="login-mdp" placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                    <div id="login-erreur" class="auth-erreur"></div>
+                    <button id="btn-connexion" class="btn-auth-principal">🏁 Se connecter</button>
+                    <a href="#" id="link-recup-mdp">Mot de passe oublié ?</a>
+                </div>
+
+                <div id="panneau-inscription" class="auth-panel" style="display: none;">
+                    <div class="auth-field">
+                        <label for="inscription-pseudo">Pseudo (affiché aux autres joueurs)</label>
+                        <input type="text" id="inscription-pseudo" placeholder="Ton pseudo entre potes" autocomplete="nickname">
+                    </div>
+                    <div class="auth-field">
+                        <label for="inscription-email">Email</label>
+                        <input type="email" id="inscription-email" placeholder="toi@exemple.com" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label for="inscription-mdp">Mot de passe</label>
+                        <input type="password" id="inscription-mdp" placeholder="6 caractères minimum" autocomplete="new-password">
+                    </div>
+                    <div id="inscription-erreur" class="auth-erreur"></div>
+                    <button id="btn-inscription" class="btn-auth-principal">🏆 Créer mon compte</button>
+                </div>
             </div>
         </div>
 
