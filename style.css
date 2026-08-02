@@ -122,6 +122,24 @@ body {
 .brand-title span { color: #e10600; }
 .brand-subtitle { font-size: 0.95rem; color: #ff8000; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
 
+.brand-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.btn-brand-action {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+.btn-brand-orange { background: #ff8000; color: #111622; }
+.btn-brand-cyan { background: #00d2d3; color: #111622; }
+
 /* Structure Page (PC / Tablette par défaut) */
 .main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
 
@@ -307,6 +325,8 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     .container { padding: 10px; }
     .brand-header { flex-direction: column; text-align: center; padding: 15px; }
     .brand-title { font-size: 1.8rem; }
+    .brand-actions { justify-content: center; width: 100%; }
+    .btn-brand-action { flex: 1; min-width: 140px; }
     .top-member-bar { justify-content: center; }
 
     .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
