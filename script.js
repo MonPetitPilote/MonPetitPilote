@@ -358,6 +358,13 @@ function trouverPiloteLocalParNom(nomOfficiel) {
     });
 }
 
+// Compare deux noms (pilote ou écurie) sans tenir compte des accents/casse
+function nomsCorrespondentLocal(nomA, nomB) {
+    const a = normaliserNom(nomA);
+    const b = normaliserNom(nomB);
+    return a.includes(b) || b.includes(a);
+}
+
 function initialiserSelectResultats() {
     if (!selectResultats || selectResultats.options.length > 0) return; // déjà rempli
     calendrier2026.forEach(gp => {
@@ -999,42 +1006,76 @@ function chargerHistoriqueProfil() {
     });
 }
 
-function afficherDetailGP(data) {
+async function afficherDetailGP(data) {
     const detailContainer = document.getElementById('profil-detail-gp');
     if (!detailContainer) return;
 
+    detailContainer.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement du comparatif...</p>`;
+
     const bilan = data.bilanCalcul || {};
-    const detailPilotes = bilan.detailPilotes || []; 
-    
+    const detailPilotes = bilan.detailPilotes || [];
+    const dejaCalcule = bilan.pointsTotaux !== undefined;
+
     const courseIdString = data.course || "2026/12";
     const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
-    
+
     const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
     const nomCompletGP = gpInfo ? `${gpInfo.nom} (${gpInfo.circuit})` : `ROUND ${roundNumero}`;
 
     const listePilotesPronostiques = data.classementPilotes || [];
 
+    // Résultat officiel du GP (pour le comparatif côte à côte)
+    let officialTop10 = [];
+    let officialPoleman = null;
+    let ecurieGagnante = null;
+    try {
+        const histoDoc = await db.collection("historique_courses").doc(`2026_${roundNumero}`).get();
+        if (histoDoc.exists) {
+            const histo = histoDoc.data();
+            officialTop10 = histo.top10 || [];
+            officialPoleman = histo.poleman || null;
+            if (officialTop10[0]) {
+                const local = trouverPiloteLocalParNom(officialTop10[0]);
+                ecurieGagnante = local ? local.ecurie : null;
+            }
+        }
+    } catch (error) {
+        console.error("Erreur chargement résultat officiel pour comparatif :", error);
+    }
+
+    // --- Comparatif Top 10 : ton choix vs le résultat réel, position par position ---
     let top10Html = "";
-    
     if (listePilotesPronostiques.length === 0) {
         top10Html = `<li style="color: #616e88; font-style: italic;">Aucune grille enregistrée</li>`;
     } else {
         top10Html = listePilotesPronostiques.map((pilote, index) => {
-            if (bilan.pointsTotaux !== undefined) {
-                const pointsPosition = (detailPilotes[index] && detailPilotes[index].points !== undefined) ? detailPilotes[index].points : 0;
-                const textPoints = pointsPosition > 0 ? `+${pointsPosition} pts` : `0 pt`;
-                const colorPoints = pointsPosition > 0 ? `#4cd137` : `#ef4444`;
+            const resultatReel = officialTop10[index] || "—";
 
-                return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
-                    <span><strong>P${index + 1} :</strong> ${pilote}</span>
-                    <span style="color: ${colorPoints}; font-weight: bold;">${textPoints}</span>
-                </li>`;
-            } else {
+            if (!dejaCalcule) {
                 return `<li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #2d3954; font-size: 0.9rem;">
                     <span><strong>P${index + 1} :</strong> ${pilote}</span>
                     <span style="color: #616e88; font-weight: bold;">-- pts</span>
                 </li>`;
             }
+
+            const infoPilote = detailPilotes[index] || { points: 0, statut: "hors_top10" };
+            let icone = "❌";
+            let precision = "";
+            if (infoPilote.statut === "position_exacte") {
+                icone = "✅";
+            } else if (infoPilote.statut === "dans_le_top10") {
+                icone = "➕";
+                const positionReelle = officialTop10.findIndex(p => nomsCorrespondentLocal(p, pilote));
+                if (positionReelle !== -1) precision = ` (fini P${positionReelle + 1})`;
+            }
+            const colorPoints = infoPilote.points > 0 ? `#4cd137` : `#ef4444`;
+
+            return `<li style="display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px dashed #2d3954; font-size: 0.85rem;">
+                <span style="min-width: 26px;">${icone}</span>
+                <span style="flex: 1;"><strong>P${index + 1} :</strong> ${pilote}${precision ? `<span style="color:#616e88;">${precision}</span>` : ''}</span>
+                <span style="flex: 1; text-align: right; color: #616e88;">Réel : ${resultatReel}</span>
+                <span style="min-width: 55px; text-align: right; color: ${colorPoints}; font-weight: bold;">+${infoPilote.points} pts</span>
+            </li>`;
         }).join('');
     }
 
@@ -1048,10 +1089,34 @@ function afficherDetailGP(data) {
     const ecoFlop1 = (data.ecuriesFlop && data.ecuriesFlop[0]) || 'Aucune';
     const ecoFlop2 = (data.ecuriesFlop && data.ecuriesFlop[1]) || 'Aucune';
 
+    // --- Comparatif Pole Position ---
+    let ligneComparatifPole = `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>`;
+    if (dejaCalcule) {
+        const poleCorrecte = data.poleman && officialPoleman && nomsCorrespondentLocal(officialPoleman, data.poleman);
+        ligneComparatifPole = `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+            <span>${poleCorrecte ? '✅' : '❌'} Poleman : <strong>${data.poleman || 'Aucun'}</strong></span>
+            <span style="color: #616e88;">Réel : ${officialPoleman || '—'}</span>
+        </div>`;
+    }
+
+    // --- Comparatif Écuries Top/Flop ---
+    function ligneEcurie(label, nomEcurie, estUnTop) {
+        if (!dejaCalcule || !nomEcurie || nomEcurie === 'Aucune' || !ecurieGagnante) {
+            return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>${nomEcurie}</strong></div>`;
+        }
+        const correspond = nomsCorrespondentLocal(ecurieGagnante, nomEcurie);
+        // Pour un Top : correspondre à l'écurie gagnante est une bonne pioche.
+        // Pour un Flop : correspondre à l'écurie gagnante est une mauvaise pioche (pénalité).
+        const bonPari = estUnTop ? correspond : !correspond;
+        return `<div style="display: flex; justify-content: space-between; padding: 4px 0;">
+            <span>${bonPari ? '✅' : '❌'} ${label} : <strong>${nomEcurie}</strong></span>
+        </div>`;
+    }
+
     detailContainer.innerHTML = `
         <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
-        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: #4cd137;">Calculé</strong></p>
-        
+        <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: ${dejaCalcule ? '#4cd137' : '#ff8000'};">${dejaCalcule ? 'Calculé' : 'En attente du calcul'}</strong></p>
+
         <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
             <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
             <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${ptsTotaux} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
@@ -1063,19 +1128,19 @@ function afficherDetailGP(data) {
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${ptsPole} pts</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${ptsEcuries} pts</strong></div>
         </div>
-        
+
         <hr style="border: 0; border-top: 1px solid #2d3954; margin: 15px 0;">
 
-        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Vos choix enregistrés</h5>
+        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Vos choix vs le résultat réel</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 1 :</span> <strong>${ecoTop1}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>🚀 Écurie Top 2 :</span> <strong>${ecoTop2}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 1 :</span> <strong>${ecoFlop1}</strong></div>
-            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚠️ Écurie Flop 2 :</span> <strong>${ecoFlop2}</strong></div>
+            ${ligneComparatifPole}
+            ${ligneEcurie('🚀 Écurie Top 1', ecoTop1, true)}
+            ${ligneEcurie('🚀 Écurie Top 2', ecoTop2, true)}
+            ${ligneEcurie('⚠️ Écurie Flop 1', ecoFlop1, false)}
+            ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, false)}
         </div>
 
-        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 & Points</h5>
+        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 vs le résultat réel</h5>
         <ul style="margin: 0; padding: 0; list-style: none;">
             ${top10Html}
         </ul>
