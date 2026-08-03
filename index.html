@@ -65,6 +65,14 @@
                     <button id="btn-retour-pronos" style="background: #242f46; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">← RETOUR AUX PRONOS</button>
                 </div>
 
+                <div id="profil-badges" style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; margin-bottom: 5px; color: #00d2d3;">🎖️ Vos badges de la saison</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 0; margin-bottom: 15px;">Un badge s'obtient en étant, à date, le joueur (ou l'un des joueurs) en tête sur ce critère. Il peut donc changer de mains au fil de la saison.</p>
+                    <div id="profil-badges-liste" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                        <p style="color: #aaa; font-style: italic;">Chargement...</p>
+                    </div>
+                </div>
+
                 <div class="main-layout" style="grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
                         <h3 style="margin-top: 0; color: #00d2d3;">📊 Analyse du GP sélectionné</h3>
@@ -128,7 +136,7 @@
                 
                 <div class="bloc-sub-droite">
                     <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
-                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour consulter ses scores précédents.</p>
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour voir son pronostic sur le GP sélectionné ci-contre (visible une fois le week-end terminé).</p>
                     <div class="tableau-scores">
                         <div class="entete-scores">
                             <div>Pos</div>
@@ -219,6 +227,13 @@
             </div>
         </div>
 
+        <div id="modale-prono-ami" class="modal-back" style="display: none;">
+            <div class="modal-content-inner" style="max-width: 520px; max-height: 85vh; overflow-y: auto;">
+                <span class="close-modal" id="btn-fermer-prono-ami">&times;</span>
+                <div id="zone-prono-ami"></div>
+            </div>
+        </div>
+
         <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
             <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4; box-sizing: border-box;">
                 
@@ -238,7 +253,7 @@
                                 P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
                             </span>
                         </li>
-                        <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+1 pt)</strong>.</li>
+                        <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+2 pts)</strong>.</li>
                     </ul>
                 </div>
 
@@ -249,16 +264,34 @@
 
                 <div style="margin-bottom: 15px;">
                     <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
-                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
+                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus/malus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
                     <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
                         <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
-                        <li>Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
+                        <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
+                        <li>Si l'une de vos écuries en <strong>Flop</strong> gagne finalement la course : <strong style="color: #ef4444;">-5 points</strong> (mauvaise pioche).</li>
                     </ul>
                 </div>
 
-                <div style="margin-bottom: 5px;">
+                <div style="margin-bottom: 15px;">
                     <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
                     <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">5. Les Badges de la Saison 🎖️</h4>
+                    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">En plus du classement par points, 5 badges récompensent des exploits précis sur l'ensemble de la saison. Ils s'affichent à côté du pseudo dans le classement et sont visibles dans « Mon Profil ». Un badge peut changer de mains à tout moment si un autre joueur prend l'avantage sur ce critère :</p>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
+                        <li style="margin-bottom: 4px;">🎯 <strong>Roi de la Pole</strong> : le plus de pronostics de Pole Position corrects.</li>
+                        <li style="margin-bottom: 4px;">🏆 <strong>Chasseur de Vainqueur</strong> : le plus de fois où le vainqueur du GP (P1) a été deviné.</li>
+                        <li style="margin-bottom: 4px;">🥇 <strong>Podium Parfait</strong> : le plus de fois où le podium complet (P1, P2, P3) a été deviné dans l'ordre exact.</li>
+                        <li style="margin-bottom: 4px;">🃏 <strong>Coup de Folie</strong> : a misé, avec succès, le plus grand nombre de fois sur un pilote d'écurie outsider placé dans son Top 10 (ex : un pilote d'une petite écurie qui crée la surprise).</li>
+                        <li>🥶 <strong>Boulet de la Saison</strong> : cumule le plus grand nombre de pronostics ratés (pilotes finalement hors du Top 10 réel). Un badge... qu'on préfère éviter !</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">6. Fair-Play : les pronos des autres joueurs</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">Vous pouvez consulter le pronostic de n'importe quel ami en cliquant sur son nom dans le classement général. Par équité, ceci n'est possible <strong>qu'une fois le week-end du Grand Prix sélectionné terminé</strong> — impossible de copier un prono avant la clôture !</p>
                 </div>
 
             </div>
