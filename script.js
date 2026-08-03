@@ -492,20 +492,20 @@ auth.onAuthStateChanged(async (user) => {
             if (nomUserSpan) {
                 nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>`;
             }
-            
-            if (selectCourse) {
-                const courseId = selectCourse.value;
-                const doc = await db.collection("pronostics").doc(`${user.uid}_${courseId.replace('/', '_')}`).get();
-                if (doc.exists && nomUserSpan) {
-                    const data = doc.data();
-                    const pts = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
-                    nomUserSpan.innerHTML = `
-                        <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
-                        <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${pts} pts</span>
-                    `;
-                }
+
+            const stats = derniereStatsSaison || await calculerStatistiquesEtClassement();
+            derniereStatsSaison = stats;
+            const monJoueur = stats.joueurs.find(j => j.uid === user.uid);
+            const ptsSaison = monJoueur ? monJoueur.points : 0;
+
+            if (nomUserSpan) {
+                nomUserSpan.innerHTML = `
+                    <span style="font-weight: bold; color: #fff;">${user.displayName || user.email}</span>
+                    <span style="color: #ff8000; font-weight: 800; margin-left: 10px; background: rgba(255,128,0,0.15); padding: 2px 8px; border-radius: 20px; font-size: 13px;">🏆 ${ptsSaison} pts</span>
+                `;
             }
         } catch (error) {
+            console.error("Erreur chargement du total de points :", error);
             if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
         }
 
@@ -960,7 +960,13 @@ let derniereStatsSaison = null;
 // - le classement cumulé (points par joueur)
 // - les compteurs qui déterminent chaque badge
 async function calculerStatistiquesEtClassement() {
-    const snapshot = await db.collection("pronostics").get();
+    // Filet de sécurité : si Firestore ne répond pas (bloqué par une extension du
+    // navigateur, connexion coupée...), on abandonne après 10s au lieu de rester
+    // bloqué indéfiniment sur "Chargement...".
+    const snapshot = await Promise.race([
+        db.collection("pronostics").get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Délai dépassé : impossible de contacter la base de données (vérifiez votre connexion ou désactivez un éventuel bloqueur de publicités).")), 10000))
+    ]);
     const parJoueur = {}; // uid -> statistiques du joueur
 
     snapshot.forEach(doc => {
@@ -1115,11 +1121,56 @@ window.addEventListener('click', (e) => {
 });
 
 // Affiche les badges de la saison obtenus (ou non) par le joueur connecté, dans "Mon Profil"
+// Associe chaque badge à la propriété de statistique qu'il utilise
+const BADGES_STAT_KEY = {
+    pole: 'nbPoleCorrecte',
+    victoire: 'nbVictoireCorrecte',
+    podium: 'nbPodiumExact',
+    loupe: 'nbLoupes',
+    folie: 'nbCoupDeFolie'
+};
+
+// Affiche, pour chaque badge, le top 3 des joueurs sur ce critère
+// (pour que tout le monde voie qui est devant qui, et grâce à quoi).
+function afficherClassementBadges(stats) {
+    const zone = document.getElementById('profil-classement-badges');
+    if (!zone) return;
+
+    zone.innerHTML = Object.keys(BADGES_INFO).map(cle => {
+        const info = BADGES_INFO[cle];
+        const statKey = BADGES_STAT_KEY[cle];
+
+        const top3 = [...stats.joueurs]
+            .filter(j => j[statKey] > 0)
+            .sort((a, b) => b[statKey] - a[statKey])
+            .slice(0, 3);
+
+        const ligneJoueurs = top3.length === 0
+            ? `<p style="color:#616e88; font-size:0.78rem; font-style:italic; margin:4px 0 0 0;">Personne pour l'instant.</p>`
+            : top3.map((j, idx) => {
+                const estMoi = utilisateurActuel && j.uid === utilisateurActuel.uid;
+                return `<div style="display:flex; justify-content:space-between; font-size:0.82rem; padding:3px 0; ${estMoi ? 'color:#ff8000; font-weight:bold;' : 'color:#e2e8f0;'}">
+                    <span>${idx + 1}. ${j.pseudo}${estMoi ? ' (vous)' : ''}</span>
+                    <span>${j[statKey]}</span>
+                </div>`;
+            }).join('');
+
+        return `
+            <div style="background:rgba(255,255,255,0.02); border:1px solid #2d3954; border-radius:8px; padding:12px 14px;">
+                <div style="font-weight:bold; color:#00d2d3; font-size:0.85rem; margin-bottom:6px;">${info.icone} ${info.nom}</div>
+                ${ligneJoueurs}
+            </div>
+        `;
+    }).join('');
+}
+
 async function afficherBadgesProfil() {
     const zone = document.getElementById('profil-badges-liste');
+    const zoneClassement = document.getElementById('profil-classement-badges');
     if (!zone || !utilisateurActuel) return;
 
     zone.innerHTML = `<p style="color:#aaa; font-style:italic;">Chargement...</p>`;
+    if (zoneClassement) zoneClassement.innerHTML = `<p style="color:#aaa; font-style:italic;">Chargement...</p>`;
 
     try {
         const stats = derniereStatsSaison || await calculerStatistiquesEtClassement();
@@ -1145,9 +1196,12 @@ async function afficherBadgesProfil() {
                 </div>
             `;
         }).join('');
+
+        afficherClassementBadges(stats);
     } catch (error) {
         console.error("Erreur chargement badges profil :", error);
-        zone.innerHTML = `<p style="color:#ef4444;">Erreur de chargement des badges.</p>`;
+        zone.innerHTML = `<p style="color:#ef4444;">${error.message || "Erreur de chargement des badges."}</p>`;
+        if (zoneClassement) zoneClassement.innerHTML = `<p style="color:#ef4444;">Erreur de chargement.</p>`;
     }
 }
 
