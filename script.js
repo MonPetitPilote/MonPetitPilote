@@ -95,6 +95,19 @@ const pilotesData = [
 ];
 
 const ecuriesSaison = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
+
+// Écuries considérées comme "outsiders" pour le badge Coup de Folie
+// (à ajuster en cours de saison selon les vraies performances des écuries).
+const ECURIES_OUTSIDERS = ["Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
+
+// Description des badges de la saison (icône + nom + explication affichée en infobulle et dans le règlement)
+const BADGES_INFO = {
+    pole: { icone: "🎯", nom: "Roi de la Pole", description: "A trouvé le plus de fois le bon pronostic de Pole Position sur la saison." },
+    victoire: { icone: "🏆", nom: "Chasseur de Vainqueur", description: "A trouvé le plus de fois le bon vainqueur du Grand Prix (P1 exact)." },
+    podium: { icone: "🥇", nom: "Podium Parfait", description: "A trouvé le podium exact (P1, P2 et P3) le plus de fois sur la saison." },
+    loupe: { icone: "🥶", nom: "Boulet de la Saison", description: "Cumule le plus grand nombre de pronostics ratés (pilotes hors du top 10 réel)." },
+    folie: { icone: "🃏", nom: "Coup de Folie", description: "A misé le plus souvent, avec succès, sur un pilote d'écurie outsider dans son top 10." }
+};
 let utilisateurActuel = null;
 let designPilotesF1 = {}; 
 
@@ -940,6 +953,82 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
 });
 
 // CHARGEMENT DU CLASSEMENT GENERAL TOTAL (TOP 5 DE LA SAISON)
+// Cache de la dernière analyse de saison (classement + badges), réutilisé par la page profil
+let derniereStatsSaison = null;
+
+// Parcourt tous les pronostics de la saison une seule fois pour calculer :
+// - le classement cumulé (points par joueur)
+// - les compteurs qui déterminent chaque badge
+async function calculerStatistiquesEtClassement() {
+    const snapshot = await db.collection("pronostics").get();
+    const parJoueur = {}; // uid -> statistiques du joueur
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const uid = data.uidJoueur;
+        if (!uid) return;
+
+        if (!parJoueur[uid]) {
+            parJoueur[uid] = {
+                uid, pseudo: data.pseudo || 'Pilote Anonyme',
+                points: 0, nbPoleCorrecte: 0, nbVictoireCorrecte: 0,
+                nbPodiumExact: 0, nbLoupes: 0, nbCoupDeFolie: 0
+            };
+        }
+        const stats = parJoueur[uid];
+        stats.pseudo = data.pseudo || stats.pseudo; // toujours le pseudo le plus récent
+
+        const bilan = data.bilanCalcul;
+        if (!bilan || bilan.pointsTotaux === undefined) return; // GP pas encore calculé
+
+        stats.points += Number(bilan.pointsTotaux) || 0;
+        if (bilan.pointsPole > 0) stats.nbPoleCorrecte++;
+
+        const detail = bilan.detailPilotes || [];
+        if (detail[0] && detail[0].statut === "position_exacte") stats.nbVictoireCorrecte++;
+        if (detail[0]?.statut === "position_exacte" && detail[1]?.statut === "position_exacte" && detail[2]?.statut === "position_exacte") {
+            stats.nbPodiumExact++;
+        }
+        detail.forEach(d => {
+            if (d.statut === "hors_top10") {
+                stats.nbLoupes++;
+            } else {
+                const local = trouverPiloteLocalParNom(d.pilote);
+                if (local && ECURIES_OUTSIDERS.includes(local.ecurie)) stats.nbCoupDeFolie++;
+            }
+        });
+    });
+
+    const joueurs = Object.values(parJoueur);
+    joueurs.sort((a, b) => b.points - a.points);
+
+    // Le(s) détenteur(s) de chaque badge : uniquement si le compteur maximum est > 0
+    function leaders(cle) {
+        const max = Math.max(0, ...joueurs.map(j => j[cle]));
+        if (max === 0) return [];
+        return joueurs.filter(j => j[cle] === max).map(j => j.uid);
+    }
+
+    const badges = {
+        pole: leaders('nbPoleCorrecte'),
+        victoire: leaders('nbVictoireCorrecte'),
+        podium: leaders('nbPodiumExact'),
+        loupe: leaders('nbLoupes'),
+        folie: leaders('nbCoupDeFolie')
+    };
+
+    return { joueurs, badges };
+}
+
+// Construit les icônes de badges à afficher à côté du nom d'un joueur
+function badgesHtmlPourJoueur(uid, badges) {
+    return Object.keys(BADGES_INFO).map(cle => {
+        if (!badges[cle].includes(uid)) return '';
+        const info = BADGES_INFO[cle];
+        return `<span title="${info.nom} — ${info.description}" style="margin-left:4px; cursor:help;">${info.icone}</span>`;
+    }).join('');
+}
+
 async function chargerClassementGeneral() {
     const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
     if(!liste) return;
@@ -947,49 +1036,28 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
     
     try {
-        const snapshot = await db.collection("pronostics").get();
+        const { joueurs, badges } = await calculerStatistiquesEtClassement();
+        derniereStatsSaison = { joueurs, badges };
+
         liste.innerHTML = "";
-        
-        if (snapshot.empty) {
+
+        if (joueurs.length === 0) {
             liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
             return;
         }
 
-        let cumulPoints = {};
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const pseudo = data.pseudo || 'Pilote Anonyme';
-            
-            const pointsCourse = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
-
-            if (!cumulPoints[pseudo]) {
-                cumulPoints[pseudo] = 0;
-            }
-            cumulPoints[pseudo] += Number(pointsCourse) || 0;
-        });
-
-        let joueurs = Object.keys(cumulPoints).map(pseudo => {
-            return { pseudo: pseudo, points: cumulPoints[pseudo] };
-        });
-
-        joueurs.sort((a, b) => b.points - a.points);
         let top5Joueurs = joueurs.slice(0, 5);
-
-        if (top5Joueurs.length === 0) {
-            liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun point à afficher.</div>";
-            return;
-        }
 
         let pos = 1;
         top5Joueurs.forEach(u => {
             const div = document.createElement('div');
-            div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff;';
+            div.style = 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff; cursor:pointer;';
             div.innerHTML = `
                 <div><strong style="color:${pos === 1 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo}</div>
+                <div>${u.pseudo}${badgesHtmlPourJoueur(u.uid, badges)}</div>
                 <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
             `;
+            div.addEventListener('click', () => voirPronoJoueur(u.uid, u.pseudo));
             liste.appendChild(div); 
             pos++;
         });
@@ -997,6 +1065,89 @@ async function chargerClassementGeneral() {
     } catch (error) {
         console.error("Erreur lors du calcul du classement général cumulé :", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
+    }
+}
+
+// Affiche, dans une modale, le pronostic d'un autre joueur pour le GP actuellement
+// sélectionné — visible uniquement une fois le week-end verrouillé (fair-play).
+async function voirPronoJoueur(uid, pseudo) {
+    const modale = document.getElementById('modale-prono-ami');
+    const zone = document.getElementById('zone-prono-ami');
+    if (!modale || !zone || !selectCourse) return;
+
+    modale.style.display = 'flex';
+    const courseId = selectCourse.value;
+    const round = parseInt((courseId || "").split('/')[1]);
+    const gpInfo = calendrier2026.find(g => g.round === round);
+    const nomGP = gpInfo ? gpInfo.nom : courseId;
+
+    if (!courseEstVerrouillee(courseId)) {
+        zone.innerHTML = `
+            <h4 style="color:#ff8000; margin-top:0;">👤 ${pseudo}</h4>
+            <p style="color:#ef4444; font-weight:bold;">🔒 Les pronostics des autres joueurs restent secrets tant que le week-end "${nomGP}" n'a pas commencé, pour préserver l'équité du jeu.</p>
+        `;
+        return;
+    }
+
+    zone.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement...</p>`;
+
+    try {
+        const doc = await db.collection("pronostics").doc(`${uid}_${courseId.replace('/', '_')}`).get();
+        if (!doc.exists) {
+            zone.innerHTML = `<h4 style="color:#ff8000; margin-top:0;">👤 ${pseudo}</h4><p style="color:#aaa; font-style:italic;">Ce joueur n'a soumis aucun pronostic pour ce Grand Prix.</p>`;
+            return;
+        }
+        const comparatifHtml = await construireComparatifHtml(doc.data());
+        zone.innerHTML = `<h4 style="color:#ff8000; margin-top:0;">👤 ${pseudo}</h4>` + comparatifHtml;
+    } catch (error) {
+        console.error("Erreur chargement prono ami :", error);
+        zone.innerHTML = `<p style="color:#ef4444;">Erreur lors du chargement du pronostic.</p>`;
+    }
+}
+
+document.getElementById('btn-fermer-prono-ami')?.addEventListener('click', () => {
+    const modale = document.getElementById('modale-prono-ami');
+    if (modale) modale.style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+    const modale = document.getElementById('modale-prono-ami');
+    if (e.target === modale) modale.style.display = 'none';
+});
+
+// Affiche les badges de la saison obtenus (ou non) par le joueur connecté, dans "Mon Profil"
+async function afficherBadgesProfil() {
+    const zone = document.getElementById('profil-badges-liste');
+    if (!zone || !utilisateurActuel) return;
+
+    zone.innerHTML = `<p style="color:#aaa; font-style:italic;">Chargement...</p>`;
+
+    try {
+        const stats = derniereStatsSaison || await calculerStatistiquesEtClassement();
+        derniereStatsSaison = stats;
+        const monJoueur = stats.joueurs.find(j => j.uid === utilisateurActuel.uid);
+
+        const compteurs = {
+            pole: monJoueur?.nbPoleCorrecte || 0,
+            victoire: monJoueur?.nbVictoireCorrecte || 0,
+            podium: monJoueur?.nbPodiumExact || 0,
+            loupe: monJoueur?.nbLoupes || 0,
+            folie: monJoueur?.nbCoupDeFolie || 0
+        };
+
+        zone.innerHTML = Object.keys(BADGES_INFO).map(cle => {
+            const info = BADGES_INFO[cle];
+            const possede = monJoueur && stats.badges[cle].includes(monJoueur.uid);
+            return `
+                <div title="${info.description}" style="text-align:center; background:${possede ? 'rgba(255,128,0,0.12)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${possede ? '#ff8000' : '#2d3954'}; border-radius:8px; padding:12px 14px; min-width:110px; opacity:${possede ? '1' : '0.5'};">
+                    <div style="font-size:1.8rem;">${info.icone}</div>
+                    <div style="font-size:0.72rem; font-weight:bold; text-transform:uppercase; margin-top:4px; color:${possede ? '#ff8000' : '#a0aec0'};">${info.nom}</div>
+                    <div style="font-size:0.7rem; color:#616e88; margin-top:4px;">${compteurs[cle]}</div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error("Erreur chargement badges profil :", error);
+        zone.innerHTML = `<p style="color:#ef4444;">Erreur de chargement des badges.</p>`;
     }
 }
 
@@ -1021,6 +1172,7 @@ if(btnVersProfil) {
         sectionPronos.style.display = 'none';
         sectionProfil.style.display = 'block';
         chargerHistoriqueProfil();
+        afficherBadgesProfil();
     });
 }
 
@@ -1073,9 +1225,14 @@ function chargerHistoriqueProfil() {
 async function afficherDetailGP(data) {
     const detailContainer = document.getElementById('profil-detail-gp');
     if (!detailContainer) return;
-
     detailContainer.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement du comparatif...</p>`;
+    detailContainer.innerHTML = await construireComparatifHtml(data);
+}
 
+// Construit le HTML du comparatif "prono vs résultat réel" pour un pronostic donné.
+// Réutilisé par la page "Mon Profil" (son propre prono) et par la modale
+// "voir le prono d'un ami" (prono d'un autre joueur).
+async function construireComparatifHtml(data) {
     const bilan = data.bilanCalcul || {};
     const detailPilotes = bilan.detailPilotes || [];
     const dejaCalcule = bilan.pointsTotaux !== undefined;
@@ -1177,7 +1334,7 @@ async function afficherDetailGP(data) {
         </div>`;
     }
 
-    detailContainer.innerHTML = `
+    return `
         <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
         <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: ${dejaCalcule ? '#4cd137' : '#ff8000'};">${dejaCalcule ? 'Calculé' : 'En attente du calcul'}</strong></p>
 
@@ -1195,7 +1352,7 @@ async function afficherDetailGP(data) {
 
         <hr style="border: 0; border-top: 1px solid #2d3954; margin: 15px 0;">
 
-        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Vos choix vs le résultat réel</h5>
+        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Choix vs le résultat réel</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
             ${ligneComparatifPole}
             ${ligneEcurie('🚀 Écurie Top 1', ecoTop1, true)}
@@ -1204,7 +1361,7 @@ async function afficherDetailGP(data) {
             ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, false)}
         </div>
 
-        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Votre Grille Top 10 vs le résultat réel</h5>
+        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Grille Top 10 vs le résultat réel</h5>
         <ul style="margin: 0; padding: 0; list-style: none;">
             ${top10Html}
         </ul>
