@@ -13,6 +13,21 @@ try {
 const db = getFirestore();
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Compare deux noms sans tenir compte des accents ni de la casse
+// (ex : "Nico Hülkenberg" doit correspondre à "Nico Hulkenberg" renvoyé par l'API)
+function normaliserNom(texte) {
+    return (texte || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+function nomsCorrespondent(nomA, nomB) {
+    const a = normaliserNom(nomA);
+    const b = normaliserNom(nomB);
+    return a.includes(b) || b.includes(a);
+}
+
+
 // 🗓️ CALENDRIER ALIGNÉ AVEC OPENF1 (Sans les GP annulés)
 const calendrier2026 = {
     "Melbourne": 1,
@@ -211,10 +226,7 @@ async function demarrer() {
                             const detailPilotes = [];
 
                             grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
-                                const indexReel = top10OfficielNoms.findIndex(pReel =>
-                                    pReel.toLowerCase().includes(piloteChoisi.toLowerCase()) ||
-                                    piloteChoisi.toLowerCase().includes(pReel.toLowerCase())
-                                );
+                                const indexReel = top10OfficielNoms.findIndex(pReel => nomsCorrespondent(pReel, piloteChoisi));
 
                                 let pointsPosition = 0;
                                 let statut = "hors_top10";
@@ -233,12 +245,12 @@ async function demarrer() {
                                 detailPilotes.push({ pilote: piloteChoisi, points: pointsPosition, statut });
                             });
 
-                            if (polemanJoueur && polemanOfficiel !== "Inconnu" && (polemanOfficiel.toLowerCase().includes(polemanJoueur.toLowerCase()) || polemanJoueur.toLowerCase().includes(polemanOfficiel.toLowerCase()))) {
+                            if (polemanJoueur && polemanOfficiel !== "Inconnu" && nomsCorrespondent(polemanOfficiel, polemanJoueur)) {
                                 bonusPole = 5;
                             }
 
                             if (ecurieGagnanteRelle) {
-                                const checkEcurie = (ecJoueur, ecReelle) => ecReelle.toLowerCase().includes(ecJoueur.toLowerCase()) || ecJoueur.toLowerCase().includes(ecReelle.toLowerCase());
+                                const checkEcurie = (ecJoueur, ecReelle) => nomsCorrespondent(ecReelle, ecJoueur);
                                 if (ecuriesTopJoueur[0] && checkEcurie(ecuriesTopJoueur[0], ecurieGagnanteRelle)) pointsDesEcuries += 5;
                                 if (ecuriesTopJoueur[1] && checkEcurie(ecuriesTopJoueur[1], ecurieGagnanteRelle)) pointsDesEcuries += 2;
                                 if (ecuriesFlopJoueur.some(ef => checkEcurie(ef, ecurieGagnanteRelle))) pointsDesEcuries -= 5;
