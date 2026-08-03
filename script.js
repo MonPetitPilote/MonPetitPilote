@@ -339,13 +339,23 @@ window.addEventListener('click', (e) => {
 // ==========================================
 const selectResultats = document.getElementById('select-resultats-course');
 
+// Compare deux noms sans tenir compte des accents ni de la casse
+// (ex : "Nico Hülkenberg" doit correspondre à "Nico Hulkenberg" renvoyé par l'API/le cron)
+function normaliserNom(texte) {
+    return (texte || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
+
 // Retrouve le pilote local (couleur, écurie) correspondant à un nom
 // officiel OpenF1 — même logique de correspondance que dans cron-calcul.js
 function trouverPiloteLocalParNom(nomOfficiel) {
-    return pilotesData.find(p =>
-        p.nom.toLowerCase().includes(nomOfficiel.toLowerCase()) ||
-        nomOfficiel.toLowerCase().includes(p.nom.toLowerCase())
-    );
+    const cible = normaliserNom(nomOfficiel);
+    return pilotesData.find(p => {
+        const local = normaliserNom(p.nom);
+        return local.includes(cible) || cible.includes(local);
+    });
 }
 
 function initialiserSelectResultats() {
@@ -466,7 +476,7 @@ auth.onAuthStateChanged(async (user) => {
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 // ==========================================
-// 4. CHARGEMENT ET GENERATION GRILLE TV
+// 5. CHARGEMENT ET GENERATION GRILLE TV
 // ==========================================
 async function chargerDonneesEsthetiquesOpenF1() {
     try {
@@ -524,6 +534,8 @@ function creerLaGrilleDeDepartTV() {
             controlerDoublonsPilotes();
         });
     }
+
+    verifierVerrouillageCourse();
 }
 
 function mettreAJourDesignSlot(position, nomPilote) {
@@ -566,7 +578,7 @@ function mettreAJourDesignSlot(position, nomPilote) {
 }
 
 // ==========================================
-// 5. SECURITE CONTROLE DES DOUBLONS
+// 6. SECURITE CONTROLE DES DOUBLONS
 // ==========================================
 function controlerDoublonsPilotes() {
     const selections = [];
@@ -589,6 +601,52 @@ function controlerDoublonsPilotes() {
             }
         });
     }
+}
+
+// Un Grand Prix est considéré "clôturé" dès que sa date est passée :
+// on ne peut plus pronostiquer ni modifier son prono pour ce week-end.
+function courseEstVerrouillee(courseIdString) {
+    const round = parseInt((courseIdString || "").split('/')[1]);
+    const gp = calendrier2026.find(g => g.round === round);
+    if (!gp) return false;
+    return new Date(gp.date) <= new Date();
+}
+
+function appliquerVerrouillage(verrouille) {
+    const banniere = document.getElementById('banniere-verrouillage');
+    if (banniere) banniere.style.display = verrouille ? 'flex' : 'none';
+
+    for (let i = 1; i <= 10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`);
+        if (s) s.disabled = verrouille;
+    }
+    if (selectPole) selectPole.disabled = verrouille;
+
+    ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
+        const conteneur = document.getElementById(id);
+        if (!conteneur) return;
+        conteneur.style.pointerEvents = verrouille ? 'none' : 'auto';
+        conteneur.style.opacity = verrouille ? '0.5' : '1';
+    });
+
+    const checkJoker = document.getElementById('check-joker');
+    if (checkJoker) checkJoker.disabled = verrouille;
+    const btnAleatoire = document.getElementById('btn-aleatoire');
+    if (btnAleatoire) btnAleatoire.disabled = verrouille;
+
+    const btnValider = document.getElementById('btn-valider');
+    if (btnValider) {
+        btnValider.disabled = verrouille;
+        btnValider.style.opacity = verrouille ? '0.5' : '1';
+        btnValider.style.cursor = verrouille ? 'not-allowed' : 'pointer';
+    }
+}
+
+function verifierVerrouillageCourse() {
+    if (!selectCourse) return false;
+    const verrouille = courseEstVerrouillee(selectCourse.value);
+    appliquerVerrouillage(verrouille);
+    return verrouille;
 }
 
 // INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
@@ -689,13 +747,21 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
     }
     modale.style.display = "flex";
 
+    // Une même écurie ne peut pas être choisie dans deux emplacements
+    // (ex : Ferrari en Top 1 ET en Top 2, ou en Top ET en Flop).
+    const autresSlots = ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].filter(id => id !== slotId);
+    const ecuriesDejaPrises = autresSlots
+        .map(id => document.getElementById(id)?.getAttribute('data-ecurie-value'))
+        .filter(Boolean);
+
     let grilleHtml = "";
     ecuriesSaison.forEach(ecurie => {
         const logoPath = LOGOS_ECURIES_2026[ecurie] || "";
+        const dejaPrise = ecuriesDejaPrises.includes(ecurie);
         grilleHtml += `
-            <div class="tuile-ecurie" data-name="${ecurie}" style="background:#111622; border:1px solid #2d3954; border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; min-height:80px;">
-                <img src="${logoPath}" style="max-height:45px; max-width:100%; object-fit:contain; margin-bottom:6px;">
-                <span style="font-size:11px; font-weight:bold; color:#a0aec0; text-align:center; text-transform:uppercase;">${ecurie}</span>
+            <div class="tuile-ecurie" data-name="${ecurie}" data-verrouillee="${dejaPrise}" style="background:#111622; border:1px solid ${dejaPrise ? '#3b4256' : '#2d3954'}; border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:${dejaPrise ? 'not-allowed' : 'pointer'}; transition:all 0.2s; min-height:80px; opacity:${dejaPrise ? '0.35' : '1'};">
+                <img src="${logoPath}" style="max-height:45px; max-width:100%; object-fit:contain; margin-bottom:6px; ${dejaPrise ? 'filter:grayscale(100%);' : ''}">
+                <span style="font-size:11px; font-weight:bold; color:#a0aec0; text-align:center; text-transform:uppercase;">${ecurie}${dejaPrise ? ' 🔒' : ''}</span>
             </div>
         `;
     });
@@ -704,7 +770,8 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
         <div style="background:#1f293d; width:90%; max-width:500px; border-radius:12px; border:1px solid #2f3e56; padding:20px; position:relative; color:#fff;">
             <button id="fermer-choix-ecurie" style="position:absolute; top:12px; right:12px; background:transparent; border:none; color:#616e88; font-size:16px; cursor:pointer;">❌</button>
             <h3 style="margin-top:0; color:#ff8000; font-size:16px; margin-bottom:15px; text-transform:uppercase; letter-spacing:0.5px;">🏎️ Sélectionner l'écurie</h3>
-            
+            ${ecuriesDejaPrises.length ? `<p style="font-size:11px; color:#616e88; margin-top:-8px; margin-bottom:12px;">🔒 Une écurie déjà choisie ailleurs ne peut pas être reprise.</p>` : ''}
+
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;">
                 <div class="tuile-ecurie" data-name="" style="background:rgba(239,68,68,0.1); border:1px dashed #ef4444; border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold; color:#ef4444; font-size:12px;">❌ VIDER L'EMPLACEMENT</div>
                 ${grilleHtml}
@@ -715,6 +782,8 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
     document.getElementById('fermer-choix-ecurie').onclick = () => modale.style.display = "none";
 
     modale.querySelectorAll('.tuile-ecurie').forEach(tuile => {
+        if (tuile.getAttribute('data-verrouillee') === 'true') return; // ni hover ni clic possible
+
         tuile.onmouseenter = () => tuile.style.borderColor = "#ff8000";
         tuile.onmouseleave = () => tuile.style.borderColor = "#2d3954";
         tuile.onclick = function() {
@@ -763,6 +832,12 @@ async function chargerPronosticsUtilisateur() {
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return alert("Tu dois être connecté !");
     const courseId = selectCourse.value;
+
+    if (courseEstVerrouillee(courseId)) {
+        alert("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.");
+        return;
+    }
+
     const top10Selection = [];
     
     for(let i=1; i<=10; i++) {
@@ -1013,10 +1088,12 @@ initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
+verifierVerrouillageCourse();
 
 if(selectCourse) {
     selectCourse.addEventListener('change', () => {
         chargerPronosticsUtilisateur();
         chargerClassementGeneral();
+        verifierVerrouillageCourse();
     });
 }
