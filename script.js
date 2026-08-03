@@ -15,6 +15,29 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
+// Affiche une notification discrète en haut à droite (remplace les alert() bloquants)
+// type : 'succes' | 'erreur' | 'info'
+function afficherNotification(message, type = 'info') {
+    const conteneur = document.getElementById('conteneur-notifications');
+    if (!conteneur) { alert(message); return; } // filet de sécurité si le conteneur manque
+
+    const icones = { succes: '✅', erreur: '❌', info: 'ℹ️' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast-notif ${type}`;
+    toast.innerHTML = `
+        <span>${icones[type] || 'ℹ️'}</span>
+        <span>${message}</span>
+        <button class="toast-fermer" aria-label="Fermer">&times;</button>
+    `;
+
+    const retirer = () => toast.remove();
+    toast.querySelector('.toast-fermer').addEventListener('click', retirer);
+    setTimeout(retirer, 5000);
+
+    conteneur.appendChild(toast);
+}
+
 // Chemins locaux vers tes images AVIF
 const LOGOS_2026 = {
     redbull: "images/cars/redbull.avif",
@@ -649,12 +672,53 @@ function appliquerVerrouillage(verrouille) {
     }
 }
 
+// Affiche "il reste Xj Xh" avant la clôture des pronos du GP sélectionné
+function mettreAJourCountdown() {
+    const zone = document.getElementById('countdown-pronos');
+    if (!zone || !selectCourse) return;
+
+    const round = parseInt((selectCourse.value || "").split('/')[1]);
+    const gp = calendrier2026.find(g => g.round === round);
+    if (!gp) { zone.style.display = 'none'; return; }
+
+    const echeance = new Date(gp.date);
+    const maintenant = new Date();
+    const diffMs = echeance - maintenant;
+
+    if (diffMs <= 0) {
+        zone.style.display = 'none'; // la bannière de verrouillage prend le relais
+        return;
+    }
+
+    const jours = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const heures = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+
+    let texteRestant;
+    if (jours > 0) {
+        texteRestant = `${jours}j ${heures}h`;
+    } else if (heures > 0) {
+        texteRestant = `${heures}h ${minutes}min`;
+    } else {
+        texteRestant = `${minutes}min`;
+    }
+
+    const urgent = diffMs < 1000 * 60 * 60 * 24; // moins de 24h restantes
+    zone.classList.toggle('urgent', urgent);
+    zone.style.display = 'flex';
+    zone.innerHTML = `⏳ Il reste <span style="margin: 0 4px;">${texteRestant}</span> pour valider ce pronostic`;
+}
+
 function verifierVerrouillageCourse() {
     if (!selectCourse) return false;
     const verrouille = courseEstVerrouillee(selectCourse.value);
     appliquerVerrouillage(verrouille);
+    mettreAJourCountdown();
     return verrouille;
 }
+
+// Rafraîchit le countdown toutes les minutes sans avoir à recharger la page
+setInterval(mettreAJourCountdown, 60 * 1000);
 
 // INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
 function initialiserSelectCourse() {
@@ -837,11 +901,11 @@ async function chargerPronosticsUtilisateur() {
 }
 
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
-    if (!utilisateurActuel) return alert("Tu dois être connecté !");
+    if (!utilisateurActuel) return afficherNotification("Tu dois être connecté !", "erreur");
     const courseId = selectCourse.value;
 
     if (courseEstVerrouillee(courseId)) {
-        alert("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.");
+        afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
         return;
     }
 
@@ -849,7 +913,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     
     for(let i=1; i<=10; i++) {
         const val = document.getElementById(`select-grid-p${i}`).value;
-        if(!val) return alert(`Il manque la position P${i} !`);
+        if(!val) return afficherNotification(`Il manque la position P${i} !`, "erreur");
         top10Selection.push(val);
     }
     
@@ -871,7 +935,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     };
     
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
-    alert("🏁 Grille et Écuries enregistrées avec succès !");
+    afficherNotification("🏁 Grille et Écuries enregistrées avec succès !", "succes");
     chargerClassementGeneral();
 });
 
