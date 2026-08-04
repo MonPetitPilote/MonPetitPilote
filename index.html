@@ -49,11 +49,11 @@
                     <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">🔑 CONNEXION / INSCRIPTION</button>
                 </div>
                 <div id="auth-connecte" class="auth-connecte" style="display: none;">
+                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL</button>
                     <div class="user-profile-badge">
                         <span class="status-dot"></span>
                         <span id="nom-utilisateur">...</span>
                     </div>
-                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL</button>
                     <button id="btn-deconnexion" class="btn-logout btn-header-auth">DÉCONNEXION</button>
                 </div>
             </div>
@@ -80,15 +80,15 @@
                     </div>
                 </div>
 
-                <div class="main-layout" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                <div class="main-layout profil-layout">
+                    <div class="profil-analyse-col">
                         <h3 style="margin-top: 0; color: #00d2d3;">📊 Analyse du GP sélectionné</h3>
                         <div id="profil-detail-gp">
                             <p style="color: #aaa; font-style: italic;">Sélectionnez un week-end ci-dessous pour voir le détail de vos points.</p>
                         </div>
                     </div>
 
-                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                    <div class="profil-historique-col">
                         <h3 style="margin-top: 0; color: #ff8000;">🕒 Historique de la saison</h3>
                         <div class="tableau-scores">
                             <div class="entete-scores" style="grid-template-columns: 1fr 100px;">
