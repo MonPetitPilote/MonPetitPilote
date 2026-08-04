@@ -168,6 +168,10 @@ function injecterStylesResponsifsGlobaux() {
                 align-items: stretch !important;
                 gap: 0px !important;
                 margin-bottom: 18px !important;
+                background: transparent !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
             }
             .grid-pos-badge {
                 width: 100% !important;
@@ -183,6 +187,7 @@ function injecterStylesResponsifsGlobaux() {
                 width: 100% !important;
                 border-radius: 0 0 8px 8px !important;
                 padding: 8px 12px !important;
+                box-sizing: border-box !important;
             }
             .grid-select-paddock {
                 font-size: 14px !important;
