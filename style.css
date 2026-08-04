@@ -15,16 +15,26 @@ body {
 }
 
 /* BARRE MEMBRE SUPÉRIEURE */
-#bloc-auth-header {
+.bloc-auth-header {
     display: flex;
     justify-content: flex-end;
 }
-.btn-header-auth { padding: 7px 12px; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-.btn-conn { background-color: #242f46; color: white; }
-.btn-insc { background-color: #ff8000; color: #111622; }
+.auth-deconnecte {
+    display: flex;
+}
+.auth-connecte {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+.btn-header-auth { padding: 10px 18px; font-size: 0.9rem; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
+.btn-conn { background-color: #2563eb; color: white; }
+.btn-insc { background-color: #e10600; color: white; }
+.btn-logout { background-color: #3b4b6b; color: white; border: none; }
 .user-profile-badge { background: #111622; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid #2d3954; display: flex; align-items: center; gap: 8px; }
 .status-dot { width: 8px; height: 8px; background-color: #4cd137; border-radius: 50%; box-shadow: 0 0 8px #4cd137; }
-.btn-logout { background: transparent; color: #ff3f3f; border: 1px solid #ff3f3f; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; }
 
 /* ==========================================
    MODALE DE CONNEXION / INSCRIPTION
@@ -314,21 +324,42 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     box-shadow: 0 4px 12px rgba(255, 128, 0, 0.1);
 }
 
+/* Layout Espace Profil */
+.profil-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.profil-analyse-col, .profil-historique-col {
+    background: #0f131c; 
+    padding: 20px; 
+    border-radius: 10px; 
+    border: 1px solid #2d3954;
+}
+
 /* ==========================================
    MEDIA QUERIES POUR SMARTPHONES & TABLETTES
    ========================================== */
 @media (max-width: 1024px) {
     .main-layout { grid-template-columns: 1fr; }
-    #workspace-profil .main-layout { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
+    .profil-layout { 
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .profil-historique-col {
+        order: -1;
+    }
     .container { padding: 10px; }
-    .brand-header { flex-direction: column; text-align: center; padding: 15px; }
+    .brand-header { flex-direction: column; text-align: center; padding: 15px; align-items: stretch; }
     .brand-title { font-size: 1.8rem; }
-    .brand-actions { justify-content: center; width: 100%; }
-    .btn-brand-action { flex: 1; min-width: 140px; }
-    #bloc-auth-header { justify-content: center; width: 100%; margin-top: 10px; }
+    .brand-actions { justify-content: center; width: 100%; flex-direction: column; }
+    .btn-brand-action { width: 100%; }
+    .bloc-auth-header { justify-content: center; width: 100%; margin-top: 0; margin-bottom: 15px; order: -1; flex-direction: column; gap: 10px; }
+    .auth-connecte { flex-direction: column; width: 100%; }
+    .auth-deconnecte { width: 100%; }
+    #btn-ouvrir-connexion, .btn-header-auth, .btn-logout { width: 100%; text-align: center; }
+    .user-profile-badge { justify-content: center; width: 100%; box-sizing: border-box; }
 
     .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
     .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
