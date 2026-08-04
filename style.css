@@ -15,10 +15,9 @@ body {
 }
 
 /* BARRE MEMBRE SUPÉRIEURE */
-.top-member-bar {
+#bloc-auth-header {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 12px;
 }
 .btn-header-auth { padding: 7px 12px; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
 .btn-conn { background-color: #242f46; color: white; }
@@ -115,8 +114,9 @@ body {
     background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
     border-radius: 16px; padding: 20px 30px; margin-bottom: 35px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 6px solid #e10600;
-    display: flex; flex-direction: row; justify-content: space-between; align-items: center;
-    gap: 15px;
+    display: flex; flex-direction: row; justify-content: space-between; align-items: center; text-align: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 .brand-title { font-size: 2.2rem; font-weight: 900; text-transform: uppercase; margin: 0; color: white; }
 .brand-title span { color: #e10600; }
@@ -126,7 +126,8 @@ body {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    width: auto;
 }
 .btn-brand-action {
     border: none;
@@ -327,7 +328,7 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     .brand-title { font-size: 1.8rem; }
     .brand-actions { justify-content: center; width: 100%; }
     .btn-brand-action { flex: 1; min-width: 140px; }
-    .top-member-bar { justify-content: center; }
+    #bloc-auth-header { justify-content: center; width: 100%; margin-top: 10px; }
 
     .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
     .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
