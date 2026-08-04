@@ -44,17 +44,17 @@
                 <button id="btn-reglement" class="btn-brand-action btn-brand-orange">📜 RÈGLEMENT</button>
             </div>
             
-            <div id="bloc-auth-header" style="display: flex; justify-content: flex-end;">
-                <div id="auth-deconnecte">
-                    <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc" style="background: #e10600; color: white; border: none; padding: 10px 18px; font-weight: bold; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">🔑 CONNEXION / INSCRIPTION</button>
+            <div id="bloc-auth-header" class="bloc-auth-header">
+                <div id="auth-deconnecte" class="auth-deconnecte">
+                    <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">🔑 CONNEXION / INSCRIPTION</button>
                 </div>
-                <div id="auth-connecte" style="display: none; align-items: center; justify-content: flex-end; gap: 15px; flex-wrap: wrap;">
+                <div id="auth-connecte" class="auth-connecte" style="display: none;">
                     <div class="user-profile-badge">
                         <span class="status-dot"></span>
                         <span id="nom-utilisateur">...</span>
                     </div>
-                    <button id="btn-vers-profil" class="btn-header-auth btn-conn" style="background: #2563eb; color: white; border: none; padding: 10px 18px; font-weight: bold; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">👤 MON PROFIL</button>
-                    <button id="btn-deconnexion" class="btn-logout" style="background: #3b4b6b; color: white; border: none; padding: 10px 18px; font-weight: bold; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">DÉCONNEXION</button>
+                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL</button>
+                    <button id="btn-deconnexion" class="btn-logout btn-header-auth">DÉCONNEXION</button>
                 </div>
             </div>
         </header>
@@ -308,6 +308,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
