@@ -1,423 +1,313 @@
-/* Base & Thème Sombre Racing */
-body {
-    background: radial-gradient(circle at top, #1e2538 0%, #0f131c 100%);
-    color: #f5f6fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MON PETIT PILOTE ENTRE POTES - F1 2026</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff8000">
+    <link rel="icon" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles des fenêtres modales (Règlement et Historique) */
+        .modal-back {
+            position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content-inner {
+            background-color: #222c43; color: white; padding: 25px; border-radius: 8px;
+            width: 90%; max-width: 550px; border: 1px solid #3b4b6b; position: relative;
+        }
+        .close-modal {
+            position: absolute; right: 15px; top: 10px; color: #aaa; font-size: 28px;
+            font-weight: bold; cursor: pointer;
+        }
+        .close-modal:hover { color: #fff; }
+        .ligne-joueur:hover { background-color: #2c3a54; transition: 0.2s; }
+        .reglement-item { margin-bottom: 15px; background: #111622; padding: 10px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div id="conteneur-notifications"></div>
 
-.container {
-    max-width: 1250px;
-    margin: 0 auto;
-    padding: 20px;
-}
 
-/* BARRE MEMBRE SUPÉRIEURE */
-.bloc-auth-header {
-    display: flex;
-    justify-content: flex-end;
-}
-.auth-deconnecte {
-    display: flex;
-}
-.auth-connecte {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-.btn-header-auth { padding: 10px 18px; font-size: 0.9rem; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; }
-.btn-conn { background-color: #2563eb; color: white; }
-.btn-insc { background-color: #e10600; color: white; }
-.btn-logout { background-color: #3b4b6b; color: white; border: none; }
-.user-profile-badge { background: #111622; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid #2d3954; display: flex; align-items: center; gap: 8px; }
-.status-dot { width: 8px; height: 8px; background-color: #4cd137; border-radius: 50%; box-shadow: 0 0 8px #4cd137; }
+    <div class="container">
 
-/* ==========================================
-   MODALE DE CONNEXION / INSCRIPTION
-   ========================================== */
-.modal-auth {
-    max-width: 400px;
-}
-.auth-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #3b4b6b;
-}
-.auth-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #a5b1c2;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    padding: 10px 0;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s ease;
-}
-.auth-tab:hover { color: #fff; }
-.auth-tab.actif {
-    color: #ff8000;
-    border-bottom-color: #ff8000;
-}
-.auth-field { margin-bottom: 14px; }
-.auth-field label {
-    display: block;
-    font-size: 0.8rem;
-    color: #a5b1c2;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-.auth-field input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px 12px;
-    font-size: 0.95rem;
-    background-color: #111622;
-    border: 1px solid #2d3954;
-    border-radius: 6px;
-    color: white;
-}
-.auth-field input:focus {
-    outline: none;
-    border-color: #ff8000;
-}
-.auth-erreur {
-    color: #ef4444;
-    font-size: 0.8rem;
-    margin: -4px 0 14px 0;
-    min-height: 1em;
-}
-.btn-auth-principal {
-    width: 100%;
-    background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
-    color: white;
-    border: none;
-    padding: 13px;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-.btn-auth-principal:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-#link-recup-mdp {
-    display: block;
-    text-align: center;
-    margin-top: 14px;
-    color: #a5b1c2;
-    font-size: 0.8rem;
-    text-decoration: underline;
-}
+        <div style="text-align: center; cursor: pointer; margin-bottom: 25px; margin-top: 15px;" id="logo-accueil">
+            <img src="images/logo_mpp.png" alt="Mon Petit Pilote" style="max-width: 100%; height: auto; max-height: 180px;">
+        </div>
 
-/* HEADER PRINCIPAL */
-.brand-header {
-    background: linear-gradient(135deg, #1b2234 0%, #111622 100%);
-    border-radius: 16px; padding: 20px 30px; margin-bottom: 35px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 6px solid #e10600;
-    display: flex; flex-direction: row; justify-content: space-between; align-items: center; text-align: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.brand-title { font-size: 2.2rem; font-weight: 900; text-transform: uppercase; margin: 0; color: white; }
-.brand-title span { color: #e10600; }
-.brand-subtitle { font-size: 0.95rem; color: #ff8000; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        <header class="brand-header">
+            <div class="brand-actions">
+                <button id="btn-resultats" class="btn-brand-action btn-brand-cyan">📊 RÉSULTATS OFFICIELS</button>
+                <button id="btn-reglement" class="btn-brand-action btn-brand-orange">📜 RÈGLEMENT</button>
+            </div>
+            
+            <div id="bloc-auth-header" class="bloc-auth-header">
+                <div id="auth-deconnecte" class="auth-deconnecte">
+                    <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">🔑 CONNEXION / INSCRIPTION</button>
+                </div>
+                <div id="auth-connecte" class="auth-connecte" style="display: none;">
+                    <div class="user-profile-badge">
+                        <span class="status-dot"></span>
+                        <span id="nom-utilisateur">...</span>
+                    </div>
+                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL</button>
+                    <button id="btn-deconnexion" class="btn-logout btn-header-auth">DÉCONNEXION</button>
+                </div>
+            </div>
+        </header>
 
-.brand-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    width: auto;
-}
-.btn-brand-action {
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-.btn-brand-orange { background: #ff8000; color: #111622; }
-.btn-brand-cyan { background: #00d2d3; color: #111622; }
+        <div id="workspace-profil" style="display: none; margin-bottom: 35px;">
+            <div class="colonne-gauche" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2d3954; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #ff8000;">🏁 VOTRE ESPACE PERFORMANCES</h2>
+                    <button id="btn-retour-pronos" style="background: #242f46; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;">← RETOUR AUX PRONOS</button>
+                </div>
 
-/* Structure Page (PC / Tablette par défaut) */
-.main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
+                <div id="profil-badges" style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; margin-bottom: 5px; color: #00d2d3;">🎖️ Vos badges de la saison</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 0; margin-bottom: 15px;">Un badge s'obtient en étant, à date, le joueur (ou l'un des joueurs) en tête sur ce critère. Il peut donc changer de mains au fil de la saison.</p>
+                    <div id="profil-badges-liste" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                        <p style="color: #aaa; font-style: italic;">Chargement...</p>
+                    </div>
 
-.colonne-gauche, .bloc-sub-droite, .section-top-flop {
-    background: #161c2a; border-radius: 14px; padding: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid #242f46;
-    box-sizing: border-box;
-}
-.section-course select, .section-pole select {
-    width: 100%;
-    box-sizing: border-box;
-}
+                    <h3 style="margin-bottom: 5px; color: #ff8000; border-top: 1px solid #2d3954; padding-top: 15px;">🏅 Qui est en tête sur chaque critère ?</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin-top: 0; margin-bottom: 15px;">Le classement complet, badge par badge — de quoi savoir qui est devant qui, et grâce à quoi.</p>
+                    <div id="profil-classement-badges" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <p style="color: #aaa; font-style: italic;">Chargement...</p>
+                    </div>
+                </div>
 
-/* ==========================================
-   GRILLE DE DÉPART DE TYPE F1 TV REVISITÉE
-   ========================================== */
-.f1-starting-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px 30px;
-    margin-top: 20px;
-    background: rgba(15, 19, 28, 0.8);
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid #242f46;
-}
+                <div class="main-layout" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                        <h3 style="margin-top: 0; color: #00d2d3;">📊 Analyse du GP sélectionné</h3>
+                        <div id="profil-detail-gp">
+                            <p style="color: #aaa; font-style: italic;">Sélectionnez un week-end ci-dessous pour voir le détail de vos points.</p>
+                        </div>
+                    </div>
 
-/* Style uniforme de chaque case */
-.grid-slot {
-    display: flex;
-    align-items: center;
-    background: linear-gradient(135deg, #1c2437 0%, #111622 100%);
-    border-radius: 8px;
-    padding: 6px 12px;
-    position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    border-left: 4px solid #2d3954;
-    height: 75px;
-    box-sizing: border-box;
-}
+                    <div style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954;">
+                        <h3 style="margin-top: 0; color: #ff8000;">🕒 Historique de la saison</h3>
+                        <div class="tableau-scores">
+                            <div class="entete-scores" style="grid-template-columns: 1fr 100px;">
+                                <div>Grand Prix</div>
+                                <div style="text-align: right;">Points</div>
+                            </div>
+                            <div id="profil-liste-gps">
+                                <div style="padding: 15px; text-align: center; color: #aaa;">Aucune donnée enregistrée.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-/* Alignement en quinconse sur PC */
-.grid-slot:nth-child(odd) {
-    grid-column: 1;
-    margin-right: 10px;
-}
-.grid-slot:nth-child(even) {
-    grid-column: 2;
-    margin-left: 10px;
-    margin-top: 30px;
-}
+        <div id="main-content-pronos" class="main-layout">
+            
+            <div class="colonne-gauche">
+                
+                <div class="section-course">
+                    <label for="select-course" style="display: block; margin-bottom: 8px; font-weight: bold;">SÉLECTIONNER LE WEEK-END :</label>
+                    <select id="select-course"></select>
+                </div>
 
-.grid-pos-badge {
-    font-size: 1.4rem;
-    font-weight: 900;
-    font-style: italic;
-    color: #3b4b6b;
-    min-width: 35px;
-}
+                <div id="banniere-verrouillage" style="display: none; align-items: center; gap: 10px; background: rgba(239,68,68,0.12); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 6px; margin-top: 10px; font-weight: bold; font-size: 0.85rem;">
+                    🔒 Les pronostics pour ce Grand Prix sont clôturés (le week-end a déjà eu lieu).
+                </div>
 
-/* Zone des médias */
-.grid-media-zone {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 140px;
-    height: 75px;
-    flex-shrink: 0;
-}
+                <div id="countdown-pronos" style="display: none;"></div>
 
-.grid-driver-avatar {
-    width: 65px;
-    height: 75px;
-    position: relative;
-    z-index: 2;
-}
-.grid-driver-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+                <div class="section-pole" style="margin-top: 20px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
+                    <label for="select-pole" style="color: #00d2d3; display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label>
+                    <select id="select-pole"></select>
+                </div>
 
-.grid-car-avatar {
-    width: 90px;
-    height: 50px;
-    position: absolute;
-    right: -10px;
-    bottom: 2px;
-    z-index: 1;
-    opacity: 0.85;
-}
-.grid-car-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0; font-size: 1.3rem;" id="titre-grille">🏆 TA GRILLE DE DÉPART TOP 10 :</h2>
+                    <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
+                </div>
 
-img:not([src]), img[src=""] {
-    opacity: 0 !important;
-}
+                <div id="grille-pronos" class="f1-starting-grid"></div>
 
-.grid-driver-info {
-    flex-grow: 1;
-    margin-left: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    z-index: 3;
-    min-width: 0;
-}
-.grid-driver-team {
-    font-size: 0.75rem;
-    color: #ff8000;
-    font-weight: bold;
-    margin-top: 4px;
-    text-transform: uppercase;
-}
+                <div style="margin: 20px 0; background: #1b2436; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px dashed #FF8000;">
+                    <input type="checkbox" id="check-joker" style="transform: scale(1.4); cursor: pointer; flex-shrink: 0;">
+                    <span id="joker-status-text" style="color: #FF8000; font-weight: bold; font-size: 0.9rem;">🚀 Activer mon unique Joker (+300% de points !)</span>
+                </div>
 
-.grid-select-paddock {
-    background: #0f131c; color: white; border: 1px solid #2d3954;
-    padding: 5px 8px; font-size: 0.85rem; border-radius: 4px; width: 100%; cursor: pointer;
-    box-sizing: border-box;
-}
+                <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
+            </div>
 
-/* Formulaires */
-select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 1px solid #2d3954; padding: 10px 14px; border-radius: 6px; }
-#btn-valider { width: 100%; background: linear-gradient(135deg, #e10600 0%, #b30500 100%); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 6px; cursor: pointer; margin-top: 15px; }
-.tableau-scores { background: #0f131c; border-radius: 8px; overflow: hidden; }
-.entete-scores { background: #242f46; padding: 12px; font-weight: 700; font-size: 0.85rem; color: #a5b1c2; display: grid; grid-template-columns: 40px 1fr 60px; }
+            <div class="colonne-droite" style="display: flex; flex-direction: column; gap: 30px;">
+                
+                <div class="bloc-sub-droite">
+                    <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour voir son pronostic sur le GP sélectionné ci-contre (visible une fois le week-end terminé).</p>
+                    <div class="tableau-scores">
+                        <div class="entete-scores">
+                            <div>Pos</div>
+                            <div>Joueur</div>
+                            <div style="text-align: right;">Points</div>
+                        </div>
+                        <div id="liste-classement"></div>
+                    </div>
+                </div>
 
-/* Éléments de liste pour l'espace membre */
-.ligne-profil-gp {
-    display: grid;
-    grid-template-columns: 1fr 100px;
-    padding: 12px;
-    border-bottom: 1px solid #1e2538;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.ligne-profil-gp:hover { background: #1c2437; }
+                <div class="section-top-flop" style="background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #E10600;">
+                    <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)</h3>
+                    
+                    <div class="ecuries-block" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div>
+                            <h4 style="color: #00e6c3; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">🚀 Top Écuries (Bonus)</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div id="ecurie-top-1" class="carte-selection-team"></div>
+                                <div id="ecurie-top-2" class="carte-selection-team"></div>
+                            </div>
+                        </div>
 
-.detail-item-points {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px dashed #2d3954;
-    font-size: 0.9rem;
-}
+                        <div>
+                            <h4 style="color: #ef4444; font-size: 13px; text-transform: uppercase; margin-bottom: 8px;">⚠️ Flop Écuries (Malus)</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div id="ecurie-flop-1" class="carte-selection-team"></div>
+                                <div id="ecurie-flop-2" class="carte-selection-team"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-/* Cartes écuries */
-.carte-selection-team {
-    background: #111622 !important;
-    border: 2px dashed #2d3954 !important;
-    border-radius: 8px !important;
-    height: 90px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    position: relative !important;
-    transition: all 0.2s ease-in-out !important;
-    overflow: hidden !important;
-    padding: 5px !important;
-    box-sizing: border-box !important;
-}
+            </div>
+        </div>
 
-.carte-selection-team:hover {
-    border-color: #ff8000 !important;
-    background: #161d2d !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 128, 0, 0.1);
-}
+        <div id="modale-connexion" class="modal-back" style="display: none;">
+            <div class="modal-content-inner modal-auth">
+                <span class="close-modal" id="btn-fermer-connexion">&times;</span>
 
-/* ==========================================
-   MEDIA QUERIES POUR SMARTPHONES & TABLETTES
-   ========================================== */
-@media (max-width: 1024px) {
-    .main-layout { grid-template-columns: 1fr; }
-    #workspace-profil .main-layout { grid-template-columns: 1fr; }
-    .container { padding: 10px; }
-    .brand-header { flex-direction: column; text-align: center; padding: 15px; align-items: stretch; }
-    .brand-title { font-size: 1.8rem; }
-    .brand-actions { justify-content: center; width: 100%; flex-direction: column; }
-    .btn-brand-action { width: 100%; }
-    .bloc-auth-header { justify-content: center; width: 100%; margin-top: 0; margin-bottom: 15px; order: -1; flex-direction: column; gap: 10px; }
-    .auth-connecte { flex-direction: column; width: 100%; }
-    .auth-deconnecte { width: 100%; }
-    #btn-ouvrir-connexion, .btn-header-auth, .btn-logout { width: 100%; text-align: center; }
-    .user-profile-badge { justify-content: center; width: 100%; box-sizing: border-box; }
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab actif" id="tab-connexion" data-panel="panneau-connexion">Connexion</button>
+                    <button type="button" class="auth-tab" id="tab-inscription" data-panel="panneau-inscription">Inscription</button>
+                </div>
 
-    .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
-    .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
-        grid-column: auto !important; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important;
-        height: auto !important; min-height: 75px; flex-wrap: wrap; padding: 10px;
-    }
-    .grid-media-zone { width: 120px; }
-    .ecuries-block { grid-template-columns: 1fr !important; }
-}
+                <div id="panneau-connexion" class="auth-panel">
+                    <div class="auth-field">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="toi@exemple.com" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label for="login-mdp">Mot de passe</label>
+                        <input type="password" id="login-mdp" placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                    <div id="login-erreur" class="auth-erreur"></div>
+                    <button id="btn-connexion" class="btn-auth-principal">🏁 Se connecter</button>
+                    <a href="#" id="link-recup-mdp">Mot de passe oublié ?</a>
+                </div>
 
-/* ==========================================
-   NOTIFICATIONS (remplacent les alert() bloquants)
-   ========================================== */
-#conteneur-notifications {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 20000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 340px;
-}
-.toast-notif {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 14px 16px;
-    border-radius: 8px;
-    background: #1f293d;
-    border-left: 4px solid #00d2d3;
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-    animation: toast-apparition 0.25s ease;
-}
-.toast-notif.succes { border-left-color: #4cd137; }
-.toast-notif.erreur { border-left-color: #ef4444; }
-.toast-notif.info { border-left-color: #00d2d3; }
-.toast-notif .toast-fermer {
-    margin-left: auto;
-    cursor: pointer;
-    color: #616e88;
-    font-weight: bold;
-    background: none;
-    border: none;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0;
-}
-@keyframes toast-apparition {
-    from { opacity: 0; transform: translateX(30px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+                <div id="panneau-inscription" class="auth-panel" style="display: none;">
+                    <div class="auth-field">
+                        <label for="inscription-pseudo">Pseudo (affiché aux autres joueurs)</label>
+                        <input type="text" id="inscription-pseudo" placeholder="Ton pseudo entre potes" autocomplete="nickname">
+                    </div>
+                    <div class="auth-field">
+                        <label for="inscription-email">Email</label>
+                        <input type="email" id="inscription-email" placeholder="toi@exemple.com" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label for="inscription-mdp">Mot de passe</label>
+                        <input type="password" id="inscription-mdp" placeholder="6 caractères minimum" autocomplete="new-password">
+                    </div>
+                    <div id="inscription-erreur" class="auth-erreur"></div>
+                    <button id="btn-inscription" class="btn-auth-principal">🏆 Créer mon compte</button>
+                </div>
+            </div>
+        </div>
 
-@media (max-width: 768px) {
-    #conteneur-notifications { left: 12px; right: 12px; max-width: none; }
-}
+        <div id="modale-resultats" class="modal-back" style="display: none;">
+            <div class="modal-content-inner" style="max-width: 520px; max-height: 85vh; overflow-y: auto;">
+                <span class="close-modal" id="btn-fermer-resultats">&times;</span>
+                <h3 style="color: #00d2d3; margin-top: 0; font-size: 1.3rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📊 Résultats Officiels de la Saison</h3>
 
-/* ==========================================
-   COUNTDOWN AVANT FERMETURE DES PRONOS
-   ========================================== */
-#countdown-pronos {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0,210,211,0.1);
-    border: 1px solid #00d2d3;
-    color: #00d2d3;
-    padding: 9px 14px;
-    border-radius: 6px;
-    margin-top: 10px;
-    font-weight: bold;
-    font-size: 0.85rem;
-}
-#countdown-pronos.urgent {
-    background: rgba(255,128,0,0.12);
-    border-color: #ff8000;
-    color: #ff8000;
-}
+                <select id="select-resultats-course" style="width: 100%; margin-bottom: 18px;"></select>
+
+                <div id="zone-resultat-gp">
+                    <p style="color: #aaa; font-style: italic; text-align: center;">Sélectionne un Grand Prix pour voir le résultat officiel.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="modale-prono-ami" class="modal-back" style="display: none;">
+            <div class="modal-content-inner" style="max-width: 520px; max-height: 85vh; overflow-y: auto;">
+                <span class="close-modal" id="btn-fermer-prono-ami">&times;</span>
+                <div id="zone-prono-ami"></div>
+            </div>
+        </div>
+
+        <div id="modale-reglement" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+            <div style="background: #1f293d; padding: 24px; border-radius: 8px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; border: 1px solid #2f3e56; color: #fff; position: relative; font-family: sans-serif; line-height: 1.4; box-sizing: border-box;">
+                
+                <button id="btn-fermer-reglement" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #616e88; font-size: 1.2rem; cursor: pointer;">❌</button>
+                
+                <h3 style="color: #ff8000; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #2f3e56; padding-bottom: 10px; margin-bottom: 15px;">📜 Barème & Règlement du Jeu</h3>
+                
+                <p style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 15px; font-style: italic;">🚨 Vos pronostics doivent être validés et enregistrés sur le site avant le début officiel de la séance de qualifications de chaque week-end.</p>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">1. Le Top 10 Pilotes</h4>
+                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Vos choix pour les 10 premières places de la course sont comparés aux résultats officiels :</p>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0; list-style-type: square;">
+                        <li style="margin-bottom: 4px;"><strong style="color: #22c55e;">Position exacte :</strong> Vous marquez l'intégralité des points du barème F1 officiel :<br>
+                            <span style="color: #cbd5e1; font-size: 0.8rem; display: block; margin-top: 2px;">
+                                P1: 25 | P2: 18 | P3: 15 | P4: 12 | P5: 10 <br>
+                                P6: 8 &nbsp;| P7: 6 &nbsp;| P8: 4 &nbsp;| P9: 2 &nbsp;| P10: 1
+                            </span>
+                        </li>
+                        <li><strong style="color: #3b82f6;">Position erronée :</strong> Si un pilote pronostiqué termine dans le Top 10 officiel mais pas à la place exacte prévue, vous marquez un <strong>point de consolation (+2 pts)</strong>.</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">2. Le Bonus Poleman</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">Si le pilote sélectionné comme « Poleman » décroche la première place (P1) lors de la séance officielle de qualifications, vous empochez un bonus fixe de <strong style="color: #22c55e;">+5 points</strong>.</p>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">3. Écuries (Top / Flop)</h4>
+                    <p style="margin: 0 0 5px 0; font-size: 0.9rem;">Les bonus/malus dépendent exclusivement du constructeur/écurie du pilote qui remporte la course (P1) :</p>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
+                        <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 1</strong> gagne la course : <strong style="color: #22c55e;">+5 points</strong>.</li>
+                        <li style="margin-bottom: 3px;">Si votre choix <strong>Écurie Top 2</strong> gagne la course : <strong style="color: #22c55e;">+2 points</strong>.</li>
+                        <li>Si l'une de vos écuries en <strong>Flop</strong> gagne finalement la course : <strong style="color: #ef4444;">-5 points</strong> (mauvaise pioche).</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">4. Le Multiplicateur Joker 👑</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">Si vous cochez la case Joker sur un Grand Prix, l'intégralité des points accumulés lors de ce week-end (Pilotes + Pole + Écuries) est automatiquement <strong style="color: #ff8000;">doublée (x2)</strong> !</p>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">5. Les Badges de la Saison 🎖️</h4>
+                    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">En plus du classement par points, 5 badges récompensent des exploits précis sur l'ensemble de la saison. Ils s'affichent à côté du pseudo dans le classement et sont visibles dans « Mon Profil ». Un badge peut changer de mains à tout moment si un autre joueur prend l'avantage sur ce critère :</p>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #e2e8f0;">
+                        <li style="margin-bottom: 4px;">🎯 <strong>Roi de la Pole</strong> : le plus de pronostics de Pole Position corrects.</li>
+                        <li style="margin-bottom: 4px;">🏆 <strong>Chasseur de Vainqueur</strong> : le plus de fois où le vainqueur du GP (P1) a été deviné.</li>
+                        <li style="margin-bottom: 4px;">🥇 <strong>Podium Parfait</strong> : le plus de fois où le podium complet (P1, P2, P3) a été deviné dans l'ordre exact.</li>
+                        <li style="margin-bottom: 4px;">🃏 <strong>Coup de Folie</strong> : a misé, avec succès, le plus grand nombre de fois sur un pilote d'écurie outsider placé dans son Top 10 (ex : un pilote d'une petite écurie qui crée la surprise).</li>
+                        <li>🥶 <strong>Boulet de la Saison</strong> : cumule le plus grand nombre de pronostics ratés (pilotes finalement hors du Top 10 réel). Un badge... qu'on préfère éviter !</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem;">6. Fair-Play : les pronos des autres joueurs</h4>
+                    <p style="margin: 0; font-size: 0.9rem;">Vous pouvez consulter le pronostic de n'importe quel ami en cliquant sur son nom dans le classement général. Par équité, ceci n'est possible <strong>qu'une fois le week-end du Grand Prix sélectionné terminé</strong> — impossible de copier un prono avant la clôture !</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    <script type="module" src="script.js"></script>
+</body>
+</html>
