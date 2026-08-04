@@ -1,6 +1,8 @@
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
+// WARNING: Using Firebase keys client-side is acceptable for this platform,
+// but make sure your Firebase security rules are properly configured.
 const firebaseConfig = {
     apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
     authDomain: "monpetitpilote.firebaseapp.com",
@@ -198,26 +200,6 @@ function injecterStylesResponsifsGlobaux() {
             .car-bg-image {
                 max-width: 65% !important;
                 height: 120% !important;
-            }
-
-            #auth-deconnecte, #auth-connecte {
-                width: 100% !important;
-                box-sizing: border-box !important;
-                padding: 12px !important;
-            }
-            #auth-deconnecte, #auth-connecte {
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px !important;
-            }
-            #auth-deconnecte button, #auth-connecte button {
-                width: 100% !important;
-                box-sizing: border-box !important;
-                padding: 12px !important;
-                font-size: 14px !important;
-                text-align: center !important;
-                justify-content: center !important;
             }
         }
     `;
