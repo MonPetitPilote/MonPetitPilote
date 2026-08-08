@@ -217,6 +217,44 @@
                         </div>
                     </div>
                 </div>
+                <div class="section-predictions-bonus" style="background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
+    <h3 style="margin-top: 0; color: #fff; font-size: 1.1rem; letter-spacing: 0.5px;">🎲 PRÉDICTIONS BONUS DU WEEK-END</h3>
+    <p style="margin: 0 0 15px 0; font-size: 0.78rem; color: #aaa; font-style: italic;">+2 points par bonne réponse (x2 avec le Joker).</p>
+ 
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+ 
+        <div class="ligne-bonus">
+            <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px;">🚨 Y aura-t-il une Safety Car ?</label>
+            <div class="toggle-oui-non" data-bonus="safetyCar">
+                <button type="button" class="btn-toggle-bonus" data-valeur="true">OUI</button>
+                <button type="button" class="btn-toggle-bonus" data-valeur="false">NON</button>
+            </div>
+        </div>
+ 
+        <div class="ligne-bonus">
+            <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px;">🔴 Y aura-t-il un Drapeau Rouge ?</label>
+            <div class="toggle-oui-non" data-bonus="drapeauRouge">
+                <button type="button" class="btn-toggle-bonus" data-valeur="true">OUI</button>
+                <button type="button" class="btn-toggle-bonus" data-valeur="false">NON</button>
+            </div>
+        </div>
+ 
+        <div class="ligne-bonus">
+            <label for="input-nombre-dnf" style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px;">💥 Nombre d'abandons (DNF) ?</label>
+            <input type="number" id="input-nombre-dnf" min="0" max="20" placeholder="Ex : 3" style="width: 100%; box-sizing: border-box;">
+        </div>
+ 
+        <div class="ligne-bonus">
+            <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:6px;">🏆 Le poleman finira-t-il sur le podium ?</label>
+            <div class="toggle-oui-non" data-bonus="polemanPodium">
+                <button type="button" class="btn-toggle-bonus" data-valeur="true">OUI</button>
+                <button type="button" class="btn-toggle-bonus" data-valeur="false">NON</button>
+            </div>
+        </div>
+ 
+    </div>
+</div>
+ 
 
             </div>
         </div>
