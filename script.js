@@ -121,24 +121,24 @@ const calendrier2026 = [
     { round: 1, nom: "Grand Prix d'Australie", circuit: "Melbourne", pays: "Australie", date: "2026-03-08" },
     { round: 2, nom: "Grand Prix de Chine", circuit: "Shanghai", pays: "Chine", date: "2026-03-15" },
     { round: 3, nom: "Grand Prix du Japon", circuit: "Suzuka", pays: "Japon", date: "2026-03-29" },
-    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami Gardens", pays: "USA", date: "2026-05-03" }, // "Miami Gardens" pour l'API
+    { round: 4, nom: "Grand Prix de Miami", circuit: "Miami Gardens", pays: "USA", date: "2026-05-03" },
     { round: 5, nom: "Grand Prix du Canada", circuit: "Montréal", pays: "Canada", date: "2026-05-24" },
-    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monte Carlo", pays: "Monaco", date: "2026-06-07" }, // "Monte Carlo" pour l'API
-    { round: 7, nom: "Grand Prix d'Espagne (Barcelone)", circuit: "Barcelona", pays: "Espagne", date: "2026-06-14" }, // "Barcelona" pour l'API
+    { round: 6, nom: "Grand Prix de Monaco", circuit: "Monte Carlo", pays: "Monaco", date: "2026-06-07" },
+    { round: 7, nom: "Grand Prix d'Espagne (Barcelone)", circuit: "Barcelona", pays: "Espagne", date: "2026-06-14" },
     { round: 8, nom: "Grand Prix d'Autriche", circuit: "Spielberg", pays: "Autriche", date: "2026-06-28" },
     { round: 9, nom: "Grand Prix de Grande-Bretagne", circuit: "Silverstone", pays: "Royaume-Uni", date: "2026-07-05" },
     { round: 10, nom: "Grand Prix de Belgique", circuit: "Spa-Francorchamps", pays: "Belgique", date: "2026-07-19" },
     { round: 11, nom: "Grand Prix de Hongrie", circuit: "Budapest", pays: "Hongrie", date: "2026-07-26" },
     { round: 12, nom: "Grand Prix des Pays-Bas", circuit: "Zandvoort", pays: "Pays-Bas", date: "2026-08-23" },
     { round: 13, nom: "Grand Prix d'Italie", circuit: "Monza", pays: "Italie", date: "2026-09-06" },
-    { round: 14, nom: "Grand Prix d'Espagne (Madrid)", circuit: "Madrid", pays: "Espagne", date: "2026-09-13" }, // Ajouté et synchronisé !
-    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Baku", pays: "Azerbaïdjan", date: "2026-09-26" }, // "Baku" pour l'API
+    { round: 14, nom: "Grand Prix d'Espagne (Madrid)", circuit: "Madrid", pays: "Espagne", date: "2026-09-13" },
+    { round: 15, nom: "Grand Prix d'Azerbaïdjan", circuit: "Baku", pays: "Azerbaïdjan", date: "2026-09-26" },
     { round: 16, nom: "Grand Prix de Singapour", circuit: "Marina Bay", pays: "Singapour", date: "2026-10-11" },
     { round: 17, nom: "Grand Prix des États-Unis", circuit: "Austin", pays: "USA", date: "2026-10-25" },
-    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-11-01" }, // "Mexico City" pour l'API
-    { round: 19, nom: "Grand Prix du Brésil", circuit: "São Paulo", pays: "Brésil", date: "2026-11-08" }, // "São Paulo" pour l'API
+    { round: 18, nom: "Grand Prix du Mexique", circuit: "Mexico City", pays: "Mexique", date: "2026-11-01" },
+    { round: 19, nom: "Grand Prix du Brésil", circuit: "São Paulo", pays: "Brésil", date: "2026-11-08" },
     { round: 20, nom: "Grand Prix de Las Vegas", circuit: "Las Vegas", pays: "USA", date: "2026-11-21" },
-    { round: 21, nom: "Grand Prix du Qatar", circuit: "Lusail", pays: "Qatar", date: "2026-11-29" }, // "Lusail" pour l'API
+    { round: 21, nom: "Grand Prix du Qatar", circuit: "Lusail", pays: "Qatar", date: "2026-11-29" },
     { round: 22, nom: "Grand Prix d'Abou Dhabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
 ];
 
@@ -497,10 +497,17 @@ auth.onAuthStateChanged(async (user) => {
         }
 
         chargerPronosticsUtilisateur();
+        chargerEtAfficherLigues().then(() => {
+            derniereStatsSaison = null;
+            chargerClassementGeneral();
+        });
     } else {
         utilisateurActuel = null;
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'block';
         if(zoneConnecte) zoneConnecte.style.display = 'none';
+        membresLigueActive = null;
+        derniereStatsSaison = null;
+        chargerClassementGeneral();
     }
 });
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
@@ -818,8 +825,6 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
     }
     modale.style.display = "flex";
 
-    // Une même écurie ne peut pas être choisie dans deux emplacements
-    // (ex : Ferrari en Top 1 ET en Top 2, ou en Top ET en Flop).
     const autresSlots = ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].filter(id => id !== slotId);
     const ecuriesDejaPrises = autresSlots
         .map(id => document.getElementById(id)?.getAttribute('data-ecurie-value'))
@@ -853,7 +858,7 @@ function ouvrirSelecteurVisuelEcurie(slotId) {
     document.getElementById('fermer-choix-ecurie').onclick = () => modale.style.display = "none";
 
     modale.querySelectorAll('.tuile-ecurie').forEach(tuile => {
-        if (tuile.getAttribute('data-verrouillee') === 'true') return; // ni hover ni clic possible
+        if (tuile.getAttribute('data-verrouillee') === 'true') return;
 
         tuile.onmouseenter = () => tuile.style.borderColor = "#ff8000";
         tuile.onmouseleave = () => tuile.style.borderColor = "#2d3954";
@@ -960,6 +965,10 @@ async function calculerStatistiquesEtClassement() {
         const data = doc.data();
         const uid = data.uidJoueur;
         if (!uid) return;
+        // Filtre par ligue active : si une ligue est chargée, on ignore les joueurs
+        // qui n'en font pas partie. Si aucune ligue n'est chargée (pas encore connecté
+        // ou page sans sélecteur), on n'applique aucun filtre.
+        if (membresLigueActive && !membresLigueActive.has(uid)) return;
 
         if (!parJoueur[uid]) {
             parJoueur[uid] = {
@@ -1367,8 +1376,6 @@ async function construireComparatifHtml(data) {
             return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>${nomEcurie}</strong></div>`;
         }
         const correspond = nomsCorrespondentLocal(ecurieGagnante, nomEcurie);
-        // Pour un Top : correspondre à l'écurie gagnante est une bonne pioche.
-        // Pour un Flop : correspondre à l'écurie gagnante est une mauvaise pioche (pénalité).
         const bonPari = estUnTop ? correspond : !correspond;
         return `<div style="display: flex; justify-content: space-between; padding: 4px 0;">
             <span>${bonPari ? '✅' : '❌'} ${label} : <strong>${nomEcurie}</strong></span>
@@ -1415,7 +1422,7 @@ async function construireComparatifHtml(data) {
 
 const CODE_LIGUE_MONDIAL = "MONDIAL";
 let ligueActiveCourante = CODE_LIGUE_MONDIAL;
-let membresLigueActive = null; // Set des uid membres de la ligue active (null = pas encore chargé)
+let membresLigueActive = null; // Set des uid membres de la ligue active (null = pas encore chargé -> pas de filtre)
 
 const selectLigue = document.getElementById('select-ligue');
 const modaleLigues = document.getElementById('modale-ligues');
@@ -1479,7 +1486,6 @@ async function creerNouvelleLigue(nomLigue) {
     let disponible = false;
     let tentatives = 0;
 
-    // Génère un code jusqu'à trouver un qui n'existe pas encore (très improbable en pratique)
     while (!disponible && tentatives < 8) {
         code = genererCodeLigue();
         const doc = await db.collection("ligues").doc(code).get();
