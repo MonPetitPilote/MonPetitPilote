@@ -885,7 +885,7 @@ async function chargerPronosticsUtilisateur() {
         appliquerSelectionEcurieVisuelle(id, "");
     });
 
-    if (doc.exists) {
+   if (doc.exists) {
         const data = doc.data();
         const listePilotes = data.classementPilotes || [];
         listePilotes.forEach((nom, idx) => {
@@ -901,6 +901,9 @@ async function chargerPronosticsUtilisateur() {
         appliquerSelectionEcurieVisuelle("ecurie-top-2", ecuriesTop[1] || "");
         appliquerSelectionEcurieVisuelle("ecurie-flop-1", ecuriesFlop[0] || "");
         appliquerSelectionEcurieVisuelle("ecurie-flop-2", ecuriesFlop[1] || "");
+        appliquerFormulaireBonus(data.predictionsBonus);
+    } else {
+        appliquerFormulaireBonus(null);
     }
     controlerDoublonsPilotes();
 }
@@ -936,6 +939,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
             document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "", 
             document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
         ],
+        predictionsBonus: lireFormulaireBonus(),
         dateEnregistrement: new Date()
     };
     
@@ -1408,7 +1412,10 @@ async function construireComparatifHtml(data) {
             ${ligneEcurie('⚠️ Écurie Flop 1', ecoFlop1, false)}
             ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, false)}
         </div>
-
+        <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🎲 Prédictions Bonus</h5>
+        <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
+            ${construireComparatifBonusHtml(data.predictionsBonus, histoDoc.exists ? histoDoc.data().bonusReel : null, dejaCalcule, bilan.detailBonus)}
+        </div>
         <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Grille Top 10 vs le résultat réel</h5>
         <ul style="margin: 0; padding: 0; list-style: none;">
             ${top10Html}
