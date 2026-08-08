@@ -459,4 +459,54 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
         width: 100%;
     }
 }
+
+/* ==========================================
+   MODULE PRÉDICTIONS BONUS
+   ========================================== */
+.toggle-oui-non {
+    display: flex;
+    gap: 8px;
+}
+.btn-toggle-bonus {
+    flex: 1;
+    background: #0f131c;
+    border: 1px solid #2d3954;
+    color: #a5b1c2;
+    padding: 8px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+.btn-toggle-bonus:hover {
+    border-color: #00d2d3;
+}
+.btn-toggle-bonus.actif[data-valeur="true"] {
+    background: rgba(76, 209, 55, 0.15);
+    border-color: #4cd137;
+    color: #4cd137;
+}
+.btn-toggle-bonus.actif[data-valeur="false"] {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+#input-nombre-dnf {
+    background-color: #0f131c;
+    color: #ffffff;
+    border: 1px solid #2d3954;
+    padding: 10px 14px;
+    border-radius: 6px;
+}
+
+/* Comparatif bonus dans le profil / prono d'un ami */
+.ligne-comparatif-bonus {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed #2d3954;
+    font-size: 0.9rem;
+}
  
