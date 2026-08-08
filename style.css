@@ -441,3 +441,22 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     border-color: #ff8000;
     color: #ff8000;
 }
+.section-ligue select {
+    background-color: #0f131c;
+    color: #ffffff;
+    border: 1px solid #2d3954;
+    padding: 10px 14px;
+    border-radius: 6px;
+}
+ 
+@media (max-width: 1024px) {
+    .section-ligue label {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+    #btn-gerer-ligues {
+        width: 100%;
+    }
+}
+ 
