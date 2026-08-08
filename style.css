@@ -368,6 +368,15 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     }
     .grid-media-zone { width: 120px; }
     .ecuries-block { grid-template-columns: 1fr !important; }
+
+    .section-ligue label {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+    #btn-gerer-ligues {
+        width: 100%;
+    }
 }
 
 /* ==========================================
@@ -441,6 +450,10 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     border-color: #ff8000;
     color: #ff8000;
 }
+
+/* ==========================================
+   MODULE LIGUES
+   ========================================== */
 .section-ligue select {
     background-color: #0f131c;
     color: #ffffff;
@@ -448,16 +461,9 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     padding: 10px 14px;
     border-radius: 6px;
 }
- 
-@media (max-width: 1024px) {
-    .section-ligue label {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 8px;
-    }
-    #btn-gerer-ligues {
-        width: 100%;
-    }
+.section-ligue select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* ==========================================
@@ -482,22 +488,16 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
 .btn-toggle-bonus:hover {
     border-color: #00d2d3;
 }
-.btn-toggle-bonus.actif[data-valeur="true"] {
-    background: rgba(76, 209, 55, 0.15);
-    border-color: #4cd137;
-    color: #4cd137;
-}
-.btn-toggle-bonus.actif[data-valeur="false"] {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: #ef4444;
-    color: #ef4444;
-}
 #input-nombre-dnf {
     background-color: #0f131c;
     color: #ffffff;
     border: 1px solid #2d3954;
     padding: 10px 14px;
     border-radius: 6px;
+}
+#input-nombre-dnf:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Comparatif bonus dans le profil / prono d'un ami */
@@ -509,4 +509,3 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     border-bottom: 1px dashed #2d3954;
     font-size: 0.9rem;
 }
- 
