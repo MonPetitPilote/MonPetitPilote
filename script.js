@@ -1409,6 +1409,240 @@ async function construireComparatifHtml(data) {
     `;
 }
 
+// ==========================================================
+// MODULE LIGUES / MINI-CHAMPIONNAT ENTRE GROUPES D'AMIS
+// ==========================================================
+
+const CODE_LIGUE_MONDIAL = "MONDIAL";
+let ligueActiveCourante = CODE_LIGUE_MONDIAL;
+let membresLigueActive = null; // Set des uid membres de la ligue active (null = pas encore chargé)
+
+const selectLigue = document.getElementById('select-ligue');
+const modaleLigues = document.getElementById('modale-ligues');
+
+function genererCodeLigue() {
+    const caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sans O/0/I/1 pour éviter les confusions
+    let suffixe = "";
+    for (let i = 0; i < 4; i++) {
+        suffixe += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return `F1-${suffixe}`;
+}
+
+// S'assure que la ligue "MONDIAL" existe (création paresseuse au premier appel)
+async function assurerExistenceLigueMondial() {
+    const ref = db.collection("ligues").doc(CODE_LIGUE_MONDIAL);
+    const doc = await ref.get();
+    if (!doc.exists) {
+        await ref.set({
+            nom: "🌍 Mondial",
+            code: CODE_LIGUE_MONDIAL,
+            createurUid: "system",
+            membres: [],
+            creeLe: new Date()
+        });
+    }
+    return ref;
+}
+
+// Ajoute l'utilisateur courant à une ligue (met à jour ligues.membres ET utilisateurs.ligues)
+async function rejoindreLigueParCode(code, opts = {}) {
+    const codeNormalise = code.trim().toUpperCase();
+    const ligueRef = db.collection("ligues").doc(codeNormalise);
+    const ligueDoc = await ligueRef.get();
+
+    if (!ligueDoc.exists) {
+        if (codeNormalise === CODE_LIGUE_MONDIAL) {
+            await assurerExistenceLigueMondial();
+        } else {
+            throw new Error("Ce code de ligue n'existe pas.");
+        }
+    }
+
+    await ligueRef.update({
+        membres: firebase.firestore.FieldValue.arrayUnion(utilisateurActuel.uid)
+    });
+
+    const userRef = db.collection("utilisateurs").doc(utilisateurActuel.uid);
+    await userRef.set({
+        ligues: firebase.firestore.FieldValue.arrayUnion(codeNormalise),
+        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+        ligueActive: opts.definirCommeActive === false ? firebase.firestore.FieldValue.delete() : codeNormalise
+    }, { merge: true });
+
+    return codeNormalise;
+}
+
+// Crée une nouvelle ligue et y ajoute automatiquement le créateur
+async function creerNouvelleLigue(nomLigue) {
+    let code;
+    let disponible = false;
+    let tentatives = 0;
+
+    // Génère un code jusqu'à trouver un qui n'existe pas encore (très improbable en pratique)
+    while (!disponible && tentatives < 8) {
+        code = genererCodeLigue();
+        const doc = await db.collection("ligues").doc(code).get();
+        disponible = !doc.exists;
+        tentatives++;
+    }
+    if (!disponible) throw new Error("Impossible de générer un code unique, réessaie.");
+
+    await db.collection("ligues").doc(code).set({
+        nom: nomLigue,
+        code: code,
+        createurUid: utilisateurActuel.uid,
+        membres: [utilisateurActuel.uid],
+        creeLe: new Date()
+    });
+
+    await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({
+        ligues: firebase.firestore.FieldValue.arrayUnion(code),
+        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+        ligueActive: code
+    }, { merge: true });
+
+    return code;
+}
+
+// Récupère la liste des ligues du joueur connecté + sa ligue active, et remplit le sélecteur
+async function chargerEtAfficherLigues() {
+    if (!utilisateurActuel || !selectLigue) return;
+
+    const userRef = db.collection("utilisateurs").doc(utilisateurActuel.uid);
+    let userDoc = await userRef.get();
+
+    // Première connexion : on crée son profil et on le rattache d'office au Mondial
+    if (!userDoc.exists || !(userDoc.data().ligues || []).length) {
+        await assurerExistenceLigueMondial();
+        await rejoindreLigueParCode(CODE_LIGUE_MONDIAL);
+        userDoc = await userRef.get();
+    }
+
+    const donneesUser = userDoc.data() || {};
+    const codesLigues = donneesUser.ligues || [CODE_LIGUE_MONDIAL];
+    ligueActiveCourante = donneesUser.ligueActive || codesLigues[0] || CODE_LIGUE_MONDIAL;
+
+    // Charge les infos (nom) de chaque ligue du joueur
+    const ligueDocs = await Promise.all(codesLigues.map(c => db.collection("ligues").doc(c).get()));
+
+    selectLigue.innerHTML = "";
+    ligueDocs.forEach(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const opt = document.createElement('option');
+        opt.value = data.code;
+        const nbMembres = (data.membres || []).length;
+        opt.innerText = `${data.nom} (${nbMembres} pilote${nbMembres > 1 ? 's' : ''}) — ${data.code}`;
+        selectLigue.appendChild(opt);
+    });
+    selectLigue.value = ligueActiveCourante;
+
+    await chargerMembresLigueActive();
+}
+
+// Charge le Set des uid membres de la ligue actuellement sélectionnée
+async function chargerMembresLigueActive() {
+    const doc = await db.collection("ligues").doc(ligueActiveCourante).get();
+    membresLigueActive = doc.exists ? new Set(doc.data().membres || []) : new Set();
+}
+
+// Changement de ligue active depuis le sélecteur
+selectLigue?.addEventListener('change', async () => {
+    ligueActiveCourante = selectLigue.value;
+    if (utilisateurActuel) {
+        await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({
+            ligueActive: ligueActiveCourante
+        }, { merge: true });
+    }
+    await chargerMembresLigueActive();
+    derniereStatsSaison = null; // force le recalcul filtré
+    chargerClassementGeneral();
+});
+
+// --- Ouverture / fermeture de la modale de gestion des ligues ---
+document.getElementById('btn-gerer-ligues')?.addEventListener('click', () => {
+    if (!utilisateurActuel) return afficherNotification("Connecte-toi d'abord pour gérer tes ligues !", "erreur");
+    document.getElementById('creer-ligue-erreur').innerText = "";
+    document.getElementById('rejoindre-ligue-erreur').innerText = "";
+    document.getElementById('ligue-code-partage').style.display = "none";
+    if (modaleLigues) modaleLigues.style.display = 'flex';
+});
+document.getElementById('btn-fermer-ligues')?.addEventListener('click', () => {
+    if (modaleLigues) modaleLigues.style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+    if (e.target === modaleLigues) modaleLigues.style.display = 'none';
+});
+
+// Onglets Créer / Rejoindre à l'intérieur de la modale ligues
+document.querySelectorAll('#modale-ligues .auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('#modale-ligues .auth-tab').forEach(t => t.classList.remove('actif'));
+        document.querySelectorAll('#modale-ligues .auth-panel').forEach(p => p.style.display = 'none');
+        tab.classList.add('actif');
+        document.getElementById(tab.dataset.panel).style.display = 'block';
+    });
+});
+
+// --- Bouton Créer ---
+document.getElementById('btn-creer-ligue')?.addEventListener('click', async () => {
+    const bouton = document.getElementById('btn-creer-ligue');
+    const erreurZone = document.getElementById('creer-ligue-erreur');
+    const nom = document.getElementById('nom-nouvelle-ligue').value.trim();
+
+    erreurZone.style.color = "#ef4444";
+    if (!nom) { erreurZone.innerText = "Donne un nom à ta ligue."; return; }
+
+    bouton.disabled = true;
+    bouton.innerText = "Création...";
+    try {
+        const code = await creerNouvelleLigue(nom);
+        document.getElementById('texte-code-partage').innerText = code;
+        document.getElementById('ligue-code-partage').style.display = "block";
+        afficherNotification(`🏆 Ligue "${nom}" créée !`, "succes");
+        await chargerEtAfficherLigues();
+        selectLigue.value = code;
+        derniereStatsSaison = null;
+        chargerClassementGeneral();
+    } catch (error) {
+        console.error("Erreur création ligue :", error);
+        erreurZone.innerText = error.message || "Erreur lors de la création.";
+    } finally {
+        bouton.disabled = false;
+        bouton.innerText = "🏁 Créer ma ligue";
+    }
+});
+
+// --- Bouton Rejoindre ---
+document.getElementById('btn-rejoindre-ligue')?.addEventListener('click', async () => {
+    const bouton = document.getElementById('btn-rejoindre-ligue');
+    const erreurZone = document.getElementById('rejoindre-ligue-erreur');
+    const code = document.getElementById('code-ligue-rejoindre').value.trim();
+
+    erreurZone.style.color = "#ef4444";
+    if (!code) { erreurZone.innerText = "Entre un code de ligue."; return; }
+
+    bouton.disabled = true;
+    bouton.innerText = "Connexion...";
+    try {
+        const codeFinal = await rejoindreLigueParCode(code);
+        afficherNotification(`🤝 Tu as rejoint la ligue ${codeFinal} !`, "succes");
+        document.getElementById('code-ligue-rejoindre').value = "";
+        await chargerEtAfficherLigues();
+        selectLigue.value = codeFinal;
+        derniereStatsSaison = null;
+        chargerClassementGeneral();
+        if (modaleLigues) modaleLigues.style.display = 'none';
+    } catch (error) {
+        console.error("Erreur pour rejoindre la ligue :", error);
+        erreurZone.innerText = error.message || "Erreur : code invalide.";
+    } finally {
+        bouton.disabled = false;
+        bouton.innerText = "🤝 Rejoindre la ligue";
+    }
+});
+
 // INITIALISATIONS DE BASE AU CHARGEMENT
 initialiserSelectCourse();
 initialiserPolePosition();
