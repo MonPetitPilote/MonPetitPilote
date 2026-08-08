@@ -14,7 +14,6 @@ const db = getFirestore();
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Compare deux noms sans tenir compte des accents ni de la casse
-// (ex : "Nico Hülkenberg" doit correspondre à "Nico Hulkenberg" renvoyé par l'API)
 function normaliserNom(texte) {
     return (texte || "")
         .normalize("NFD")
@@ -27,36 +26,14 @@ function nomsCorrespondent(nomA, nomB) {
     return a.includes(b) || b.includes(a);
 }
 
-
-// 🗓️ CALENDRIER ALIGNÉ AVEC OPENF1 (Sans les GP annulés)
 const calendrier2026 = {
-    "Melbourne": 1,
-    "Shanghai": 2,
-    "Suzuka": 3,
-    "Miami Gardens": 4,
-    "Montréal": 5,
-    "Monte Carlo": 6,
-    "Barcelona": 7,
-    "Spielberg": 8,
-    "Silverstone": 9,
-    "Spa-Francorchamps": 10,
-    "Budapest": 11,
-    "Zandvoort": 12,
-    "Monza": 13,
-    "Madrid": 14,
-    "Baku": 15,
-    "Marina Bay": 16,
-    "Austin": 17,
-    "Mexico City": 18,
-    "São Paulo": 19,
-    "Las Vegas": 20,
-    "Lusail": 21,
-    "Yas Marina": 22
+    "Melbourne": 1, "Shanghai": 2, "Suzuka": 3, "Miami Gardens": 4, "Montréal": 5,
+    "Monte Carlo": 6, "Barcelona": 7, "Spielberg": 8, "Silverstone": 9, "Spa-Francorchamps": 10,
+    "Budapest": 11, "Zandvoort": 12, "Monza": 13, "Madrid": 14, "Baku": 15,
+    "Marina Bay": 16, "Austin": 17, "Mexico City": 18, "São Paulo": 19, "Las Vegas": 20,
+    "Lusail": 21, "Yas Marina": 22
 };
-// 🏎️ TABLEAU DES PILOTES CENTRALISÉ ET SYNCHRONISÉ AVEC LE CRON
-// ==========================================
-// 🏎️ SOURCE DE VÉRITÉ : LES PILOTES OFFICIELS 2026 (Version épurée pour le Cron)
-// ==========================================
+
 const pilotesData = [
   { nom: "Max Verstappen", ecurie: "Red Bull", numero: "3", pays: "nl", couleur: "#3671C6" },
   { nom: "Isack Hadjar", ecurie: "Red Bull", numero: "6", pays: "fr", couleur: "#3671C6" },
@@ -81,6 +58,51 @@ const pilotesData = [
   { nom: "Valtteri Bottas", ecurie: "Cadillac", numero: "77", pays: "fi", couleur: "#900C3F" },
   { nom: "Sergio Pérez", ecurie: "Cadillac", numero: "11", pays: "mx", couleur: "#900C3F" }
 ];
+
+// ==========================================================
+// MODULE PRÉDICTIONS BONUS — détection via OpenF1
+// ==========================================================
+
+// Interroge race_control pour détecter Safety Car et Drapeau Rouge sur la session.
+// ⚠️ À VÉRIFIER : le format exact des champs "category"/"flag" peut varier.
+// Teste avec un session_key connu avant de faire confiance à ce résultat en prod.
+async function detecterEvenementsRaceControl(sessionKey) {
+    let safetyCar = false;
+    let drapeauRouge = false;
+
+    try {
+        const res = await axios.get(`https://api.openf1.org/v1/race_control?session_key=${sessionKey}`, { timeout: 10000 });
+        const messages = res.data || [];
+
+        messages.forEach(msg => {
+            const categorie = (msg.category || "").toLowerCase();
+            const flag = (msg.flag || "").toLowerCase();
+            const message = (msg.message || "").toLowerCase();
+
+            if (categorie === "safetycar" || message.includes("safety car")) {
+                safetyCar = true;
+            }
+            if (flag === "red" || message.includes("red flag")) {
+                drapeauRouge = true;
+            }
+        });
+    } catch (err) {
+        console.log(`ℹ️ Impossible de récupérer race_control pour la session ${sessionKey} : ${err.message}`);
+    }
+
+    return { safetyCar, drapeauRouge };
+}
+
+// Calcule le nombre de DNF par déduction : nombre de pilotes ayant pris le départ
+// (présents dans les données de position) moins nombre de pilotes classés dans le
+// top 10 officiel... en réalité on compare le nombre total de pilotes avec position
+// finale valide vs le nombre total de pilotes ayant starté la course.
+// ⚠️ APPROXIMATION : à valider sur un GP réel avant de faire confiance à 100%.
+function calculerNombreDNF(classementTrie, nombrePilotesAuDepart) {
+    const nombreClasses = classementTrie.length;
+    const dnf = Math.max(0, nombrePilotesAuDepart - nombreClasses);
+    return dnf;
+}
 
 async function demarrer() {
     console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mode Linéaire)...");
@@ -112,7 +134,6 @@ async function demarrer() {
 
             await sleep(2500);
 
-            // Anti-doublon
             const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
             const histoDoc = await histoRef.get();
             if (histoDoc.exists) {
@@ -120,7 +141,6 @@ async function demarrer() {
                 continue;
             }
 
-            // Pilotes
             console.log(`📡 Récupération des pilotes pour la session ${sessionKey}...`);
             let pilotesSession = [];
             try {
@@ -135,13 +155,11 @@ async function demarrer() {
                 const match = pilotesSession.find(p => String(p.driver_number) === String(driverNumber));
                 return match ? match.full_name : `Numéro ${driverNumber}`;
             };
-
             const trouverEcuriePilote = (driverNumber) => {
                 const match = pilotesSession.find(p => String(p.driver_number) === String(driverNumber));
                 return match ? match.team_name : "";
             };
 
-            // Positions Course
             let resPositions;
             try {
                 resPositions = await axios.get(`https://api.openf1.org/v1/position?session_key=${sessionKey}`, { timeout: 15000 });
@@ -175,7 +193,7 @@ async function demarrer() {
             const top10OfficielNoms = top10OfficielNums.map(num => trouverNomPilote(num));
             console.log(`📊 Top 10 réel extrait :`, top10OfficielNoms);
 
-            // 🎯 RECHERCHE DU POLEMAN CORRIGÉE (Prend la fin de la Q3, pas le début de la Q1)
+            // --- Poleman ---
             let polemanOfficiel = "Inconnu";
             try {
                 const resQualif = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location)}`, { timeout: 10000 });
@@ -184,7 +202,6 @@ async function demarrer() {
                     const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
                     
                     if (resPositionsQ.data && resPositionsQ.data.length > 0) {
-                        // Tri par date décroissante pour attraper le tout dernier P1 sous le drapeau à damier
                         const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
                         polemanOfficiel = trouverNomPilote(requetesTriees[0].driver_number);
                     }
@@ -196,9 +213,28 @@ async function demarrer() {
             const vainqueurNumero = top10OfficielNums[0];
             const ecurieGagnanteRelle = trouverEcuriePilote(vainqueurNumero);
 
-            console.log(`🎯 Résultats validés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
+            // --- BONUS : Safety Car / Drapeau Rouge ---
+            const evenements = await detecterEvenementsRaceControl(sessionKey);
 
-            // Traitement des pronostics
+            // --- BONUS : Nombre de DNF (approximation par déduction) ---
+            const nombrePilotesAuDepart = pilotesSession.length || classementTrie.length;
+            const nombreDNFReel = calculerNombreDNF(classementTrie, nombrePilotesAuDepart);
+
+            // --- BONUS : Poleman sur le podium ---
+            const top3Noms = top10OfficielNoms.slice(0, 3);
+            const polemanSurPodiumReel = polemanOfficiel !== "Inconnu" &&
+                top3Noms.some(nom => nomsCorrespondent(nom, polemanOfficiel));
+
+            const bonusReel = {
+                safetyCar: evenements.safetyCar,
+                drapeauRouge: evenements.drapeauRouge,
+                nombreDNF: nombreDNFReel,
+                polemanPodium: polemanSurPodiumReel
+            };
+
+            console.log(`🎯 Résultats validés : P1 = ${top10OfficielNoms[0]} (${ecurieGagnanteRelle}) | Pole = ${polemanOfficiel}`);
+            console.log(`🎲 Bonus réels :`, bonusReel);
+
             const querySnapshot = await db.collection("pronostics").where("course", "==", gpId).get();
             
             if (!querySnapshot.empty) {
@@ -214,11 +250,12 @@ async function demarrer() {
                             const polemanJoueur = pronoData.poleman || "";
                             const ecuriesTopJoueur = pronoData.ecuriesTop || [];
                             const ecuriesFlopJoueur = pronoData.ecuriesFlop || [];
+                            const bonusJoueur = pronoData.predictionsBonus || {};
                             const pseudo = pronoData.pseudo || "Anonyme";
 
-                            // Barème officiel F1 pour une position exacte (index 0 = P1 ... index 9 = P10)
                             const BAREME_POSITION_EXACTE = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-                            const POINTS_CONSOLATION = 2; // pilote dans le top10 réel mais pas à la bonne place
+                            const POINTS_CONSOLATION = 2;
+                            const POINTS_BONUS = 2;
 
                             let pointsDuTop10 = 0;
                             let bonusPole = 0;
@@ -256,16 +293,46 @@ async function demarrer() {
                                 if (ecuriesFlopJoueur.some(ef => checkEcurie(ef, ecurieGagnanteRelle))) pointsDesEcuries -= 5;
                             }
 
+                            // --- Calcul des points bonus ---
+                            let pointsDesBonus = 0;
+                            const detailBonus = [];
+
+                            const evaluerBonusBooleen = (cle) => {
+                                const reponduPar = bonusJoueur[cle];
+                                if (reponduPar === undefined || reponduPar === null) {
+                                    detailBonus.push({ cle, correct: false, points: 0 });
+                                    return;
+                                }
+                                const correct = reponduPar === bonusReel[cle];
+                                const points = correct ? POINTS_BONUS : 0;
+                                pointsDesBonus += points;
+                                detailBonus.push({ cle, correct, points });
+                            };
+
+                            evaluerBonusBooleen('safetyCar');
+                            evaluerBonusBooleen('drapeauRouge');
+                            evaluerBonusBooleen('polemanPodium');
+
+                            // Cas particulier : nombreDNF est un nombre, pas un booléen
+                            if (bonusJoueur.nombreDNF !== undefined && bonusJoueur.nombreDNF !== null) {
+                                const correct = Number(bonusJoueur.nombreDNF) === Number(bonusReel.nombreDNF);
+                                const points = correct ? POINTS_BONUS : 0;
+                                pointsDesBonus += points;
+                                detailBonus.push({ cle: 'nombreDNF', correct, points });
+                            } else {
+                                detailBonus.push({ cle: 'nombreDNF', correct: false, points: 0 });
+                            }
+
                             const jokerActif = pronoData.jokerUtilise === true;
                             const multiplicateur = jokerActif ? 2 : 1;
 
-                            // Si le Joker est actif, on double aussi le détail affiché au joueur
-                            // pour que la somme des sous-totaux corresponde toujours au total.
                             const pointsGrilleFinal = pointsDuTop10 * multiplicateur;
                             const pointsPoleFinal = bonusPole * multiplicateur;
                             const pointsEcuriesFinal = pointsDesEcuries * multiplicateur;
-                            const pointsGagnes = pointsGrilleFinal + pointsPoleFinal + pointsEcuriesFinal;
+                            const pointsBonusFinal = pointsDesBonus * multiplicateur;
+                            const pointsGagnes = pointsGrilleFinal + pointsPoleFinal + pointsEcuriesFinal + pointsBonusFinal;
                             const detailPilotesFinal = detailPilotes.map(d => ({ ...d, points: d.points * multiplicateur }));
+                            const detailBonusFinal = detailBonus.map(d => ({ ...d, points: d.points * multiplicateur }));
 
                             transaction.set(pronoRef, {
                                 bilanCalcul: {
@@ -273,13 +340,15 @@ async function demarrer() {
                                     pointsGrille: pointsGrilleFinal,
                                     pointsPole: pointsPoleFinal,
                                     pointsEcuries: pointsEcuriesFinal,
+                                    pointsBonus: pointsBonusFinal,
                                     detailPilotes: detailPilotesFinal,
+                                    detailBonus: detailBonusFinal,
                                     jokerApplique: pronoData.jokerUtilise || false,
                                     calculeLe: new Date()
                                 }
                             }, { merge: true });
                             
-                            console.log(`   ✅ Points mis à jour pour [${pseudo}] : +${pointsGagnes} pts`);
+                            console.log(`   ✅ Points mis à jour pour [${pseudo}] : +${pointsGagnes} pts (dont bonus: +${pointsBonusFinal})`);
                         });
                     } catch (txError) {
                         console.error(`   ❌ Erreur joueur ${doc.id}:`, txError.message);
@@ -287,7 +356,12 @@ async function demarrer() {
                 }
             }
 
-            await histoRef.set({ calculeLe: new Date(), top10: top10OfficielNoms, poleman: polemanOfficiel });
+            await histoRef.set({
+                calculeLe: new Date(),
+                top10: top10OfficielNoms,
+                poleman: polemanOfficiel,
+                bonusReel: bonusReel
+            });
             console.log(`ℹ️ GP ${round} (${session.location}) archivé.`);
         }
         console.log("\n🤖 Fin du traitement global de la saison 2026.");
