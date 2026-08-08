@@ -885,7 +885,7 @@ async function chargerPronosticsUtilisateur() {
         appliquerSelectionEcurieVisuelle(id, "");
     });
 
-   if (doc.exists) {
+    if (doc.exists) {
         const data = doc.data();
         const listePilotes = data.classementPilotes || [];
         listePilotes.forEach((nom, idx) => {
@@ -1303,12 +1303,14 @@ async function construireComparatifHtml(data) {
     let officialTop10 = [];
     let officialPoleman = null;
     let ecurieGagnante = null;
+    let bonusReelGP = null; // rempli si un résultat officiel existe pour ce GP
     try {
         const histoDoc = await db.collection("historique_courses").doc(`2026_${roundNumero}`).get();
         if (histoDoc.exists) {
             const histo = histoDoc.data();
             officialTop10 = histo.top10 || [];
             officialPoleman = histo.poleman || null;
+            bonusReelGP = histo.bonusReel || null;
             if (officialTop10[0]) {
                 const local = trouverPiloteLocalParNom(officialTop10[0]);
                 ecurieGagnante = local ? local.ecurie : null;
@@ -1412,10 +1414,12 @@ async function construireComparatifHtml(data) {
             ${ligneEcurie('⚠️ Écurie Flop 1', ecoFlop1, false)}
             ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, false)}
         </div>
+
         <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🎲 Prédictions Bonus</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
-            ${construireComparatifBonusHtml(data.predictionsBonus, histoDoc.exists ? histoDoc.data().bonusReel : null, dejaCalcule, bilan.detailBonus)}
+            ${construireComparatifBonusHtml(data.predictionsBonus, bonusReelGP, dejaCalcule, bilan.detailBonus)}
         </div>
+
         <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🏎️ Grille Top 10 vs le résultat réel</h5>
         <ul style="margin: 0; padding: 0; list-style: none;">
             ${top10Html}
@@ -1655,6 +1659,122 @@ document.getElementById('btn-rejoindre-ligue')?.addEventListener('click', async 
         bouton.innerText = "🤝 Rejoindre la ligue";
     }
 });
+
+// ==========================================================
+// MODULE PRÉDICTIONS BONUS PAR WEEK-END
+// ==========================================================
+
+const LABELS_BONUS = {
+    safetyCar: { icone: "🚨", nom: "Safety Car" },
+    drapeauRouge: { icone: "🔴", nom: "Drapeau Rouge" },
+    nombreDNF: { icone: "💥", nom: "Nombre de DNF" },
+    polemanPodium: { icone: "🏆", nom: "Poleman sur le podium" }
+};
+
+// Applique (ou retire) le style visuel "actif" à un bouton OUI/NON.
+// Fait directement en JS (style inline) plutôt qu'en classe CSS, pour éviter
+// tout conflit de spécificité avec d'autres règles déjà présentes sur le site.
+function definirStyleBoutonBonus(bouton, actif) {
+    const estOui = bouton.getAttribute('data-valeur') === 'true';
+    if (actif) {
+        bouton.style.background = estOui ? 'rgba(76, 209, 55, 0.15)' : 'rgba(239, 68, 68, 0.15)';
+        bouton.style.borderColor = estOui ? '#4cd137' : '#ef4444';
+        bouton.style.color = estOui ? '#4cd137' : '#ef4444';
+        bouton.setAttribute('data-actif', 'true');
+    } else {
+        bouton.style.background = '#0f131c';
+        bouton.style.borderColor = '#2d3954';
+        bouton.style.color = '#a5b1c2';
+        bouton.setAttribute('data-actif', 'false');
+    }
+}
+
+// Gestion des boutons OUI/NON via délégation d'événements sur document :
+// fonctionne même si les boutons sont recréés dynamiquement.
+document.addEventListener('click', (e) => {
+    const bouton = e.target.closest('.btn-toggle-bonus');
+    if (!bouton) return;
+
+    const groupe = bouton.closest('.toggle-oui-non');
+    if (!groupe) return;
+
+    groupe.querySelectorAll('.btn-toggle-bonus').forEach(b => definirStyleBoutonBonus(b, false));
+    definirStyleBoutonBonus(bouton, true);
+});
+
+// Lit l'état actuel des 4 prédictions bonus depuis le formulaire
+function lireFormulaireBonus() {
+    const lireToggle = (cle) => {
+        const groupe = document.querySelector(`.toggle-oui-non[data-bonus="${cle}"]`);
+        const actif = groupe?.querySelector('.btn-toggle-bonus[data-actif="true"]');
+        return actif ? actif.getAttribute('data-valeur') === 'true' : null;
+    };
+
+    const inputDNF = document.getElementById('input-nombre-dnf');
+    const nombreDNF = inputDNF && inputDNF.value !== '' ? parseInt(inputDNF.value) : null;
+
+    return {
+        safetyCar: lireToggle('safetyCar'),
+        drapeauRouge: lireToggle('drapeauRouge'),
+        nombreDNF: nombreDNF,
+        polemanPodium: lireToggle('polemanPodium')
+    };
+}
+
+// Réinitialise / pré-remplit le formulaire bonus à partir de données sauvegardées
+function appliquerFormulaireBonus(predictionsBonus) {
+    const donnees = predictionsBonus || {};
+
+    ['safetyCar', 'drapeauRouge', 'polemanPodium'].forEach(cle => {
+        const groupe = document.querySelector(`.toggle-oui-non[data-bonus="${cle}"]`);
+        if (!groupe) return;
+        groupe.querySelectorAll('.btn-toggle-bonus').forEach(b => definirStyleBoutonBonus(b, false));
+        if (donnees[cle] === true || donnees[cle] === false) {
+            const bouton = groupe.querySelector(`.btn-toggle-bonus[data-valeur="${donnees[cle]}"]`);
+            if (bouton) definirStyleBoutonBonus(bouton, true);
+        }
+    });
+
+    const inputDNF = document.getElementById('input-nombre-dnf');
+    if (inputDNF) inputDNF.value = (donnees.nombreDNF !== undefined && donnees.nombreDNF !== null) ? donnees.nombreDNF : '';
+}
+
+// Construit le petit bloc HTML de comparatif "bonus" utilisé dans construireComparatifHtml()
+function construireComparatifBonusHtml(predictionsJoueur, bonusReel, dejaCalcule, bilanBonusDetail) {
+    const donnees = predictionsJoueur || {};
+    const reel = bonusReel || {};
+
+    const rendreLigne = (cle) => {
+        const info = LABELS_BONUS[cle];
+        const valeurJoueur = donnees[cle];
+        const aRepondu = valeurJoueur !== undefined && valeurJoueur !== null;
+
+        const formatValeur = (v) => {
+            if (v === null || v === undefined) return '—';
+            if (typeof v === 'boolean') return v ? 'Oui' : 'Non';
+            return v;
+        };
+
+        if (!aRepondu) {
+            return `<div class="ligne-comparatif-bonus"><span>${info.icone} ${info.nom} :</span><span style="color:#616e88;">Non répondu</span></div>`;
+        }
+
+        if (!dejaCalcule) {
+            return `<div class="ligne-comparatif-bonus"><span>${info.icone} ${info.nom} :</span><span><strong>${formatValeur(valeurJoueur)}</strong></span></div>`;
+        }
+
+        const detail = (bilanBonusDetail || []).find(d => d.cle === cle);
+        const correct = detail ? detail.correct : false;
+        const points = detail ? detail.points : 0;
+
+        return `<div class="ligne-comparatif-bonus">
+            <span>${correct ? '✅' : '❌'} ${info.icone} ${info.nom} : <strong>${formatValeur(valeurJoueur)}</strong></span>
+            <span style="color:#616e88; font-size:0.8rem;">Réel : ${formatValeur(reel[cle])} &nbsp;(+${points} pts)</span>
+        </div>`;
+    };
+
+    return Object.keys(LABELS_BONUS).map(rendreLigne).join('');
+}
 
 // INITIALISATIONS DE BASE AU CHARGEMENT
 initialiserSelectCourse();
