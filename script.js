@@ -672,6 +672,15 @@ function appliquerVerrouillage(verrouille) {
     const btnAleatoire = document.getElementById('btn-aleatoire');
     if (btnAleatoire) btnAleatoire.disabled = verrouille;
 
+    // Verrouillage des prédictions bonus du week-end (Safety Car, DNF, etc.)
+    const inputDNF = document.getElementById('input-nombre-dnf');
+    if (inputDNF) inputDNF.disabled = verrouille;
+    const sectionBonus = document.querySelector('.section-predictions-bonus');
+    if (sectionBonus) {
+        sectionBonus.style.pointerEvents = verrouille ? 'none' : 'auto';
+        sectionBonus.style.opacity = verrouille ? '0.5' : '1';
+    }
+
     const btnValider = document.getElementById('btn-valider');
     if (btnValider) {
         btnValider.disabled = verrouille;
@@ -1708,6 +1717,7 @@ function definirStyleBoutonBonus(bouton, actif) {
 document.addEventListener('click', (e) => {
     const bouton = e.target.closest('.btn-toggle-bonus');
     if (!bouton) return;
+    if (bouton.closest('.section-predictions-bonus')?.style.pointerEvents === 'none') return;
 
     const groupe = bouton.closest('.toggle-oui-non');
     if (!groupe) return;
