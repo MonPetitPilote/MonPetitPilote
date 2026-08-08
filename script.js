@@ -974,6 +974,7 @@ async function calculerStatistiquesEtClassement() {
         new Promise((_, reject) => setTimeout(() => reject(new Error("Délai dépassé : impossible de contacter la base de données (vérifiez votre connexion ou désactivez un éventuel bloqueur de publicités).")), 10000))
     ]);
     const parJoueur = {}; // uid -> statistiques du joueur
+    const historiqueParJoueur = {}; // uid -> { round: pointsGagnesCeGP } (pour le graphique d'évolution)
 
     snapshot.forEach(doc => {
         const data = doc.data();
@@ -999,6 +1000,14 @@ async function calculerStatistiquesEtClassement() {
 
         stats.points += Number(bilan.pointsTotaux) || 0;
         if (bilan.pointsPole > 0) stats.nbPoleCorrecte++;
+
+        // Historique pour le graphique d'évolution : points gagnés à CE round précis
+        const courseIdString = data.course || "";
+        const round = parseInt(courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString);
+        if (!isNaN(round)) {
+            if (!historiqueParJoueur[uid]) historiqueParJoueur[uid] = {};
+            historiqueParJoueur[uid][round] = Number(bilan.pointsTotaux) || 0;
+        }
 
         const detail = bilan.detailPilotes || [];
         if (detail[0] && detail[0].statut === "position_exacte") stats.nbVictoireCorrecte++;
@@ -1033,7 +1042,15 @@ async function calculerStatistiquesEtClassement() {
         folie: leaders('nbCoupDeFolie')
     };
 
-    return { joueurs, badges };
+    // Liste triée de tous les rounds ayant au moins un GP calculé pour au moins
+    // un joueur de la ligue active — sert d'axe X commun pour le graphique d'évolution.
+    const setRounds = new Set();
+    Object.values(historiqueParJoueur).forEach(rounds => {
+        Object.keys(rounds).forEach(r => setRounds.add(Number(r)));
+    });
+    const roundsCalcules = Array.from(setRounds).sort((a, b) => a - b);
+
+    return { joueurs, badges, historiqueParJoueur, roundsCalcules };
 }
 
 // Construit les icônes de badges à afficher à côté du nom d'un joueur
@@ -1052,13 +1069,14 @@ async function chargerClassementGeneral() {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
     
     try {
-        const { joueurs, badges } = await calculerStatistiquesEtClassement();
-        derniereStatsSaison = { joueurs, badges };
+        const { joueurs, badges, historiqueParJoueur, roundsCalcules } = await calculerStatistiquesEtClassement();
+        derniereStatsSaison = { joueurs, badges, historiqueParJoueur, roundsCalcules };
 
         liste.innerHTML = "";
 
         if (joueurs.length === 0) {
             liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
+            afficherGraphiqueEvolution(null, null); // masque le graphique s'il n'y a personne
             return;
         }
 
@@ -1078,10 +1096,112 @@ async function chargerClassementGeneral() {
             pos++;
         });
 
+        afficherGraphiqueEvolution(joueurs, { historiqueParJoueur, roundsCalcules });
+
     } catch (error) {
         console.error("Erreur lors du calcul du classement général cumulé :", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
+}
+
+// ==========================================================
+// MODULE GRAPHIQUE D'ÉVOLUTION DU CLASSEMENT DANS LE TEMPS
+// ==========================================================
+
+let instanceGraphiqueClassement = null; // référence Chart.js pour pouvoir la détruire/recréer
+
+const PALETTE_GRAPHIQUE = ['#ff8000', '#00d2d3', '#4cd137', '#ef4444', '#3b82f6', '#a855f7'];
+
+// Construit et affiche (ou masque) le graphique d'évolution du cumul de points.
+// joueurs : liste triée par points (déjà filtrée par ligue active)
+// donnees : { historiqueParJoueur, roundsCalcules } ou null pour masquer le graphique
+function afficherGraphiqueEvolution(joueurs, donnees) {
+    const bloc = document.getElementById('bloc-graphique-evolution');
+    const canvas = document.getElementById('graphique-classement');
+    if (!bloc || !canvas) return;
+
+    if (typeof Chart === 'undefined') {
+        console.warn("Chart.js n'est pas chargé — impossible d'afficher le graphique d'évolution.");
+        bloc.style.display = 'none';
+        return;
+    }
+
+    if (!joueurs || !donnees || !donnees.roundsCalcules || donnees.roundsCalcules.length === 0) {
+        bloc.style.display = 'none';
+        if (instanceGraphiqueClassement) {
+            instanceGraphiqueClassement.destroy();
+            instanceGraphiqueClassement = null;
+        }
+        return;
+    }
+
+    bloc.style.display = 'block';
+
+    const { historiqueParJoueur, roundsCalcules } = donnees;
+    const topJoueurs = joueurs.slice(0, 6);
+
+    const labels = roundsCalcules.map(r => {
+        const gp = calendrier2026.find(g => g.round === r);
+        return gp ? gp.circuit : `R${r}`;
+    });
+
+    const datasets = topJoueurs.map((j, idx) => {
+        let cumul = 0;
+        const points = roundsCalcules.map(r => {
+            const gainCeRound = historiqueParJoueur[j.uid]?.[r];
+            if (gainCeRound !== undefined) cumul += gainCeRound;
+            return cumul;
+        });
+        const couleur = PALETTE_GRAPHIQUE[idx % PALETTE_GRAPHIQUE.length];
+        return {
+            label: j.pseudo,
+            data: points,
+            borderColor: couleur,
+            backgroundColor: couleur + '22',
+            tension: 0.3,
+            fill: false,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2
+        };
+    });
+
+    if (instanceGraphiqueClassement) {
+        instanceGraphiqueClassement.destroy();
+    }
+
+    instanceGraphiqueClassement = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 12 }
+                },
+                tooltip: {
+                    backgroundColor: '#1f293d',
+                    borderColor: '#2f3e56',
+                    borderWidth: 1,
+                    titleColor: '#ff8000',
+                    bodyColor: '#e2e8f0'
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#a5b1c2', font: { size: 10 } },
+                    grid: { color: '#242f46' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#a5b1c2', font: { size: 10 } },
+                    grid: { color: '#242f46' }
+                }
+            }
+        }
+    });
 }
 
 // Affiche, dans une modale, le pronostic d'un autre joueur pour le GP actuellement
