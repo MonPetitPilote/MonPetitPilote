@@ -118,6 +118,48 @@
                 </div>
 
                 <div id="countdown-pronos" style="display: none;"></div>
+                <div class="section-ligue" style="margin-top: 18px; background: #1b2436; padding: 14px; border-radius: 8px; border-left: 4px solid #ff8000;">
+    <label for="select-ligue" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; color: #ff8000;">
+        <span>🏆 MA LIGUE ACTIVE :</span>
+        <button id="btn-gerer-ligues" type="button" style="background: #3b4b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">⚙️ CRÉER / REJOINDRE</button>
+    </label>
+    <select id="select-ligue" style="width: 100%; box-sizing: border-box;"></select>
+</div>
+ 
+<!-- Modale Créer / Rejoindre une ligue -->
+<div id="modale-ligues" class="modal-back" style="display: none;">
+    <div class="modal-content-inner" style="max-width: 420px;">
+        <span class="close-modal" id="btn-fermer-ligues">&times;</span>
+ 
+        <div class="auth-tabs">
+            <button type="button" class="auth-tab actif" id="tab-creer-ligue" data-panel="panneau-creer-ligue">Créer une ligue</button>
+            <button type="button" class="auth-tab" id="tab-rejoindre-ligue" data-panel="panneau-rejoindre-ligue">Rejoindre</button>
+        </div>
+ 
+        <div id="panneau-creer-ligue" class="auth-panel">
+            <div class="auth-field">
+                <label for="nom-nouvelle-ligue">Nom de la ligue</label>
+                <input type="text" id="nom-nouvelle-ligue" placeholder="Ex : Les Copains du Garage">
+            </div>
+            <div id="creer-ligue-erreur" class="auth-erreur"></div>
+            <button id="btn-creer-ligue" class="btn-auth-principal">🏁 Créer ma ligue</button>
+        </div>
+ 
+        <div id="panneau-rejoindre-ligue" class="auth-panel" style="display: none;">
+            <div class="auth-field">
+                <label for="code-ligue-rejoindre">Code d'invitation</label>
+                <input type="text" id="code-ligue-rejoindre" placeholder="Ex : F1-X7K2" style="text-transform: uppercase;">
+            </div>
+            <div id="rejoindre-ligue-erreur" class="auth-erreur"></div>
+            <button id="btn-rejoindre-ligue" class="btn-auth-principal">🤝 Rejoindre la ligue</button>
+        </div>
+ 
+        <div id="ligue-code-partage" style="display:none; margin-top: 16px; background: #111622; border: 1px dashed #ff8000; border-radius: 8px; padding: 12px; text-align: center;">
+            <p style="margin: 0 0 6px 0; font-size: 0.8rem; color: #a5b1c2;">Partage ce code à tes potes :</p>
+            <p style="margin: 0; font-size: 1.4rem; font-weight: 900; color: #ff8000; letter-spacing: 2px;" id="texte-code-partage"></p>
+        </div>
+    </div>
+</div>
 
                 <div class="section-pole" style="margin-top: 20px; background: #222c43; padding: 15px; border-radius: 8px; border-left: 4px solid #00d2d3;">
                     <label for="select-pole" style="color: #00d2d3; display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label>
