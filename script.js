@@ -506,6 +506,7 @@ auth.onAuthStateChanged(async (user) => {
         if(zoneDeconnecte) zoneDeconnecte.style.display = 'block';
         if(zoneConnecte) zoneConnecte.style.display = 'none';
         membresLigueActive = null;
+        afficherEtatLigueDeconnecte();
         derniereStatsSaison = null;
         chargerClassementGeneral();
     }
@@ -1554,6 +1555,7 @@ async function chargerEtAfficherLigues() {
         selectLigue.appendChild(opt);
     });
     selectLigue.value = ligueActiveCourante;
+    reactiverSelectLigue();
 
     await chargerMembresLigueActive();
 }
@@ -1578,6 +1580,18 @@ selectLigue?.addEventListener('change', async () => {
 });
 
 // --- Ouverture / fermeture de la modale de gestion des ligues ---
+// Affiche un état "verrouillé" dans le sélecteur de ligue pour un visiteur non connecté
+function afficherEtatLigueDeconnecte() {
+    if (!selectLigue) return;
+    selectLigue.innerHTML = '<option value="">🔒 Connecte-toi pour retrouver ta ligue</option>';
+    selectLigue.disabled = true;
+}
+
+// Réactive normalement le sélecteur (appelé une fois les ligues chargées après connexion)
+function reactiverSelectLigue() {
+    if (selectLigue) selectLigue.disabled = false;
+}
+
 document.getElementById('btn-gerer-ligues')?.addEventListener('click', () => {
     if (!utilisateurActuel) return afficherNotification("Connecte-toi d'abord pour gérer tes ligues !", "erreur");
     document.getElementById('creer-ligue-erreur').innerText = "";
@@ -1777,6 +1791,7 @@ function construireComparatifBonusHtml(predictionsJoueur, bonusReel, dejaCalcule
 }
 
 // INITIALISATIONS DE BASE AU CHARGEMENT
+afficherEtatLigueDeconnecte(); // état par défaut tant que Firebase n'a pas confirmé la connexion
 initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
