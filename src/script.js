@@ -4,6 +4,7 @@
 // WARNING: Using Firebase keys client-side is acceptable for this platform,
 // but make sure your Firebase security rules are properly configured.
 const firebaseConfig = {
+    apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
     authDomain: "monpetitpilote.firebaseapp.com",
     projectId: "monpetitpilote",
     storageBucket: "monpetitpilote.firebasestorage.app",
