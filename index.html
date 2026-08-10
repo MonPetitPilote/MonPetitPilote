@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MON PETIT PILOTE - F1 2026</title>
+    <title>MON PETIT PILOTE ENTRE POTES - F1 2026</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff8000">
     <link rel="icon" href="images/favicon.png">
@@ -49,7 +49,7 @@
                     <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">🔑 CONNEXION / INSCRIPTION</button>
                 </div>
                 <div id="auth-connecte" class="auth-connecte" style="display: none;">
-                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL / MES STATS </button>
+                    <button id="btn-vers-profil" class="btn-header-auth btn-conn">👤 MON PROFIL</button>
                     <div class="user-profile-badge">
                         <span class="status-dot"></span>
                         <span id="nom-utilisateur">...</span>
@@ -130,6 +130,24 @@
             </div>
         </div>
 
+        <!-- BANNIÈRE CITATION DU PADDOCK -->
+        <div id="bloc-citation-paddock" style="background: linear-gradient(135deg, #141c2e 0%, #0f131c 100%); border: 1px solid #2d3954; border-left: 4px solid #ff8000; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div style="flex: 1; min-width: 260px;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: bold; color: #ff8000; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <span>🎙️ LA CITATION DU PADDOCK</span>
+                </div>
+                <div id="texte-citation-paddock" style="font-size: 0.95rem; font-weight: bold; color: #f8fafc; font-style: italic;">
+                    "MONSIEUR PIERRE GASLY ! ACCÉLÈRE, ACCÉLÈRE !"
+                </div>
+                <div id="auteur-citation-paddock" style="font-size: 0.8rem; color: #a5b1c2; margin-top: 2px;">
+                    — Julien Fébreau (GP d'Italie 2020)
+                </div>
+            </div>
+            <button id="btn-changer-citation" style="background: rgba(255,128,0,0.15); color: #ff8000; border: 1px solid #ff8000; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                🎲 Autre citation
+            </button>
+        </div>
+
         <div id="main-content-pronos" class="main-layout">
             
             <div class="colonne-gauche">
@@ -163,7 +181,7 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 10px;">
-                    <h2 style="margin: 0; font-size: 1.3rem;" id="titre-grille">🏆 TA GRILLE D'ARRIVÉE TOP 10 :</h2>
+                    <h2 style="margin: 0; font-size: 1.3rem;" id="titre-grille">🏆 TA GRILLE DE DÉPART TOP 10 :</h2>
                     <button id="btn-aleatoire" style="background: #3b4b6b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: background 0.2s;">🎲 PRONO ALÉATOIRE</button>
                 </div>
 
@@ -180,7 +198,7 @@
             <div class="colonne-droite" style="display: flex; flex-direction: column; gap: 30px;">
                 
                 <div class="bloc-sub-droite">
-                    <h2>📊 CLASSEMENT GÉNÉRAL DES JOUEURS :</h2>
+                    <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
                     <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">💡 Cliquez sur un joueur pour voir son pronostic sur le GP sélectionné ci-contre (visible une fois le week-end terminé).</p>
                     <div class="tableau-scores">
                         <div class="entete-scores">
