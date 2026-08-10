@@ -80,6 +80,32 @@
                     </div>
                 </div>
 
+                <!-- GRAPHIQUE D'ÉVOLUTION DU CLASSEMENT -->
+                <div id="bloc-graphique-evolution" style="background: #0f131c; padding: 20px; border-radius: 10px; border: 1px solid #2d3954; margin-bottom: 20px; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #242f46; padding-bottom: 12px;">
+                        <div>
+                            <h3 style="margin: 0; color: #ff8000; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                                📈 ÉVOLUTION DU CLASSEMENT AU FIL DE LA SAISON
+                            </h3>
+                            <p id="graphique-sous-titre" style="font-size: 0.8rem; color: #a5b1c2; margin: 4px 0 0 0;">
+                                Comparatif de vos performances avec vos rivaux directs au classement.
+                            </p>
+                        </div>
+                        <div style="display: flex; background: #141c2e; padding: 3px; border-radius: 6px; border: 1px solid #2d3954;">
+                            <button id="btn-graph-mode-points" class="btn-graph-mode active" style="background: #ff8000; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                                📊 Points Cumulés
+                            </button>
+                            <button id="btn-graph-mode-rang" class="btn-graph-mode" style="background: transparent; color: #a5b1c2; border: none; padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                                🏆 Position (#1, #2...)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="position: relative; height: 280px; width: 100%;">
+                        <canvas id="graphique-classement"></canvas>
+                    </div>
+                </div>
+
                 <div class="main-layout profil-layout">
                     <div class="profil-analyse-col">
                         <h3 style="margin-top: 0; color: #00d2d3;">📊 Analyse du GP sélectionné</h3>
@@ -414,6 +440,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>
