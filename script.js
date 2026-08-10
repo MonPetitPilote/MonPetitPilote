@@ -970,13 +970,13 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
 
 /* ==========================================================================
    BANQUE DE CITATIONS CULTES & PUNCHLINES DU MOTORSPORT
-   Structure simple et épurée : pour ajouter des citations plus tard,
-   il suffit d'ajouter une ligne { texte: "...", auteur: "..." }
+   Pour ajouter des citations à la main plus tard, il suffit d'insérer :
+   { texte: "Ta phrase culte ici", auteur: "Auteur / Film ou GP" },
    ========================================================================== */
 const CITATIONS_MOTORSPORT = [
-    // --- COMMENTATEURS & CANAL+ (Julien Fébreau, Franck Montagny...) ---
+    // --- COMMENTATEURS & CANAL+ (Julien Fébreau, Franck Montagny, Jacques Villeneuve...) ---
     { texte: "MONSIEUR PIERRE GASLY ! ACCÉLÈRE, ACCÉLÈRE !", auteur: "Julien Fébreau (GP d'Italie 2020)" },
-    { texte: "IL L'A FAIT ! VICTOIRE DE PIERRE GASLY ! ELLE EST LÀÀÀÀ !", auteur: "Julien Fébreau (Monza)" },
+    { texte: "IL L'A FAIT ! VICTOIRE DE PIERRE GASLY ! ELLE EST LÀÀÀÀ !", auteur: "Julien Fébreau (Monza 2020)" },
     { texte: "Rendez-vous au premier virage... Et montez le volume !", auteur: "Julien Fébreau (Canal+)" },
     { texte: "Pas de consigne d'équipe aujourd'hui, c'est tapis volant plein gaz !", auteur: "Julien Fébreau" },
     { texte: "Ça passe à zéro millimètre, c'est du grand art !", auteur: "Julien Fébreau" },
@@ -985,20 +985,38 @@ const CITATIONS_MOTORSPORT = [
     { texte: "On s'écarte, on s'écarte ! Ça va frotter de la tôle !", auteur: "Julien Fébreau" },
     { texte: "Quel freinage d'outre-tombe ! Incroyable !", auteur: "Julien Fébreau" },
     { texte: "C'est l'extérieur du siècle !", auteur: "Franck Montagny" },
+    { texte: "Là il a posé le cerveau sur le tableau de bord !", auteur: "Julien Fébreau" },
 
-    // --- FILMS CULTES (Cars, Jour de Tonnerre, Fast & Furious, Rush, Ford v Ferrari, Taxi...) ---
+    // --- FILMS CULTES (Cars, Jour de Tonnerre, Fast & Furious, Rush, Ford v Ferrari, Taxi, Retour vers le Futur, Tokyo Drift, Gran Turismo...) ---
     { texte: "Je suis la vitesse. 1 gagnant, 19 perdants. Je mange des perdants au petit-déjeuner.", auteur: "Flash McQueen (Cars)" },
     { texte: "Ka-Chow !", auteur: "Flash McQueen (Cars)" },
+    { texte: "Tourne à gauche pour aller à droite !", auteur: "Doc Hudson (Cars)" },
+    { texte: "C'est juste une coupe en plastique. Ce qui compte, c'est la piste !", auteur: "Doc Hudson (Cars)" },
     { texte: "Les pneus, c'est surfait. Ce dont j'ai besoin, c'est du feu dans le moteur !", auteur: "Cole Trickle (Jour de Tonnerre)" },
     { texte: "Tu ne peux pas dépasser par l'extérieur à Daytona ! — Regarde-moi bien !", auteur: "Cole Trickle (Jour de Tonnerre)" },
     { texte: "Tu n'as pas besoin de freiner si tu n'as pas peur.", auteur: "Jour de Tonnerre" },
     { texte: "Je vis ma vie 400 mètres à la fois.", auteur: "Dominic Toretto (Fast & Furious)" },
     { texte: "Peu importe si tu gagnes d'un centimètre ou d'un kilomètre, gagner c'est gagner.", auteur: "Dominic Toretto (Fast & Furious)" },
+    { texte: "Tu n'as failli me battre du tout, t'as même pas eu ta voiture !", auteur: "Dominic Toretto (Fast & Furious)" },
+    { texte: "Le Nitro ! Tu l'as déclenché beaucoup trop tôt !", auteur: "Brian O'Conner (Fast & Furious)" },
+    { texte: "Si tu n'as pas de dérapage dans les veines, tu n'as rien à faire ici !", auteur: "Han (Tokyo Drift)" },
+    { texte: "Un vrai pilote ne cherche pas le drame, il cherche la trajectoire parfaite.", auteur: "Han (Tokyo Drift)" },
     { texte: "L'important c'est pas d'être le plus rapide en ligne droite, c'est d'être le plus timbré en virage !", auteur: "Michel Vaillant" },
     { texte: "La voiture est parfaite, l'équipe est parfaite... il reste plus qu'à piloter !", auteur: "James Hunt (Rush)" },
+    { texte: "Les hommes aiment les femmes, mais plus encore, les hommes aiment les voitures.", auteur: "James Hunt (Rush)" },
+    { texte: "Un pilote est un être humain prêt à risquer sa vie pour 0.1 seconde.", auteur: "Niki Lauda (Rush)" },
     { texte: "À 7 000 tours/minute, tout s'efface. La machine devient légère, le temps s'arrête.", auteur: "Carroll Shelby (Ford v Ferrari)" },
+    { texte: "On ne peut pas acheter la passion. Mais on peut fabriquer une voiture qui la suscite.", auteur: "Ken Miles (Ford v Ferrari)" },
+    { texte: "Va dire à Enzo Ferrari que sa boîte fabrique des jolies voitures, mais de la camelote !", auteur: "Carroll Shelby (Ford v Ferrari)" },
+    { texte: "Faut qu'on passe à 2.21 Gigowatts !", auteur: "Doc Brown (Retour vers le Futur)" },
+    { texte: "Faut-il vraiment des routes là où l'on va ?", auteur: "Doc Brown (Retour vers le Futur)" },
+    { texte: "Si mes calculs sont exacts, lorsque ce petit bijou atteindra 88 miles à l'heure...", auteur: "Doc Brown (Retour vers le Futur)" },
     { texte: "Alerte bavure ! Alerte bavure !", auteur: "Daniel Morales (Taxi)" },
     { texte: "Abonnement TGV ou coupe de champagne au stand ?", auteur: "Taxi 2" },
+    { texte: "Ninjas, couteaux suisses, chronomètres... C'est bon, on est en Suisse !", auteur: "Taxi 3" },
+    { texte: "Tu connais la différence entre un joueur de console et un vrai pilote ? Le risque réél.", auteur: "Jack Salter (Gran Turismo)" },
+    { texte: "Conduis avec ta tête, pas avec tes nerfs !", auteur: "Gran Turismo (Le Film)" },
+    { texte: "Rien n'est plus beau que le rugissement d'un V12 au petit matin.", auteur: "Driven (Film)" },
 
     // --- LÉGENDES DU PILOTAGE & CONSTRUCTEURS ---
     { texte: "Si tout semble sous contrôle, c'est que vous n'allez pas assez vite.", auteur: "Mario Andretti" },
@@ -1008,12 +1026,15 @@ const CITATIONS_MOTORSPORT = [
     { texte: "Si vous voulez gagner, embauchez un Finlandais.", auteur: "Keke Rosberg" },
     { texte: "Pour finir premier, il faut d'abord finir.", auteur: "Enzo Ferrari" },
     { texte: "Les voitures d'abord, les hommes ensuite.", auteur: "Enzo Ferrari" },
+    { texte: "L'aérodynamique, c'est pour les gens qui ne savent pas construire de moteurs.", auteur: "Enzo Ferrari" },
     { texte: "Je pilote avec ma tête, pas seulement avec mes pieds.", auteur: "Alain Prost" },
+    { texte: "Quand tu es à fond, n'hésite pas à passer la vitesse supérieure.", auteur: "Michael Schumacher" },
 
     // --- RADIOS F1 ET PUNCHLINES RADIO CULTES ---
     { texte: "Leave me alone, I know what I'm doing!", auteur: "Kimi Räikkönen (Radio F1)" },
     { texte: "Bwoah... it's the same for everyone.", auteur: "Kimi Räikkönen" },
     { texte: "I was having a shit.", auteur: "Kimi Räikkönen (Interviews F1)" },
+    { texte: "Give me the steering wheel! Hey! Steering wheel!", auteur: "Kimi Räikkönen (Radio Baku)" },
     { texte: "Smooooooth Operatrrr... Smooooth Operator!", auteur: "Carlos Sainz (Radio F1)" },
     { texte: "Stop inventing! Stop inventing!", auteur: "Carlos Sainz (Radio F1)" },
     { texte: "Simply lovely! What a race!", auteur: "Max Verstappen (Radio F1)" },
