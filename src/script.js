@@ -1231,7 +1231,7 @@ function badgesHtmlPourJoueur(uid, badges) {
 }
 
 async function chargerClassementGeneral() {
-    const liste = document.getElementById('liste-classement') || document.getElementById('ranking-list') || document.querySelector('.liste-classement'); 
+    const liste = document.getElementById('liste-classement'); 
     if(!liste) return;
     
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
