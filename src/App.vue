@@ -1,5 +1,5 @@
 <template>
-  <div id="conteneur-notifications"></div>
+  <NotificationsComponent />
   <div class="container">
     <Logo />
     <TopHeader />
@@ -21,6 +21,7 @@ import FriendsRanking from "./components/FriendsRanking.vue";
 import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
 import MainContent from "./components/MainContent.vue";
+import NotificationsComponent from "./components/NotificationsComponent.vue";
 import QuoteComponent from "./components/QuoteComponent.vue";
 import ResultsModal from "./components/ResultsModal.vue";
 import RulesModal from "./components/RulesModal.vue";
