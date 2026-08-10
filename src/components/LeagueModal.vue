@@ -1,0 +1,88 @@
+<template>
+  <div id="modale-ligues" class="modal-back" style="display: none">
+    <div class="modal-content-inner" style="max-width: 420px">
+      <span class="close-modal" id="btn-fermer-ligues">&times;</span>
+
+      <div class="auth-tabs">
+        <button
+          type="button"
+          class="auth-tab actif"
+          id="tab-creer-ligue"
+          data-panel="panneau-creer-ligue"
+        >
+          Créer une ligue
+        </button>
+        <button
+          type="button"
+          class="auth-tab"
+          id="tab-rejoindre-ligue"
+          data-panel="panneau-rejoindre-ligue"
+        >
+          Rejoindre
+        </button>
+      </div>
+
+      <div id="panneau-creer-ligue" class="auth-panel">
+        <div class="auth-field">
+          <label for="nom-nouvelle-ligue">Nom de la ligue</label>
+          <input
+            type="text"
+            id="nom-nouvelle-ligue"
+            placeholder="Ex : Les Copains du Garage"
+          />
+        </div>
+        <div id="creer-ligue-erreur" class="auth-erreur"></div>
+        <button id="btn-creer-ligue" class="btn-auth-principal">
+          🏁 Créer ma ligue
+        </button>
+      </div>
+
+      <div
+        id="panneau-rejoindre-ligue"
+        class="auth-panel"
+        style="display: none"
+      >
+        <div class="auth-field">
+          <label for="code-ligue-rejoindre">Code d'invitation</label>
+          <input
+            type="text"
+            id="code-ligue-rejoindre"
+            placeholder="Ex : F1-X7K2"
+            style="text-transform: uppercase"
+          />
+        </div>
+        <div id="rejoindre-ligue-erreur" class="auth-erreur"></div>
+        <button id="btn-rejoindre-ligue" class="btn-auth-principal">
+          🤝 Rejoindre la ligue
+        </button>
+      </div>
+
+      <div
+        id="ligue-code-partage"
+        style="
+          display: none;
+          margin-top: 16px;
+          background: #111622;
+          border: 1px dashed #ff8000;
+          border-radius: 8px;
+          padding: 12px;
+          text-align: center;
+        "
+      >
+        <p style="margin: 0 0 6px 0; font-size: 0.8rem; color: #a5b1c2">
+          Partage ce code à tes potes :
+        </p>
+        <p
+          style="
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ff8000;
+            letter-spacing: 2px;
+          "
+          id="texte-code-partage"
+        ></p>
+      </div>
+    </div>
+  </div>
+</template>
