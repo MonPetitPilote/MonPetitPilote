@@ -1109,10 +1109,11 @@ async function chargerClassementGeneral() {
 // ==========================================================
 
 let instanceGraphiqueClassement = null; // référence Chart.js pour pouvoir la détruire/recréer
+let modeGraphiqueActuel = 'points'; // 'points' ou 'rang'
 
-const PALETTE_GRAPHIQUE = ['#ff8000', '#00d2d3', '#4cd137', '#ef4444', '#3b82f6', '#a855f7'];
+const PALETTE_GRAPHIQUE = ['#00d2d3', '#4cd137', '#3b82f6', '#a855f7', '#f1c40f', '#e84118'];
 
-// Construit et affiche (ou masque) le graphique d'évolution du cumul de points.
+// Construit et affiche (ou masque) le graphique d'évolution du classement dans le temps.
 // joueurs : liste triée par points (déjà filtrée par ligue active)
 // donnees : { historiqueParJoueur, roundsCalcules } ou null pour masquer le graphique
 function afficherGraphiqueEvolution(joueurs, donnees) {
@@ -1126,7 +1127,7 @@ function afficherGraphiqueEvolution(joueurs, donnees) {
         return;
     }
 
-    if (!joueurs || !donnees || !donnees.roundsCalcules || donnees.roundsCalcules.length === 0) {
+    if (!joueurs || joueurs.length === 0 || !donnees || !donnees.roundsCalcules || donnees.roundsCalcules.length === 0) {
         bloc.style.display = 'none';
         if (instanceGraphiqueClassement) {
             instanceGraphiqueClassement.destroy();
@@ -1138,37 +1139,99 @@ function afficherGraphiqueEvolution(joueurs, donnees) {
     bloc.style.display = 'block';
 
     const { historiqueParJoueur, roundsCalcules } = donnees;
-    const topJoueurs = joueurs.slice(0, 6);
 
-    const labels = roundsCalcules.map(r => {
-        const gp = calendrier2026.find(g => g.round === r);
-        return gp ? gp.circuit : `R${r}`;
+    // 1. Calculer les points cumulés et les positions à chaque round pour TOUS les joueurs
+    const pointsCumulesParJoueur = {}; // uid -> { round: cumulPoints }
+    const rangParJoueur = {}; // round -> { uid: rank }
+
+    roundsCalcules.forEach((r, roundIdx) => {
+        const scoresAtRound = [];
+        joueurs.forEach(j => {
+            let cumul = 0;
+            for (let i = 0; i <= roundIdx; i++) {
+                const rd = roundsCalcules[i];
+                cumul += (historiqueParJoueur[j.uid]?.[rd] || 0);
+            }
+            if (!pointsCumulesParJoueur[j.uid]) pointsCumulesParJoueur[j.uid] = {};
+            pointsCumulesParJoueur[j.uid][r] = cumul;
+            scoresAtRound.push({ uid: j.uid, points: cumul });
+        });
+
+        // Tri pour obtenir le rang exact (#1, #2...) à ce round
+        scoresAtRound.sort((a, b) => b.points - a.points);
+        scoresAtRound.forEach((item, index) => {
+            if (!rangParJoueur[r]) rangParJoueur[r] = {};
+            rangParJoueur[r][item.uid] = index + 1;
+        });
     });
 
-    const datasets = topJoueurs.map((j, idx) => {
-        let cumul = 0;
-        const points = roundsCalcules.map(r => {
-            const gainCeRound = historiqueParJoueur[j.uid]?.[r];
-            if (gainCeRound !== undefined) cumul += gainCeRound;
-            return cumul;
+    // 2. Sélectionner le joueur connecté et les rivaux proches (2 au-dessus, 2 en-dessous, ou 4 en-dessous si 1er)
+    const currentUid = utilisateurActuel ? utilisateurActuel.uid : null;
+    let userIdx = currentUid ? joueurs.findIndex(j => j.uid === currentUid) : 0;
+    if (userIdx === -1) userIdx = 0;
+
+    let startIndex = Math.max(0, userIdx - 2);
+    let endIndex = startIndex + 5;
+    if (endIndex > joueurs.length) {
+        endIndex = joueurs.length;
+        startIndex = Math.max(0, endIndex - 5);
+    }
+
+    const joueursCibles = joueurs.slice(startIndex, endIndex);
+
+    // Labels des axes X (Noms des circuits/GP)
+    const labels = roundsCalcules.map(r => {
+        const gp = calendrier2026.find(g => g.round === r);
+        return gp ? (gp.circuit || gp.nom) : `R${r}`;
+    });
+
+    // 3. Préparer les datasets Chart.js
+    let paletteIdx = 0;
+    const datasets = joueursCibles.map(j => {
+        const isUser = (currentUid && j.uid === currentUid);
+        const positionActuelle = joueurs.findIndex(item => item.uid === j.uid) + 1;
+
+        let couleur;
+        if (isUser) {
+            couleur = '#ff8000'; // Couleur orange vif distinctive pour l'utilisateur connecté
+        } else {
+            couleur = PALETTE_GRAPHIQUE[paletteIdx % PALETTE_GRAPHIQUE.length];
+            paletteIdx++;
+        }
+
+        const dataPoints = roundsCalcules.map(r => {
+            if (modeGraphiqueActuel === 'rang') {
+                return rangParJoueur[r]?.[j.uid] || positionActuelle;
+            } else {
+                return pointsCumulesParJoueur[j.uid]?.[r] || 0;
+            }
         });
-        const couleur = PALETTE_GRAPHIQUE[idx % PALETTE_GRAPHIQUE.length];
+
+        const labelTexte = isUser 
+            ? `⭐ ${j.pseudo} (Toi - #${positionActuelle})` 
+            : `${j.pseudo} (#${positionActuelle})`;
+
         return {
-            label: j.pseudo,
-            data: points,
+            label: labelTexte,
+            data: dataPoints,
             borderColor: couleur,
             backgroundColor: couleur + '22',
-            tension: 0.3,
+            tension: 0.25,
             fill: false,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2
+            borderWidth: isUser ? 3.5 : 2,
+            pointRadius: isUser ? 5 : 3,
+            pointHoverRadius: isUser ? 8 : 6,
+            pointBackgroundColor: couleur,
+            uidJoueur: j.uid,
+            pseudoJoueur: j.pseudo
         };
     });
 
     if (instanceGraphiqueClassement) {
         instanceGraphiqueClassement.destroy();
     }
+
+    const isModeRang = (modeGraphiqueActuel === 'rang');
 
     instanceGraphiqueClassement = new Chart(canvas.getContext('2d'), {
         type: 'line',
@@ -1179,14 +1242,36 @@ function afficherGraphiqueEvolution(joueurs, donnees) {
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: {
-                    labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 12 }
+                    position: 'top',
+                    labels: {
+                        color: '#e2e8f0',
+                        font: { size: 11, weight: 'bold' },
+                        boxWidth: 12,
+                        padding: 12
+                    }
                 },
                 tooltip: {
                     backgroundColor: '#1f293d',
                     borderColor: '#2f3e56',
                     borderWidth: 1,
                     titleColor: '#ff8000',
-                    bodyColor: '#e2e8f0'
+                    bodyColor: '#e2e8f0',
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            const uid = context.dataset.uidJoueur;
+                            const pseudo = context.dataset.pseudoJoueur;
+                            const round = roundsCalcules[context.dataIndex];
+                            const pts = pointsCumulesParJoueur[uid]?.[round] || 0;
+                            const rank = rangParJoueur[round]?.[uid] || '?';
+                            
+                            if (isModeRang) {
+                                return ` ${pseudo} : Position #${context.parsed.y} (${pts} pts)`;
+                            } else {
+                                return ` ${pseudo} : ${pts} pts (Rang #${rank})`;
+                            }
+                        }
+                    }
                 }
             },
             scales: {
@@ -1195,9 +1280,25 @@ function afficherGraphiqueEvolution(joueurs, donnees) {
                     grid: { color: '#242f46' }
                 },
                 y: {
-                    beginAtZero: true,
-                    ticks: { color: '#a5b1c2', font: { size: 10 } },
-                    grid: { color: '#242f46' }
+                    reverse: isModeRang, // Inverser l'axe Y si mode rang (#1 en haut)
+                    beginAtZero: !isModeRang,
+                    suggestedMin: isModeRang ? 1 : 0,
+                    suggestedMax: isModeRang ? Math.max(5, joueurs.length) : undefined,
+                    ticks: {
+                        color: '#a5b1c2',
+                        font: { size: 10 },
+                        stepSize: isModeRang ? 1 : undefined,
+                        callback: function(value) {
+                            return isModeRang ? '#' + value : value;
+                        }
+                    },
+                    grid: { color: '#242f46' },
+                    title: {
+                        display: true,
+                        text: isModeRang ? 'Position au classement (#1 en haut)' : 'Points Cumulés',
+                        color: '#a5b1c2',
+                        font: { size: 11, weight: 'bold' }
+                    }
                 }
             }
         }
@@ -1357,6 +1458,11 @@ if(btnVersProfil) {
         sectionProfil.style.display = 'block';
         chargerHistoriqueProfil();
         afficherBadgesProfil();
+        if (derniereStatsSaison) {
+            afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison);
+        } else {
+            chargerClassementGeneral();
+        }
     });
 }
 
@@ -1936,3 +2042,29 @@ if(selectCourse) {
         verifierVerrouillageCourse();
     });
 }
+
+// ÉCOUTEURS POUR LE MODE DU GRAPHIQUE D'ÉVOLUTION (POINTS / RANG)
+document.getElementById('btn-graph-mode-points')?.addEventListener('click', () => {
+    modeGraphiqueActuel = 'points';
+    const btnPts = document.getElementById('btn-graph-mode-points');
+    const btnRang = document.getElementById('btn-graph-mode-rang');
+    if (btnPts) { btnPts.style.background = '#ff8000'; btnPts.style.color = '#fff'; }
+    if (btnRang) { btnRang.style.background = 'transparent'; btnRang.style.color = '#a5b1c2'; }
+    
+    if (derniereStatsSaison) {
+        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison);
+    }
+});
+
+document.getElementById('btn-graph-mode-rang')?.addEventListener('click', () => {
+    modeGraphiqueActuel = 'rang';
+    const btnPts = document.getElementById('btn-graph-mode-points');
+    const btnRang = document.getElementById('btn-graph-mode-rang');
+    if (btnPts) { btnPts.style.background = 'transparent'; btnPts.style.color = '#a5b1c2'; }
+    if (btnRang) { btnRang.style.background = '#00d2d3'; btnRang.style.color = '#000'; }
+    
+    if (derniereStatsSaison) {
+        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison);
+    }
+});
+
