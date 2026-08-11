@@ -1,7 +1,7 @@
 <template>
-  <div id="modale-connexion" class="modal-back" style="display: none">
+  <div id="modale-connexion" class="modal-back">
     <div class="modal-content-inner modal-auth">
-      <span class="close-modal" id="btn-fermer-connexion">&times;</span>
+      <span class="close-modal" id="btn-fermer-connexion" @click="$emit('close-connection-modal')">&times;</span>
 
       <div class="auth-tabs">
         <button

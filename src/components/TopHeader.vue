@@ -11,7 +11,7 @@
 
     <div id="bloc-auth-header" class="bloc-auth-header">
       <div id="auth-deconnecte" class="auth-deconnecte">
-        <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc">
+        <button id="btn-ouvrir-connexion" class="btn-header-auth btn-insc" @click="$emit('open-connection-modal')">
           🔑 CONNEXION / INSCRIPTION
         </button>
       </div>

@@ -2,11 +2,11 @@
   <NotificationsComponent />
   <div class="container">
     <Logo />
-    <TopHeader />
+    <TopHeader @open-connection-modal="isConnectionModalOpen = true" />
     <WorkspaceProfile />
     <QuoteComponent />
     <MainContent />
-    <ConnectionModal />
+    <ConnectionModal v-show="isConnectionModalOpen" @close-connection-modal="isConnectionModalOpen = false"/>
     <ResultsModal />
     <FriendModal />
     <LeagueModal />
@@ -15,6 +15,7 @@
 </template>
 
 <script setup lang="js">
+import { ref } from "vue";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
@@ -26,4 +27,6 @@ import ResultsModal from "./components/ResultsModal.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
+
+const isConnectionModalOpen = ref(false);
 </script>

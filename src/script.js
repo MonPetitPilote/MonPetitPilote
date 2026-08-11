@@ -233,18 +233,9 @@ function ouvrirModaleConnexion() {
     if (!modaleConnexion) return;
     document.getElementById('login-erreur').innerText = "";
     document.getElementById('inscription-erreur').innerText = "";
-    modaleConnexion.style.display = 'flex';
-}
-
-function fermerModaleConnexion() {
-    if (modaleConnexion) modaleConnexion.style.display = 'none';
 }
 
 document.getElementById('btn-ouvrir-connexion')?.addEventListener('click', ouvrirModaleConnexion);
-document.getElementById('btn-fermer-connexion')?.addEventListener('click', fermerModaleConnexion);
-window.addEventListener('click', (e) => {
-    if (e.target === modaleConnexion) fermerModaleConnexion();
-});
 
 // Bascule entre l'onglet "Connexion" et l'onglet "Inscription"
 document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -293,7 +284,6 @@ document.getElementById('btn-connexion')?.addEventListener('click', async () => 
     bouton.innerText = "Connexion en cours...";
     try {
         await auth.signInWithEmailAndPassword(email, mdp);
-        fermerModaleConnexion();
     } catch (error) {
         erreurZone.innerText = traduireErreurFirebase(error);
     } finally {
