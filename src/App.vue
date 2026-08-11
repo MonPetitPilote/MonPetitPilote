@@ -17,7 +17,6 @@
 <script setup lang="js">
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
-import FriendsRanking from "./components/FriendsRanking.vue";
 import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
 import MainContent from "./components/MainContent.vue";

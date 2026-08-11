@@ -362,3 +362,7 @@
     </div>
   </div>
 </template>
+
+<script setup lang="js">
+import FriendsRanking from "./FriendsRanking.vue";
+</script>
