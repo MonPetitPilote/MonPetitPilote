@@ -267,31 +267,6 @@ document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
         });
 });
 
-// --- Connexion ---
-document.getElementById('btn-connexion')?.addEventListener('click', async () => {
-    const bouton = document.getElementById('btn-connexion');
-    const erreurZone = document.getElementById('login-erreur');
-    const email = document.getElementById('login-email').value.trim();
-    const mdp = document.getElementById('login-mdp').value;
-
-    erreurZone.style.color = "#ef4444";
-    if (!email || !mdp) {
-        erreurZone.innerText = "Merci de renseigner ton email et ton mot de passe.";
-        return;
-    }
-
-    bouton.disabled = true;
-    bouton.innerText = "Connexion en cours...";
-    try {
-        await auth.signInWithEmailAndPassword(email, mdp);
-    } catch (error) {
-        erreurZone.innerText = traduireErreurFirebase(error);
-    } finally {
-        bouton.disabled = false;
-        bouton.innerText = "🏁 Se connecter";
-    }
-});
-
 // ==========================================
 // 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================

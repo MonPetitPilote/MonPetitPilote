@@ -31,6 +31,7 @@
         <div class="auth-field">
           <label for="login-email">Email</label>
           <input
+            v-model="email"
             type="email"
             id="login-email"
             placeholder="toi@exemple.com"
@@ -40,15 +41,21 @@
         <div class="auth-field">
           <label for="login-mdp">Mot de passe</label>
           <input
+            v-model="password"
             type="password"
             id="login-mdp"
             placeholder="••••••••"
             autocomplete="current-password"
           />
         </div>
-        <div id="login-erreur" class="auth-erreur"></div>
-        <button id="btn-connexion" class="inscription-button">
-          🏁 Se connecter
+        <div id="login-erreur" class="auth-erreur">{{ errorString }}</div>
+        <button
+          id="btn-connexion"
+          class="inscription-button"
+          :disabled="isConnectionButtonDisabled"
+          @click="handleConnectionClick"
+        >
+          {{ connectionButtonLabel }}
         </button>
         <a href="#" id="link-recup-mdp">Mot de passe oublié ?</a>
       </div>
@@ -102,15 +109,38 @@
 
 <script setup lang="js">
 import { ref } from "vue";
-import { createUser } from "../services";
+import { createUser, logIn } from "../services";
 import { translateFirebaseError } from "../utils";
+
+const emit = defineEmits(["close-connection-modal"]);
 
 const nickname = ref("");
 const email = ref("");
 const password = ref("");
 const isInscriptionButtonDisabled = ref(false);
 const inscriptionButtonLabel = ref("🏆 Créer mon compte");
+const isConnectionButtonDisabled = ref(false);
+const connectionButtonLabel = ref("🏁 Se connecter");
 const errorString = ref("");
+
+async function handleConnectionClick() {
+  if (!email.value || !password.value) {
+    errorString.value = "Merci de renseigner ton email et ton mot de passe.";
+    return;
+  }
+
+  isConnectionButtonDisabled.value = true;
+  connectionButtonLabel.value = "Connexion en cours...";
+  try {
+    await logIn(email.value, password.value);
+    emit("close-connection-modal");
+  } catch (error) {
+    errorString.value = translateFirebaseError(error);
+  } finally {
+    isConnectionButtonDisabled.value = false;
+    connectionButtonLabel.value = "🏁 Se connecter";
+  }
+}
 
 async function handleInscriptionClick() {
   if (!nickname.value) {
