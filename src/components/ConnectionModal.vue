@@ -59,6 +59,7 @@
             >Pseudo (affiché aux autres joueurs)</label
           >
           <input
+            v-model="nickname"
             type="text"
             id="inscription-pseudo"
             placeholder="Ton pseudo entre potes"
@@ -68,6 +69,7 @@
         <div class="auth-field">
           <label for="inscription-email">Email</label>
           <input
+            v-model="email"
             type="email"
             id="inscription-email"
             placeholder="toi@exemple.com"
@@ -77,20 +79,68 @@
         <div class="auth-field">
           <label for="inscription-mdp">Mot de passe</label>
           <input
+            v-model="password"
             type="password"
             id="inscription-mdp"
             placeholder="6 caractères minimum"
             autocomplete="new-password"
           />
         </div>
-        <div id="inscription-erreur" class="auth-erreur"></div>
-        <button id="btn-inscription" class="inscription-button">
-          🏆 Créer mon compte
+        <div id="inscription-erreur" class="auth-erreur">{{ errorString }}</div>
+        <button
+          id="btn-inscription"
+          class="inscription-button"
+          :disabled="isInscriptionButtonDisabled"
+          @click="handleInscriptionClick"
+        >
+          {{ inscriptionButtonLabel }}
         </button>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="js">
+import { ref } from "vue";
+import { createUser } from "../services";
+import { translateFirebaseError } from "../utils";
+
+const nickname = ref("");
+const email = ref("");
+const password = ref("");
+const isInscriptionButtonDisabled = ref(false);
+const inscriptionButtonLabel = ref("🏆 Créer mon compte");
+const errorString = ref("");
+
+async function handleInscriptionClick() {
+  if (!nickname.value) {
+    errorString.value =
+      "Le pseudo est obligatoire (c'est ce que verront tes potes).";
+    return;
+  }
+  if (!email.value || !password.value) {
+    errorString.value = "Merci de renseigner un email et un mot de passe.";
+    return;
+  }
+
+  isInscriptionButtonDisabled.value = true;
+  inscriptionButtonLabel.value = "Création en cours...";
+  try {
+    const resultat = await createUser(email.value, password.value);
+    await resultat.user.updateProfile({ displayName: nickname.value });
+
+    const nomUserSpan = document.getElementById("nom-utilisateur");
+    if (nomUserSpan)
+      nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${nickname.value}</span>`;
+  } catch (error) {
+    errorString.value = translateFirebaseError(error);
+    console.error(error);
+  } finally {
+    isInscriptionButtonDisabled.value = false;
+    inscriptionButtonLabel.value = "🏆 Créer mon compte";
+  }
+}
+</script>
 
 <style lang="css" scoped>
 .inscription-button {

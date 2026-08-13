@@ -292,40 +292,6 @@ document.getElementById('btn-connexion')?.addEventListener('click', async () => 
     }
 });
 
-// --- Inscription ---
-document.getElementById('btn-inscription')?.addEventListener('click', async () => {
-    const bouton = document.getElementById('btn-inscription');
-    const erreurZone = document.getElementById('inscription-erreur');
-    const pseudo = document.getElementById('inscription-pseudo').value.trim();
-    const email = document.getElementById('inscription-email').value.trim();
-    const mdp = document.getElementById('inscription-mdp').value;
-
-    if (!pseudo) {
-        erreurZone.innerText = "Le pseudo est obligatoire (c'est ce que verront tes potes).";
-        return;
-    }
-    if (!email || !mdp) {
-        erreurZone.innerText = "Merci de renseigner un email et un mot de passe.";
-        return;
-    }
-
-    bouton.disabled = true;
-    bouton.innerText = "Création en cours...";
-    try {
-        const resultat = await auth.createUserWithEmailAndPassword(email, mdp);
-        await resultat.user.updateProfile({ displayName: pseudo });
-        // Met à jour l'affichage tout de suite, sans recharger la page
-        const nomUserSpan = document.getElementById('nom-utilisateur');
-        if (nomUserSpan) nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${pseudo}</span>`;
-        fermerModaleConnexion();
-    } catch (error) {
-        erreurZone.innerText = traduireErreurFirebase(error);
-    } finally {
-        bouton.disabled = false;
-        bouton.innerText = "🏆 Créer mon compte";
-    }
-});
-
 // ==========================================
 // 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================
