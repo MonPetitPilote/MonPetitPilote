@@ -210,24 +210,6 @@ function injecterStylesResponsifsGlobaux() {
     document.head.appendChild(styleSheet);
 }
 
-// ==========================================
-// 2. GESTION DE LA MODALE DE CONNEXION / INSCRIPTION
-// ==========================================
-const modaleConnexion = document.getElementById('modale-connexion');
-
-// Traduit les codes d'erreur Firebase en messages compréhensibles
-function traduireErreurFirebase(error) {
-    switch (error.code) {
-        case 'auth/invalid-email': return "L'adresse email n'est pas valide.";
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential': return "Email ou mot de passe incorrect.";
-        case 'auth/email-already-in-use': return "Un compte existe déjà avec cet email.";
-        case 'auth/weak-password': return "Le mot de passe doit contenir au moins 6 caractères.";
-        default: return "Une erreur est survenue : " + error.message;
-    }
-}
-
 // Bascule entre l'onglet "Connexion" et l'onglet "Inscription"
 document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', () => {
