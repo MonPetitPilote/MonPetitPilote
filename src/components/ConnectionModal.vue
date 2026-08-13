@@ -109,7 +109,7 @@
 
 <script setup lang="js">
 import { ref } from "vue";
-import { createUser, logIn } from "../services";
+import { createUser, logIn, updateUserNickname } from "../services";
 import { translateFirebaseError } from "../utils";
 
 const emit = defineEmits(["close-connection-modal"]);
@@ -157,7 +157,7 @@ async function handleInscriptionClick() {
   inscriptionButtonLabel.value = "Création en cours...";
   try {
     const resultat = await createUser(email.value, password.value);
-    await resultat.user.updateProfile({ displayName: nickname.value });
+    await updateUserNickname(nickname.value);
 
     const nomUserSpan = document.getElementById("nom-utilisateur");
     if (nomUserSpan) {

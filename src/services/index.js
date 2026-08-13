@@ -1,1 +1,1 @@
-export { createUser, logIn } from "./users";
+export { createUser, logIn, updateUserNickname } from "./users";
