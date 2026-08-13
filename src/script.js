@@ -141,75 +141,6 @@ const calendrier2026 = [
     { round: 22, nom: "Grand Prix d'Abou Dhabi", circuit: "Yas Marina", pays: "Émirats Arabes Unis", date: "2026-12-06" }
 ];
 
-// Injection dynamique des styles responsifs globaux (Grille, Connexion, Titre & Règlement)
-function injecterStylesResponsifsGlobaux() {
-    if (document.getElementById('f1-responsive-styles-globaux')) return;
-    
-    const styleSheet = document.createElement("style");
-    styleSheet.id = "f1-responsive-styles-globaux";
-    styleSheet.innerText = `
-        .grid-slot {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            gap: 8px !important;
-            width: 100% !important;
-            margin-bottom: 12px !important;
-        }
-
-        @media (max-width: 576px) {
-            #grille-pronos {
-                display: block !important;
-                width: 100% !important;
-            }
-            .grid-slot {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 0px !important;
-                margin-bottom: 18px !important;
-                background: transparent !important;
-                padding: 0 !important;
-                border: none !important;
-                box-shadow: none !important;
-            }
-            .grid-pos-badge {
-                width: 100% !important;
-                max-width: 100% !important;
-                height: 28px !important;
-                font-size: 13px !important;
-                border-radius: 8px 8px 0 0 !important;
-                justify-content: center !important;
-                padding: 0 !important;
-                text-align: center !important;
-            }
-            .grid-card-f1 {
-                width: 100% !important;
-                border-radius: 0 0 8px 8px !important;
-                padding: 8px 12px !important;
-                box-sizing: border-box !important;
-            }
-            .grid-select-paddock {
-                font-size: 14px !important;
-            }
-            .driver-team-text {
-                font-size: 10px !important;
-            }
-            .driver-num-text {
-                font-size: 18px !important;
-            }
-            .driver-portrait-container {
-                width: 60px !important;
-                height: 60px !important;
-            }
-            .car-bg-image {
-                max-width: 65% !important;
-                height: 120% !important;
-            }
-        }
-    `;
-    document.head.appendChild(styleSheet);
-}
-
 // ==========================================
 // 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================
@@ -306,87 +237,12 @@ auth.onAuthStateChanged(async (user) => {
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 function creerLaGrilleDeDepartTV() {
-    const conteneurGrille = document.getElementById('grille-pronos');
-    if (!conteneurGrille) return;
-    conteneurGrille.innerHTML = "";
-
-    injecterStylesResponsifsGlobaux();
-
-    for (let i = 1; i <= 10; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'grid-slot';
-        slot.setAttribute('data-pos', i);
-
-        let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE</option>`;
-        pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom}</option>`; });
-
-        slot.innerHTML = `
-            <div class="grid-pos-badge" id="badge-p${i}" style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; background: #232e44; color: #fff; flex-shrink: 0; transition: background 0.3s ease;">P${i}</div>
-            <div class="grid-card-f1" id="card-f1-p${i}" style="position: relative; background: #1f293d; display: flex; align-items: center; flex-grow: 1; min-width: 0; border-radius: 8px; border: 1px solid #2f3e56; padding: 6px 12px; transition: all 0.3s ease; overflow: hidden;">
-                <img id="car-grid-p${i}" class="car-bg-image" src="" style="position: absolute; right: 0; bottom: -10px; height: 120%; max-width: 60%; opacity: 0.35; object-fit: contain; pointer-events: none; z-index: 1;">
-                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; position: relative; z-index: 2;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                        <span id="num-f1-p${i}" class="driver-num-text" style="font-size: 20px; font-weight: 900; color: rgba(255,255,255,0.15); font-style: italic;">--</span>
-                        <img id="flag-f1-p${i}" src="" style="width: 18px; border-radius: 2px; display: none;">
-                    </div>
-                    <select id="select-grid-p${i}" class="grid-select-paddock" data-position="${i}" style="width: 100%; background: transparent; border: none; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; padding: 2px 0; outline: none; text-overflow: ellipsis;">
-                        ${optionsHtml}
-                    </select>
-                    <div id="team-grid-p${i}" class="driver-team-text" style="color: #616e88; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ PLACE À PRENDRE</div>
-                </div>
-                <div class="driver-portrait-container" style="position: relative; width: 65px; height: 65px; display: flex; justify-content: center; overflow: hidden; margin-left: 10px; border-radius: 4px; z-index: 2; flex-shrink: 0;">
-                    <img id="img-grid-p${i}" src="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: none;">
-                </div>
-            </div>
-        `;
-        conteneurGrille.appendChild(slot);
-
-        slot.querySelector('select').addEventListener('change', function() {
-            mettreAJourDesignSlot(i, this.value);
-            controlerDoublonsPilotes();
-        });
-    }
+    //     slot.querySelector('select').addEventListener('change', function() {
+    //         controlerDoublonsPilotes();
+    //     });
+    // }
 
     verifierVerrouillageCourse();
-}
-
-function mettreAJourDesignSlot(position, nomPilote) {
-    const card = document.getElementById(`card-f1-p${position}`);
-    const badge = document.getElementById(`badge-p${position}`);
-    const numTarget = document.getElementById(`num-f1-p${position}`);
-    const flagTarget = document.getElementById(`flag-f1-p${position}`);
-    const imgTarget = document.getElementById(`img-grid-p${position}`);
-    const carTarget = document.getElementById(`car-grid-p${position}`);
-    const teamTarget = document.getElementById(`team-grid-p${position}`);
-    
-    const localData = pilotesData.find(p => p.nom === nomPilote);
-
-    if (nomPilote && localData) {
-        card.style.borderLeft = `5px solid ${localData.couleur}`;
-        if(badge) badge.style.background = localData.couleur;
-        
-        numTarget.innerText = localData.numero;
-        numTarget.style.color = localData.couleur;
-        flagTarget.src = `https://flagcdn.com/w20/${localData.pays}.png`;
-        flagTarget.style.display = "inline-block";
-        
-        imgTarget.src = localData.driverImg;
-        imgTarget.style.display = "block";
-        carTarget.src = localData.carImg;
-        
-        teamTarget.innerText = localData.ecurie;
-        teamTarget.style.color = "#ff8000"; 
-    } else {
-        card.style.borderLeft = `1px solid #2f3e56`;
-        if(badge) badge.style.background = "#232e44";
-        numTarget.innerText = "--";
-        numTarget.style.color = "rgba(255,255,255,0.15)";
-        flagTarget.style.display = "none";
-        imgTarget.style.display = "none";
-        carTarget.removeAttribute('src');
-        teamTarget.innerText = "⚡ PLACE À PRENDRE";
-        teamTarget.style.color = "#616e88";
-    }
 }
 
 // ==========================================

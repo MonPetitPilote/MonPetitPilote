@@ -133,8 +133,7 @@
         </button>
       </div>
 
-      <div id="grille-pronos" class="f1-starting-grid"></div>
-
+      <StartingGrid />
       <div
         style="
           margin: 20px 0;
@@ -365,4 +364,5 @@
 
 <script setup lang="js">
 import FriendsRanking from "./FriendsRanking.vue";
+import StartingGrid from "./StartingGrid.vue";
 </script>
