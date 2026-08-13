@@ -124,8 +124,10 @@
 import { computed, ref } from "vue";
 import { drivers } from "../../utils";
 
-defineProps(["position"]);
+const props = defineProps(["position", "selectedDrivers"]);
+const emit = defineEmits(["selectedDriver"]);
 
+const name = ref("");
 const number = ref("--");
 const color = ref("");
 const country = ref("");
@@ -137,14 +139,18 @@ const options = computed(() =>
   drivers.map((driver) => ({
     value: driver.name,
     label: driver.name,
+    disabled: props.selectedDrivers.has(driver.name),
   })),
 );
 const optionsWithDefault = computed(() =>
-  [{ value: "", label: "👉 CHOISIS TON PILOTE" }].concat(options.value),
+  [{ value: "", label: "👉 CHOISIS TON PILOTE", disabled: false }].concat(
+    options.value,
+  ),
 );
 const optionsHtml = computed(() =>
   optionsWithDefault.value.map(
-    (option) => `<option value="${option.value}">${option.label}</option>`,
+    (option) =>
+      `<option value="${option.value}" ${option.disabled ? "disabled" : ""}>${option.label}</option>`,
   ),
 );
 
@@ -157,6 +163,9 @@ function handleDriverSelect(event) {
     driverImg.value = "";
     carImg.value = "";
     team.value = "";
+
+    emit("selectedDriver", { removed: name.value });
+    name.value = "";
     return;
   }
 
@@ -170,6 +179,9 @@ function handleDriverSelect(event) {
   driverImg.value = driver.driverImg;
   carImg.value = driver.carImg;
   team.value = driver.team;
+
+  emit("selectedDriver", { removed: name.value, added: driverName });
+  name.value = driverName;
 }
 </script>
 
