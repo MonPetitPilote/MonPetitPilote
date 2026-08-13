@@ -104,4 +104,11 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.auth-erreur {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin: -4px 0 14px 0;
+  min-height: 1em;
+}
 </style>

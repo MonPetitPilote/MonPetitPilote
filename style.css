@@ -88,12 +88,6 @@ body {
     outline: none;
     border-color: #ff8000;
 }
-.auth-erreur {
-    color: #ef4444;
-    font-size: 0.8rem;
-    margin: -4px 0 14px 0;
-    min-height: 1em;
-}
 #link-recup-mdp {
     display: block;
     text-align: center;

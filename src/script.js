@@ -300,7 +300,6 @@ document.getElementById('btn-inscription')?.addEventListener('click', async () =
     const email = document.getElementById('inscription-email').value.trim();
     const mdp = document.getElementById('inscription-mdp').value;
 
-    erreurZone.style.color = "#ef4444";
     if (!pseudo) {
         erreurZone.innerText = "Le pseudo est obligatoire (c'est ce que verront tes potes).";
         return;
