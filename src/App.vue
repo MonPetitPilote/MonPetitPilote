@@ -6,7 +6,6 @@
     <WorkspaceProfile />
     <MainContent />
     <ConnectionModal v-show="isConnectionModalOpen" @close-connection-modal="isConnectionModalOpen = false"/>
-    <ResultsModal />
     <FriendModal />
     <LeagueModal />
     <RulesModal />
@@ -21,7 +20,6 @@ import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
 import MainContent from "./components/MainContent.vue";
 import NotificationsComponent from "./components/NotificationsComponent.vue";
-import ResultsModal from "./components/ResultsModal.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";

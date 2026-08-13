@@ -127,7 +127,6 @@ body {
     white-space: nowrap;
 }
 .btn-brand-orange { background: #ff8000; color: #111622; }
-.btn-brand-cyan { background: #00d2d3; color: #111622; }
 
 /* Structure Page (PC / Tablette par défaut) */
 .main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }

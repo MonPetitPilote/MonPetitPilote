@@ -259,11 +259,6 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// ==========================================
-// 4. GESTION DE LA MODALE DES RÉSULTATS OFFICIELS
-// ==========================================
-const selectResultats = document.getElementById('select-resultats-course');
-
 // Compare deux noms sans tenir compte des accents ni de la casse
 // (ex : "Nico Hülkenberg" doit correspondre à "Nico Hulkenberg" renvoyé par l'API/le cron)
 function normaliserNom(texte) {
@@ -289,82 +284,6 @@ function nomsCorrespondentLocal(nomA, nomB) {
     const b = normaliserNom(nomB);
     return a.includes(b) || b.includes(a);
 }
-
-function initialiserSelectResultats() {
-    if (!selectResultats || selectResultats.options.length > 0) return; // déjà rempli
-    calendrier2026.forEach(gp => {
-        const opt = document.createElement('option');
-        opt.value = gp.round;
-        opt.innerText = `Round ${gp.round} : ${gp.nom}`;
-        selectResultats.appendChild(opt);
-    });
-}
-
-async function chargerResultatOfficielGP(round) {
-    const zone = document.getElementById('zone-resultat-gp');
-    if (!zone) return;
-    zone.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement...</p>`;
-
-    try {
-        const doc = await db.collection("historique_courses").doc(`2026_${round}`).get();
-
-        if (!doc.exists) {
-            zone.innerHTML = `<p style="color:#aaa; font-style:italic; text-align:center;">🏗️ Résultat pas encore disponible pour ce Grand Prix.</p>`;
-            return;
-        }
-
-        const data = doc.data();
-        const top10 = data.top10 || [];
-        const poleman = data.poleman || "Inconnu";
-
-        const top10Html = top10.map((nomPilote, index) => {
-            const local = trouverPiloteLocalParNom(nomPilote);
-            const couleur = local ? local.couleur : '#616e88';
-            const medaille = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `P${index + 1}`;
-            return `
-                <li style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed #2d3954;">
-                    <span style="min-width:32px; font-weight:bold; color:${couleur};">${medaille}</span>
-                    <span style="flex-grow:1;">${nomPilote}</span>
-                    ${local ? `<span style="font-size:0.75rem; color:#616e88; text-transform:uppercase;">${local.ecurie}</span>` : ''}
-                </li>
-            `;
-        }).join('');
-
-        zone.innerHTML = `
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px;">
-                <span style="color:#ff8000; font-weight:bold;">⚡ Pole Position :</span> ${poleman}
-            </div>
-            <h5 style="color:#00d2d3; text-transform:uppercase; font-size:0.85rem; margin-bottom:10px;">🏁 Classement final (Top 10)</h5>
-            <ul style="list-style:none; margin:0; padding:0;">
-                ${top10Html || '<li style="color:#aaa;">Aucune donnée.</li>'}
-            </ul>
-        `;
-    } catch (error) {
-        console.error("Erreur chargement résultat officiel :", error);
-        zone.innerHTML = `<p style="color:#ef4444; text-align:center;">Erreur lors du chargement du résultat.</p>`;
-    }
-}
-
-document.getElementById('btn-resultats')?.addEventListener('click', () => {
-    initialiserSelectResultats();
-    const modale = document.getElementById('modale-resultats');
-    if (modale) modale.style.display = 'flex';
-    if (selectResultats) chargerResultatOfficielGP(selectResultats.value);
-});
-
-document.getElementById('btn-fermer-resultats')?.addEventListener('click', () => {
-    const modale = document.getElementById('modale-resultats');
-    if (modale) modale.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-    const modale = document.getElementById('modale-resultats');
-    if (e.target === modale) modale.style.display = 'none';
-});
-
-selectResultats?.addEventListener('change', () => {
-    chargerResultatOfficielGP(selectResultats.value);
-});
 
 // GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
 auth.onAuthStateChanged(async (user) => {

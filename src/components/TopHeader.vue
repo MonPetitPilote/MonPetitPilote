@@ -1,9 +1,6 @@
 <template>
   <header class="brand-header">
     <div class="brand-actions">
-      <button id="btn-resultats" class="btn-brand-action btn-brand-cyan">
-        📊 RÉSULTATS OFFICIELS
-      </button>
       <button id="btn-reglement" class="btn-brand-action btn-brand-orange">
         📜 RÈGLEMENT
       </button>
