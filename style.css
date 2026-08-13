@@ -94,22 +94,6 @@ body {
     margin: -4px 0 14px 0;
     min-height: 1em;
 }
-.btn-auth-principal {
-    width: 100%;
-    background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
-    color: white;
-    border: none;
-    padding: 13px;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-.btn-auth-principal:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 #link-recup-mdp {
     display: block;
     text-align: center;

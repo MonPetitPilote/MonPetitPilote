@@ -32,7 +32,7 @@
           />
         </div>
         <div id="creer-ligue-erreur" class="auth-erreur"></div>
-        <button id="btn-creer-ligue" class="btn-auth-principal">
+        <button id="btn-creer-ligue" class="create-league-button">
           🏁 Créer ma ligue
         </button>
       </div>
@@ -52,7 +52,7 @@
           />
         </div>
         <div id="rejoindre-ligue-erreur" class="auth-erreur"></div>
-        <button id="btn-rejoindre-ligue" class="btn-auth-principal">
+        <button id="btn-rejoindre-ligue" class="create-league-button">
           🤝 Rejoindre la ligue
         </button>
       </div>
@@ -86,3 +86,22 @@
     </div>
   </div>
 </template>
+
+<style lang="css" scoped>
+.create-league-button {
+  width: 100%;
+  background: linear-gradient(135deg, #e10600 0%, #b30500 100%);
+  color: white;
+  border: none;
+  padding: 13px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.create-league-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>
