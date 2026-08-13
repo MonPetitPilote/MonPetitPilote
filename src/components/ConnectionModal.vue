@@ -1,9 +1,7 @@
 <template>
   <div id="modale-connexion" class="modal-back">
     <div class="modal-content-inner modal-auth">
-      <span
-        class="close-modal"
-        @click="$emit('close-connection-modal')"
+      <span class="close-modal" @click="$emit('close-connection-modal')"
         >&times;</span
       >
 
@@ -56,7 +54,9 @@
         >
           {{ connectionButtonLabel }}
         </button>
-        <a href="#" id="link-recup-mdp">Mot de passe oublié ?</a>
+        <a href="#" id="link-recup-mdp" @click.prevent="handleForgotPassword"
+          >Mot de passe oublié ?</a
+        >
       </div>
 
       <div id="panneau-inscription" class="auth-panel" style="display: none">
@@ -108,7 +108,12 @@
 
 <script setup lang="js">
 import { ref } from "vue";
-import { createUser, logIn, updateUserNickname } from "../services";
+import {
+  createUser,
+  logIn,
+  resetPassword,
+  updateUserNickname,
+} from "../services";
 import { translateFirebaseError } from "../utils";
 
 const emit = defineEmits(["close-connection-modal"]);
@@ -169,6 +174,19 @@ async function handleInscriptionClick() {
   } finally {
     isInscriptionButtonDisabled.value = false;
     inscriptionButtonLabel.value = "🏆 Créer mon compte";
+  }
+}
+
+async function handleForgotPassword() {
+  if (!email.value) {
+    errorString.value = "Saisis d'abord ton email ci-dessus.";
+    return;
+  }
+  try {
+    await resetPassword(email.value);
+    errorString.value = `📨 Email de réinitialisation envoyé à ${email.value} (pense à vérifier tes spams).`;
+  } catch {
+    errorString.value = traduireErreurFirebase(error);
   }
 }
 </script>

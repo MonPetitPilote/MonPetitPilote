@@ -1,6 +1,7 @@
 import { getAuth } from "../utils";
 import {
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
@@ -18,4 +19,9 @@ export async function logIn(email, password) {
 export async function updateUserNickname(nickname) {
   const auth = getAuth();
   return await updateProfile(auth.currentUser, { displayName: nickname });
+}
+
+export async function resetPassword(email) {
+  const auth = getAuth();
+  return await sendPasswordResetEmail(auth, email);
 }

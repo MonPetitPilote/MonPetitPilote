@@ -239,26 +239,6 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
     });
 });
 
-// --- Mot de passe oublié ---
-document.getElementById('link-recup-mdp')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    const erreurZone = document.getElementById('login-erreur');
-    const email = document.getElementById('login-email').value.trim();
-    if (!email) {
-        erreurZone.innerText = "Saisis d'abord ton email ci-dessus.";
-        return;
-    }
-    auth.sendPasswordResetEmail(email)
-        .then(() => {
-            erreurZone.style.color = "#4cd137";
-            erreurZone.innerText = `📨 Email de réinitialisation envoyé à ${email} (pense à vérifier tes spams).`;
-        })
-        .catch((error) => {
-            erreurZone.style.color = "#ef4444";
-            erreurZone.innerText = traduireErreurFirebase(error);
-        });
-});
-
 // ==========================================
 // 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================
