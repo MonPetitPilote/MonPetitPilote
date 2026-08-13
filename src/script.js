@@ -210,16 +210,6 @@ function injecterStylesResponsifsGlobaux() {
     document.head.appendChild(styleSheet);
 }
 
-// Bascule entre l'onglet "Connexion" et l'onglet "Inscription"
-document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('actif'));
-        document.querySelectorAll('.auth-panel').forEach(p => p.style.display = 'none');
-        tab.classList.add('actif');
-        document.getElementById(tab.dataset.panel).style.display = 'block';
-    });
-});
-
 // ==========================================
 // 3. GESTION DE LA FENÊTRE MODALE DU RÈGLEMENT
 // ==========================================

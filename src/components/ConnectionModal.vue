@@ -8,23 +8,27 @@
       <div class="auth-tabs">
         <button
           type="button"
-          class="auth-tab actif"
+          class="auth-tab"
+          :class="selectedTab === 0 ? 'actif' : ''"
           id="tab-connexion"
           data-panel="panneau-connexion"
+          @click="selectedTab = 0"
         >
           Connexion
         </button>
         <button
           type="button"
           class="auth-tab"
+          :class="selectedTab === 1 ? 'actif' : ''"
           id="tab-inscription"
           data-panel="panneau-inscription"
+          @click="selectedTab = 1"
         >
           Inscription
         </button>
       </div>
 
-      <div id="panneau-connexion" class="auth-panel">
+      <div v-if="selectedTab === 0" id="panneau-connexion" class="auth-panel">
         <div class="auth-field">
           <label for="login-email">Email</label>
           <input
@@ -59,7 +63,11 @@
         >
       </div>
 
-      <div id="panneau-inscription" class="auth-panel" style="display: none">
+      <div
+        v-else
+        id="panneau-inscription"
+        class="auth-panel"
+      >
         <div class="auth-field">
           <label for="inscription-pseudo"
             >Pseudo (affiché aux autres joueurs)</label
@@ -126,6 +134,7 @@ const inscriptionButtonLabel = ref("🏆 Créer mon compte");
 const isConnectionButtonDisabled = ref(false);
 const connectionButtonLabel = ref("🏁 Se connecter");
 const errorString = ref("");
+const selectedTab = ref(0);
 
 async function handleConnectionClick() {
   if (!email.value || !password.value) {
