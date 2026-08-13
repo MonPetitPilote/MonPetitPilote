@@ -4,7 +4,6 @@
     <Logo />
     <TopHeader @open-connection-modal="isConnectionModalOpen = true" />
     <WorkspaceProfile />
-    <QuoteComponent />
     <MainContent />
     <ConnectionModal v-show="isConnectionModalOpen" @close-connection-modal="isConnectionModalOpen = false"/>
     <ResultsModal />
@@ -22,7 +21,6 @@ import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
 import MainContent from "./components/MainContent.vue";
 import NotificationsComponent from "./components/NotificationsComponent.vue";
-import QuoteComponent from "./components/QuoteComponent.vue";
 import ResultsModal from "./components/ResultsModal.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";

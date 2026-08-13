@@ -856,177 +856,9 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     };
     
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
-    
-    // Notification de succès + citation fun aléatoire
-    afficherNotification("🏁 Pronostic enregistré avec succès ! Gazzz !", "succes");
-    
-    const citation = obtenirCitationAleatoire();
-    if (citation) {
-        setTimeout(() => {
-            afficherNotification(`💬 "${citation.texte}" — ${citation.auteur}`, "info");
-        }, 500);
-    }
-
+    afficherNotification("🏁 Grille et Écuries enregistrées avec succès !", "succes");
     chargerClassementGeneral();
 });
-
-/* ==========================================================================
-   BANQUE DE CITATIONS CULTES & PUNCHLINES DU MOTORSPORT
-   Pour ajouter des citations à la main plus tard, il suffit d'insérer :
-   { texte: "Ta phrase culte ici", auteur: "Auteur / Film ou GP" },
-   ========================================================================== */
-const CITATIONS_MOTORSPORT = [
-    // --- COMMENTATEURS & CANAL+ (Julien Fébreau, Franck Montagny, Jacques Villeneuve...) ---
-    { texte: "MONSIEUR PIERRE GASLY ! ACCÉLÈRE, ACCÉLÈRE !", auteur: "Julien Fébreau (GP d'Italie 2020)" },
-    { texte: "IL L'A FAIT ! VICTOIRE DE PIERRE GASLY ! ELLE EST LÀÀÀÀ !", auteur: "Julien Fébreau (Monza 2020)" },
-    { texte: "Rendez-vous au premier virage... Et montez le volume !", auteur: "Julien Fébreau (Canal+)" },
-    { texte: "Pas de consigne d'équipe aujourd'hui, c'est tapis volant plein gaz !", auteur: "Julien Fébreau" },
-    { texte: "Ça passe à zéro millimètre, c'est du grand art !", auteur: "Julien Fébreau" },
-    { texte: "Attachez vos ceintures, ça va secouer dans la chicane !", auteur: "Julien Fébreau" },
-    { texte: "Il a sorti la boîte à gifles, quelle attaque !", auteur: "Julien Fébreau" },
-    { texte: "On s'écarte, on s'écarte ! Ça va frotter de la tôle !", auteur: "Julien Fébreau" },
-    { texte: "Quel freinage d'outre-tombe ! Incroyable !", auteur: "Julien Fébreau" },
-    { texte: "C'est l'extérieur du siècle !", auteur: "Franck Montagny" },
-    { texte: "Là il a posé le cerveau sur le tableau de bord !", auteur: "Julien Fébreau" },
-
-    // --- FILMS CULTES (Cars, Jour de Tonnerre, Fast & Furious, Rush, Ford v Ferrari, Taxi, Retour vers le Futur, Tokyo Drift, Gran Turismo...) ---
-    { texte: "Je suis la vitesse. 1 gagnant, 19 perdants. Je mange des perdants au petit-déjeuner.", auteur: "Flash McQueen (Cars)" },
-    { texte: "Ka-Chow !", auteur: "Flash McQueen (Cars)" },
-    { texte: "Tourne à gauche pour aller à droite !", auteur: "Doc Hudson (Cars)" },
-    { texte: "C'est juste une coupe en plastique. Ce qui compte, c'est la piste !", auteur: "Doc Hudson (Cars)" },
-    { texte: "Les pneus, c'est surfait. Ce dont j'ai besoin, c'est du feu dans le moteur !", auteur: "Cole Trickle (Jour de Tonnerre)" },
-    { texte: "Tu ne peux pas dépasser par l'extérieur à Daytona ! — Regarde-moi bien !", auteur: "Cole Trickle (Jour de Tonnerre)" },
-    { texte: "Tu n'as pas besoin de freiner si tu n'as pas peur.", auteur: "Jour de Tonnerre" },
-    { texte: "Je vis ma vie 400 mètres à la fois.", auteur: "Dominic Toretto (Fast & Furious)" },
-    { texte: "Peu importe si tu gagnes d'un centimètre ou d'un kilomètre, gagner c'est gagner.", auteur: "Dominic Toretto (Fast & Furious)" },
-    { texte: "Tu n'as failli me battre du tout, t'as même pas eu ta voiture !", auteur: "Dominic Toretto (Fast & Furious)" },
-    { texte: "Le Nitro ! Tu l'as déclenché beaucoup trop tôt !", auteur: "Brian O'Conner (Fast & Furious)" },
-    { texte: "Si tu n'as pas de dérapage dans les veines, tu n'as rien à faire ici !", auteur: "Han (Tokyo Drift)" },
-    { texte: "Un vrai pilote ne cherche pas le drame, il cherche la trajectoire parfaite.", auteur: "Han (Tokyo Drift)" },
-    { texte: "L'important c'est pas d'être le plus rapide en ligne droite, c'est d'être le plus timbré en virage !", auteur: "Michel Vaillant" },
-    { texte: "La voiture est parfaite, l'équipe est parfaite... il reste plus qu'à piloter !", auteur: "James Hunt (Rush)" },
-    { texte: "Les hommes aiment les femmes, mais plus encore, les hommes aiment les voitures.", auteur: "James Hunt (Rush)" },
-    { texte: "Un pilote est un être humain prêt à risquer sa vie pour 0.1 seconde.", auteur: "Niki Lauda (Rush)" },
-    { texte: "À 7 000 tours/minute, tout s'efface. La machine devient légère, le temps s'arrête.", auteur: "Carroll Shelby (Ford v Ferrari)" },
-    { texte: "On ne peut pas acheter la passion. Mais on peut fabriquer une voiture qui la suscite.", auteur: "Ken Miles (Ford v Ferrari)" },
-    { texte: "Va dire à Enzo Ferrari que sa boîte fabrique des jolies voitures, mais de la camelote !", auteur: "Carroll Shelby (Ford v Ferrari)" },
-    { texte: "Faut qu'on passe à 2.21 Gigowatts !", auteur: "Doc Brown (Retour vers le Futur)" },
-    { texte: "Faut-il vraiment des routes là où l'on va ?", auteur: "Doc Brown (Retour vers le Futur)" },
-    { texte: "Si mes calculs sont exacts, lorsque ce petit bijou atteindra 88 miles à l'heure...", auteur: "Doc Brown (Retour vers le Futur)" },
-    { texte: "Alerte bavure ! Alerte bavure !", auteur: "Daniel Morales (Taxi)" },
-    { texte: "Abonnement TGV ou coupe de champagne au stand ?", auteur: "Taxi 2" },
-    { texte: "Ninjas, couteaux suisses, chronomètres... C'est bon, on est en Suisse !", auteur: "Taxi 3" },
-    { texte: "Tu connais la différence entre un joueur de console et un vrai pilote ? Le risque réél.", auteur: "Jack Salter (Gran Turismo)" },
-    { texte: "Conduis avec ta tête, pas avec tes nerfs !", auteur: "Gran Turismo (Le Film)" },
-    { texte: "Rien n'est plus beau que le rugissement d'un V12 au petit matin.", auteur: "Driven (Film)" },
-
-    // --- LÉGENDES DU PILOTAGE & CONSTRUCTEURS ---
-    { texte: "Si tout semble sous contrôle, c'est que vous n'allez pas assez vite.", auteur: "Mario Andretti" },
-    { texte: "Le second est le premier des perdants.", auteur: "Ayrton Senna" },
-    { texte: "Si tu ne tentes plus un espace qui existe, tu n'es plus un pilote de course.", auteur: "Ayrton Senna" },
-    { texte: "Conduire à 300 km/h sous la pluie ? C'est là qu'on sait qui a du cœur.", auteur: "Ayrton Senna" },
-    { texte: "Si vous voulez gagner, embauchez un Finlandais.", auteur: "Keke Rosberg" },
-    { texte: "Pour finir premier, il faut d'abord finir.", auteur: "Enzo Ferrari" },
-    { texte: "Les voitures d'abord, les hommes ensuite.", auteur: "Enzo Ferrari" },
-    { texte: "L'aérodynamique, c'est pour les gens qui ne savent pas construire de moteurs.", auteur: "Enzo Ferrari" },
-    { texte: "Je pilote avec ma tête, pas seulement avec mes pieds.", auteur: "Alain Prost" },
-    { texte: "Quand tu es à fond, n'hésite pas à passer la vitesse supérieure.", auteur: "Michael Schumacher" },
-
-    // --- RADIOS F1 ET PUNCHLINES RADIO CULTES ---
-    { texte: "Leave me alone, I know what I'm doing!", auteur: "Kimi Räikkönen (Radio F1)" },
-    { texte: "Bwoah... it's the same for everyone.", auteur: "Kimi Räikkönen" },
-    { texte: "I was having a shit.", auteur: "Kimi Räikkönen (Interviews F1)" },
-    { texte: "Give me the steering wheel! Hey! Steering wheel!", auteur: "Kimi Räikkönen (Radio Baku)" },
-    { texte: "Smooooooth Operatrrr... Smooooth Operator!", auteur: "Carlos Sainz (Radio F1)" },
-    { texte: "Stop inventing! Stop inventing!", auteur: "Carlos Sainz (Radio F1)" },
-    { texte: "Simply lovely! What a race!", auteur: "Max Verstappen (Radio F1)" },
-    { texte: "Multi 21, Seb. Multi 21 !", auteur: "Mark Webber (Radio Malaisie 2013)" },
-    { texte: "No Michael, no no Michael, that was so not right!", auteur: "Toto Wolff (Radio F1)" },
-    { texte: "Copy, we are checking...", auteur: "Ingénieur Ferrari (Radio F1)" },
-    { texte: "Box, box, box! Non reste dehors, reste dehors!", auteur: "Ingénieur Ferrari (Radio F1)" },
-    { texte: "Plan E... Plan E... We are thinking about Plan E.", auteur: "Ingénieur Ferrari (Radio F1)" },
-    { texte: "I am stupid. I am stupid.", auteur: "Charles Leclerc (Radio Bakou)" },
-    { texte: "NOOOOOOOOOOO!", auteur: "Charles Leclerc (Radio Le Castellet)" },
-    { texte: "GP2 engine! GP2 engine! Argh!", auteur: "Fernando Alonso (Radio F1)" },
-    { texte: "All the time you have to leave a space!", auteur: "Fernando Alonso (Radio F1)" },
-    { texte: "Karma! What goes around comes around.", auteur: "Fernando Alonso (Radio F1)" },
-    { texte: "HONESTLY! What are we doing here? Racing or ping-pong?", auteur: "Sebastian Vettel (Radio F1)" },
-    { texte: "Ring-ding-ding-ding-ding-ding, ring-ding-ding!", auteur: "Sebastian Vettel (Radio Singapour)" },
-    { texte: "P1, Sebastian! Grazie ragazzi, grande macchina, forza Ferrari!", auteur: "Sebastian Vettel" },
-    { texte: "To all my haters out there: GET IN THERE LEWIS!", auteur: "Lewis Hamilton (Radio F1)" },
-    { texte: "Bono, my tyres are gone!", auteur: "Lewis Hamilton (Radio F1)" },
-    { texte: "He's looking at me like I'm a f***ing idiot!", auteur: "Guenther Steiner (Drive to Survive)" },
-    { texte: "We look like a bunch of f***ing wankers!", auteur: "Guenther Steiner (Drive to Survive)" },
-    { texte: "I lick the stamp and send it!", auteur: "Daniel Ricciardo" }
-];
-
-/* ==========================================================================
-   CITATIONS SPÉCIFIQUES PAR SCORE OBTENU EN GP
-   ========================================================================== */
-const CITATIONS_PAR_SCORE = {
-    0: { texte: "I am stupid. I am stupid.", auteur: "Charles Leclerc (Radio Bakou)" },
-    21: { texte: "Multi 21, Seb. Multi 21 !", auteur: "Mark Webber (Radio Malaisie 2013)" },
-    1: { texte: "Au moins, on a évité le zéro pointé...", auteur: "Ingénieur Haas" },
-    5: { texte: "GP2 engine! GP2 engine! Argh!", auteur: "Fernando Alonso (Radio F1)" },
-    10: { texte: "Copy, we are checking...", auteur: "Ingénieur Ferrari (Radio F1)" },
-    15: { texte: "Smooooooth Operatrrr... Smooooth Operator!", auteur: "Carlos Sainz (Radio F1)" },
-    20: { texte: "Je vis ma vie 400 mètres à la fois.", auteur: "Dominic Toretto (Fast & Furious)" },
-    25: { texte: "Simply lovely! What a race!", auteur: "Max Verstappen (Radio F1)" },
-    30: { texte: "P1! Grazie ragazzi, grande macchina!", auteur: "Sebastian Vettel" },
-    35: { texte: "IL L'A FAIT ! VICTOIRE DE PIERRE GASLY !", auteur: "Julien Fébreau (Monza 2020)" },
-    40: { texte: "MONSIEUR PIERRE GASLY ! ACCÉLÈRE, ACCÉLÈRE !", auteur: "Julien Fébreau" }
-};
-
-/* ==========================================================================
-   CITATIONS DÉDIÉES PAR TYPE DE BADGE
-   ========================================================================== */
-const CITATIONS_PAR_BADGE = {
-    pole: { texte: "Rendez-vous au premier virage... Et montez le volume !", auteur: "Julien Fébreau" },
-    victoire: { texte: "MONSIEUR PIERRE GASLY ! ACCÉLÈRE, ACCÉLÈRE !", auteur: "Julien Fébreau" },
-    podium: { texte: "Smooooooth Operatrrr... Smooooth Operator!", auteur: "Carlos Sainz" },
-    loupe: { texte: "Copy, we are checking...", auteur: "Ingénieur Ferrari" },
-    folie: { texte: "Il a sorti la boîte à gifles, quelle attaque !", auteur: "Julien Fébreau" }
-};
-
-function obtenirCitationAleatoire() {
-    if (!CITATIONS_MOTORSPORT || CITATIONS_MOTORSPORT.length === 0) return null;
-    const index = Math.floor(Math.random() * CITATIONS_MOTORSPORT.length);
-    return CITATIONS_MOTORSPORT[index];
-}
-
-function obtenirCitationParScore(score) {
-    if (score !== undefined && CITATIONS_PAR_SCORE[score]) {
-        return CITATIONS_PAR_SCORE[score];
-    }
-    if (score === 0) {
-        return { texte: "I am stupid. I am stupid.", auteur: "Charles Leclerc" };
-    }
-    if (score > 25) {
-        return { texte: "Simply lovely! What a race!", auteur: "Max Verstappen" };
-    }
-    if (score > 15) {
-        return { texte: "Smooooooth Operatrrr... Smooooth Operator!", auteur: "Carlos Sainz" };
-    }
-    return obtenirCitationAleatoire();
-}
-
-function obtenirCitationParBadge(cleBadge) {
-    if (cleBadge && CITATIONS_PAR_BADGE[cleBadge]) {
-        return CITATIONS_PAR_BADGE[cleBadge];
-    }
-    return obtenirCitationAleatoire();
-}
-
-function afficherNouvelleCitationPaddock() {
-    const elTexte = document.getElementById('texte-citation-paddock');
-    const elAuteur = document.getElementById('auteur-citation-paddock');
-    if (!elTexte || !elAuteur) return;
-    const c = obtenirCitationAleatoire();
-    if (c) {
-        elTexte.innerText = `"${c.texte}"`;
-        elAuteur.innerText = `— ${c.auteur}`;
-    }
-}
 
 // CHARGEMENT DU CLASSEMENT GENERAL TOTAL (TOP 5 DE LA SAISON)
 // Cache de la dernière analyse de saison (classement + badges), réutilisé par la page profil
@@ -1489,15 +1321,11 @@ async function afficherBadgesProfil() {
         zone.innerHTML = Object.keys(BADGES_INFO).map(cle => {
             const info = BADGES_INFO[cle];
             const possede = monJoueur && stats.badges[cle].includes(monJoueur.uid);
-            const citationBadge = obtenirCitationParBadge(cle);
             return `
-                <div title="${info.description}" style="text-align:center; background:${possede ? 'rgba(255,128,0,0.12)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${possede ? '#ff8000' : '#2d3954'}; border-radius:8px; padding:12px 14px; min-width:130px; opacity:${possede ? '1' : '0.55'}; display:flex; flex-direction:column; align-items:center; justify-content:space-between;">
-                    <div>
-                        <div style="font-size:1.8rem;">${info.icone}</div>
-                        <div style="font-size:0.75rem; font-weight:bold; text-transform:uppercase; margin-top:4px; color:${possede ? '#ff8000' : '#a0aec0'};">${info.nom}</div>
-                        <div style="font-size:0.7rem; color:#616e88; margin-top:2px;">Score : ${compteurs[cle]}</div>
-                    </div>
-                    ${possede && citationBadge ? `<div style="font-size:0.68rem; color:#00d2d3; font-style:italic; margin-top:8px; border-top:1px dashed rgba(0,210,211,0.3); padding-top:4px; width:100%;">"${citationBadge.texte}"</div>` : ''}
+                <div title="${info.description}" style="text-align:center; background:${possede ? 'rgba(255,128,0,0.12)' : 'rgba(255,255,255,0.02)'}; border:1px solid ${possede ? '#ff8000' : '#2d3954'}; border-radius:8px; padding:12px 14px; min-width:110px; opacity:${possede ? '1' : '0.5'};">
+                    <div style="font-size:1.8rem;">${info.icone}</div>
+                    <div style="font-size:0.72rem; font-weight:bold; text-transform:uppercase; margin-top:4px; color:${possede ? '#ff8000' : '#a0aec0'};">${info.nom}</div>
+                    <div style="font-size:0.7rem; color:#616e88; margin-top:4px;">${compteurs[cle]}</div>
                 </div>
             `;
         }).join('');
@@ -1698,13 +1526,6 @@ async function construireComparatifHtml(data) {
         </div>`;
     }
 
-    const citationGP = (dejaCalcule) ? obtenirCitationParScore(ptsTotaux) : null;
-    const blockCitationGP = citationGP ? `
-        <div style="background: rgba(255,128,0,0.08); border: 1px solid rgba(255,128,0,0.3); border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 0.85rem; color: #ff8000; font-style: italic; text-align: center;">
-            💬 "${citationGP.texte}" <br><span style="font-size: 0.75rem; color: #a5b1c2; font-style: normal; font-weight: bold;">— ${citationGP.auteur}</span>
-        </div>
-    ` : '';
-
     return `
         <h4 style="color: #ff8000; margin-bottom: 5px; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">🏁 ${nomCompletGP}</h4>
         <p style="font-size: 0.85rem; color: #aaa; margin-top:0;">Statut : <strong style="color: ${dejaCalcule ? '#4cd137' : '#ff8000'};">${dejaCalcule ? 'Calculé' : 'En attente du calcul'}</strong></p>
@@ -1712,7 +1533,6 @@ async function construireComparatifHtml(data) {
         <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
             <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
             <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${ptsTotaux} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
-            ${blockCitationGP}
         </div>
 
         <h5 style="margin: 0 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📊 Répartition des Points</h5>
@@ -2116,11 +1936,6 @@ initialiserEcuriesTopFlop();
 chargerClassementGeneral();
 chargerDonneesEsthetiquesOpenF1();
 verifierVerrouillageCourse();
-afficherNouvelleCitationPaddock();
-
-document.getElementById('btn-changer-citation')?.addEventListener('click', () => {
-    afficherNouvelleCitationPaddock();
-});
 
 if(selectCourse) {
     selectCourse.addEventListener('change', () => {
