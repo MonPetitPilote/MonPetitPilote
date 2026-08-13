@@ -229,14 +229,6 @@ function traduireErreurFirebase(error) {
     }
 }
 
-function ouvrirModaleConnexion() {
-    if (!modaleConnexion) return;
-    document.getElementById('login-erreur').innerText = "";
-    document.getElementById('inscription-erreur').innerText = "";
-}
-
-document.getElementById('btn-ouvrir-connexion')?.addEventListener('click', ouvrirModaleConnexion);
-
 // Bascule entre l'onglet "Connexion" et l'onglet "Inscription"
 document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', () => {

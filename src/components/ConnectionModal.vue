@@ -3,7 +3,6 @@
     <div class="modal-content-inner modal-auth">
       <span
         class="close-modal"
-        id="btn-fermer-connexion"
         @click="$emit('close-connection-modal')"
         >&times;</span
       >
