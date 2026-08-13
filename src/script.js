@@ -111,7 +111,6 @@ const BADGES_INFO = {
     folie: { icone: "🃏", nom: "Coup de Folie", description: "A misé le plus souvent, avec succès, sur un pilote d'écurie outsider dans son top 10." }
 };
 let utilisateurActuel = null;
-let designPilotesF1 = {}; 
 
 const selectCourse = document.getElementById('select-course');
 const selectPole = document.getElementById('select-pole');
@@ -333,24 +332,6 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
-
-// ==========================================
-// 5. CHARGEMENT ET GENERATION GRILLE TV
-// ==========================================
-async function chargerDonneesEsthetiquesOpenF1() {
-    try {
-        const response = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
-        const drivers = await response.json();
-        
-        drivers.forEach(d => {
-            const nomComplet = `${d.first_name} ${d.last_name}`;
-            designPilotesF1[nomComplet] = { couleur: `#${d.team_colour || '2d3954'}` };
-        });
-    } catch (e) {
-        console.error("OpenF1 hors-ligne.");
-    }
-    creerLaGrilleDeDepartTV();
-}
 
 function creerLaGrilleDeDepartTV() {
     const conteneurGrille = document.getElementById('grille-pronos');
@@ -1853,7 +1834,7 @@ initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();
-chargerDonneesEsthetiquesOpenF1();
+creerLaGrilleDeDepartTV();
 verifierVerrouillageCourse();
 
 if(selectCourse) {
