@@ -160,8 +160,10 @@ async function handleInscriptionClick() {
     await resultat.user.updateProfile({ displayName: nickname.value });
 
     const nomUserSpan = document.getElementById("nom-utilisateur");
-    if (nomUserSpan)
+    if (nomUserSpan) {
       nomUserSpan.innerHTML = `<span style="font-weight: bold; color: #fff;">${nickname.value}</span>`;
+    }
+    emit("close-connection-modal");
   } catch (error) {
     errorString.value = translateFirebaseError(error);
     console.error(error);
