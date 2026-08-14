@@ -1,3 +1,4 @@
+import { drivers } from "./utils";
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
@@ -40,21 +41,6 @@ function afficherNotification(message, type = 'info') {
     conteneur.appendChild(toast);
 }
 
-// Chemins locaux vers tes images AVIF
-const LOGOS_2026 = {
-    redbull: "images/cars/redbull.avif",
-    ferrari: "images/cars/ferrari.avif",
-    mclaren: "images/cars/mclaren.avif",
-    mercedes: "images/cars/mercedes.avif",
-    aston: "images/cars/astonmartin.avif",
-    alpine: "images/cars/alpine.avif",
-    williams: "images/cars/williams.avif",
-    racingbulls: "images/cars/racingbulls.avif",
-    audi: "images/cars/audi.avif",
-    haas: "images/cars/haas.avif",
-    cadillac: "images/cars/cadillac.avif"
-};
-
 // Chemins vers les logos officiels des écuries (dossier images/team)
 const LOGOS_ECURIES_2026 = {
     "Red Bull": "images/team/redbull.avif",
@@ -69,32 +55,6 @@ const LOGOS_ECURIES_2026 = {
     "Haas": "images/team/haas.avif",
     "Cadillac": "images/team/cadillac.avif"
 };
-
-// Base de données des pilotes enrichie avec Numéros, Pays et Couleurs écuries
-const pilotesData = [
-  {nom: "Max Verstappen", ecurie: "Red Bull", numero: "3", pays: "nl", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/ver.avif"},
-  {nom: "Isack Hadjar", ecurie: "Red Bull", numero: "43", pays: "fr", couleur: "#3671C6", carImg: LOGOS_2026.redbull, driverImg: "images/drivers/had.avif"},
-  {nom: "Lewis Hamilton", ecurie: "Ferrari", numero: "44", pays: "gb", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/ham.avif"},
-  {nom: "Charles Leclerc", ecurie: "Ferrari", numero: "16", pays: "mc", couleur: "#E80020", carImg: LOGOS_2026.ferrari, driverImg: "images/drivers/lec.avif"},
-  {nom: "Lando Norris", ecurie: "McLaren", numero: "1", pays: "gb", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/nor.avif"},
-  {nom: "Oscar Piastri", ecurie: "McLaren", numero: "81", pays: "au", couleur: "#FF8000", carImg: LOGOS_2026.mclaren, driverImg: "images/drivers/pia.avif"},
-  {nom: "George Russell", ecurie: "Mercedes", numero: "63", pays: "gb", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/rus.avif"},
-  {nom: "Kimi Antonelli", ecurie: "Mercedes", numero: "12", pays: "it", couleur: "#27CCB4", carImg: LOGOS_2026.mercedes, driverImg: "images/drivers/ant.avif"},
-  {nom: "Fernando Alonso", ecurie: "Aston Martin", numero: "14", pays: "es", couleur: "#229971", carImg: LOGOS_2026.aston, driverImg: "images/drivers/alo.avif"},
-  {nom: "Lance Stroll", ecurie: "Aston Martin", numero: "18", pays: "ca", couleur: "#229971", carImg: LOGOS_2026.aston, driverImg: "images/drivers/str.avif"},
-  {nom: "Pierre Gasly", ecurie: "Alpine", numero: "10", pays: "fr", couleur: "#0093CC", carImg: LOGOS_2026.alpine, driverImg: "images/drivers/gas.avif"},
-  {nom: "Franco Colapinto", ecurie: "Alpine", numero: "43", pays: "ar", couleur: "#0093CC", carImg: LOGOS_2026.alpine, driverImg: "images/drivers/col.avif"},
-  {nom: "Carlos Sainz", ecurie: "Williams", numero: "55", pays: "es", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/sai.avif"},
-  {nom: "Alex Albon", ecurie: "Williams", numero: "23", pays: "th", couleur: "#37BEDD", carImg: LOGOS_2026.williams, driverImg: "images/drivers/alb.avif"},
-  {nom: "Liam Lawson", ecurie: "Racing Bulls", numero: "30", pays: "nz", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/law.avif"},
-  {nom: "Arvid Lindblad", ecurie: "Racing Bulls", numero: "40", pays: "gb", couleur: "#6692FF", carImg: LOGOS_2026.racingbulls, driverImg: "images/drivers/lin.avif"},
-  {nom: "Nico Hülkenberg", ecurie: "Audi", numero: "27", pays: "de", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/hul.avif"},
-  {nom: "Gabriel Bortoleto", ecurie: "Audi", numero: "5", pays: "br", couleur: "#00E6C3", carImg: LOGOS_2026.audi, driverImg: "images/drivers/bor.avif"},
-  {nom: "Oliver Bearman", ecurie: "Haas", numero: "87", pays: "gb", couleur: "#B6BABD", carImg: LOGOS_2026.haas, driverImg: "images/drivers/bea.avif"},
-  {nom: "Esteban Ocon", ecurie: "Haas", numero: "31", pays: "fr", couleur: "#B6BABD", carImg: LOGOS_2026.haas, driverImg: "images/drivers/oco.avif"},
-  {nom: "Valtteri Bottas", ecurie: "Cadillac", numero: "77", pays: "fi", couleur: "#900C3F", carImg: LOGOS_2026.cadillac, driverImg: "images/drivers/bot.avif"},
-  {nom: "Sergio Pérez", ecurie: "Cadillac", numero: "11", pays: "mx", couleur: "#900C3F", carImg: LOGOS_2026.cadillac, driverImg: "images/drivers/per.avif"}
-];
 
 const ecuriesSaison = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
 
@@ -174,7 +134,7 @@ function normaliserNom(texte) {
 // officiel OpenF1 — même logique de correspondance que dans cron-calcul.js
 function trouverPiloteLocalParNom(nomOfficiel) {
     const cible = normaliserNom(nomOfficiel);
-    return pilotesData.find(p => {
+    return drivers.find(p => {
         const local = normaliserNom(p.nom);
         return local.includes(cible) || cible.includes(local);
     });
@@ -394,7 +354,7 @@ function initialiserSelectCourse() {
 function initialiserPolePosition() {
     if (!selectPole) return;
     selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
-    pilotesData.forEach(p => {
+    drivers.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
     });
