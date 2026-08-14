@@ -114,7 +114,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { ref } from "vue";
 import {
   createUser,
@@ -194,8 +194,8 @@ async function handleForgotPassword() {
   try {
     await resetPassword(email.value);
     errorString.value = `📨 Email de réinitialisation envoyé à ${email.value} (pense à vérifier tes spams).`;
-  } catch {
-    errorString.value = traduireErreurFirebase(error);
+  } catch (error) {
+    errorString.value = translateFirebaseError(error);
   }
 }
 </script>

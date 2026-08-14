@@ -331,7 +331,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import FriendsRanking from "./FriendsRanking.vue";
 import StartingGrid from "./StartingGrid.vue";
 </script>

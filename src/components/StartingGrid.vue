@@ -41,7 +41,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { ref } from "vue";
 import GridSlot from "./startingGrid/GridSlot.vue";
 import { drivers } from "../utils/data.js";
@@ -49,7 +49,13 @@ import { drivers } from "../utils/data.js";
 const selectedDrivers = ref(new Set());
 const initDrivers = ref(Array(10).fill(""));
 
-function handleSelectedDriver({ added, removed }) {
+function handleSelectedDriver({
+  added,
+  removed,
+}: {
+  added: string;
+  removed: string;
+}) {
   if (added) {
     selectedDrivers.value.add(added);
   }

@@ -120,7 +120,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { computed, watch, ref } from "vue";
 import { drivers } from "../../utils";
 
@@ -154,12 +154,12 @@ const optionsHtml = computed(() =>
   ),
 );
 
-function handleDriverSelect(event) {
-  const driverName = event.target.value;
+function handleDriverSelect(event: Event) {
+  const driverName = (<HTMLSelectElement>event.target).value;
   selectDriverByName(driverName);
 }
 
-function selectDriverByName(driverName) {
+function selectDriverByName(driverName?: string) {
   if (!driverName) {
     number.value = "--";
     color.value = "";

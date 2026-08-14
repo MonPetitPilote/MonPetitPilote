@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { type FirebaseApp, initializeApp } from "firebase/app";
 import { getAuth as firebaseGetAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -11,17 +11,12 @@ const firebaseConfig = {
   measurementId: "G-TY047XHDXW",
 };
 
-let firebase;
+let firebase: FirebaseApp;
 
 function initFirebaseIfNeeded() {
   if (!firebase) {
     firebase = initializeApp(firebaseConfig);
   }
-}
-
-function getDb() {
-  initFirebaseIfNeeded();
-  return firebase.firestore();
 }
 
 export function getAuth() {
