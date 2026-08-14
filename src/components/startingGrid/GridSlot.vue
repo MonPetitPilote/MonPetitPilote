@@ -154,12 +154,12 @@ const optionsHtml = computed(() =>
   ),
 );
 
-function handleDriverSelect(event) {
-  const driverName = event.target.value;
+function handleDriverSelect(event: Event) {
+  const driverName = (<HTMLSelectElement>event.target).value;
   selectDriverByName(driverName);
 }
 
-function selectDriverByName(driverName) {
+function selectDriverByName(driverName?: string) {
   if (!driverName) {
     number.value = "--";
     color.value = "";
