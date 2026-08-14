@@ -1,4 +1,4 @@
-import { drivers, getNormalizedName } from "./utils";
+import { drivers, getNormalizedName, nomsCorrespondentLocal } from "./utils";
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
@@ -132,13 +132,6 @@ function trouverPiloteLocalParNom(nomOfficiel) {
         const local = getNormalizedName(p.nom);
         return local.includes(cible) || cible.includes(local);
     });
-}
-
-// Compare deux noms (pilote ou écurie) sans tenir compte des accents/casse
-function nomsCorrespondentLocal(nomA, nomB) {
-    const a = getNormalizedName(nomA);
-    const b = getNormalizedName(nomB);
-    return a.includes(b) || b.includes(a);
 }
 
 // GESTION AUTHENTIFICATION ET AFFICHAGE DES POINTS EN DIRECT
