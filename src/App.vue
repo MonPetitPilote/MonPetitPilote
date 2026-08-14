@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { ref } from "vue";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";

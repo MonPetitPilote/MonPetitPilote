@@ -41,7 +41,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { ref } from "vue";
 import GridSlot from "./startingGrid/GridSlot.vue";
 import { drivers } from "../utils/data.js";

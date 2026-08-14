@@ -120,7 +120,7 @@
   </div>
 </template>
 
-<script setup lang="js">
+<script setup lang="ts">
 import { computed, watch, ref } from "vue";
 import { drivers } from "../../utils";
 
