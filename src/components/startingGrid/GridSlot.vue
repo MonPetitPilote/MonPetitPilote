@@ -121,10 +121,11 @@
 </template>
 
 <script setup lang="js">
-import { computed, ref } from "vue";
+import { computed, watch, ref } from "vue";
 import { drivers } from "../../utils";
 
-const props = defineProps(["position", "selectedDrivers"]);
+const props = defineProps(["position", "selectedDrivers", "initDriver"]);
+console.log(props.initDriver);
 const emit = defineEmits(["selectedDriver"]);
 
 const name = ref("");
@@ -156,6 +157,10 @@ const optionsHtml = computed(() =>
 
 function handleDriverSelect(event) {
   const driverName = event.target.value;
+  selectDriverByName(driverName);
+}
+
+function selectDriverByName(driverName) {
   if (!driverName) {
     number.value = "--";
     color.value = "";
@@ -183,6 +188,16 @@ function handleDriverSelect(event) {
   emit("selectedDriver", { removed: name.value, added: driverName });
   name.value = driverName;
 }
+
+watch(
+  () => props.initDriver,
+  () => {
+    if (props.initDriver) {
+      selectDriverByName(props.initDriver);
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped lang="css">

@@ -237,11 +237,6 @@ auth.onAuthStateChanged(async (user) => {
 document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
 
 function creerLaGrilleDeDepartTV() {
-    //     slot.querySelector('select').addEventListener('change', function() {
-    //         controlerDoublonsPilotes();
-    //     });
-    // }
-
     verifierVerrouillageCourse();
 }
 
@@ -1065,15 +1060,6 @@ async function afficherBadgesProfil() {
         if (zoneClassement) zoneClassement.innerHTML = `<p style="color:#ef4444;">Erreur de chargement.</p>`;
     }
 }
-
-document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
-    let tri = [...pilotesData].sort(() => 0.5 - Math.random());
-    for(let i=1; i<=10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = tri[i-1].nom; mettreAJourDesignSlot(i, tri[i-1].nom); }
-    }
-    controlerDoublonsPilotes();
-});
 
 // --- GESTION DE L'AFFICHAGE DE L'ESPACE MEMBRE ---
 const btnVersProfil = document.getElementById('btn-vers-profil');

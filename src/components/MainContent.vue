@@ -102,37 +102,6 @@
         <select id="select-pole"></select>
       </div>
 
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 25px;
-          flex-wrap: wrap;
-          gap: 10px;
-        "
-      >
-        <h2 style="margin: 0; font-size: 1.3rem" id="titre-grille">
-          🏆 TA GRILLE DE DÉPART TOP 10 :
-        </h2>
-        <button
-          id="btn-aleatoire"
-          style="
-            background: #3b4b6b;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: bold;
-            transition: background 0.2s;
-          "
-        >
-          🎲 PRONO ALÉATOIRE
-        </button>
-      </div>
-
       <StartingGrid />
       <div
         style="
