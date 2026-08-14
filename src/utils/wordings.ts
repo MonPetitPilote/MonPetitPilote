@@ -1,4 +1,4 @@
-export function translateFirebaseError(error) {
+export function translateFirebaseError(error: any) {
   switch (error.code) {
     case "auth/invalid-email":
       return "L'adresse email n'est pas valide.";
