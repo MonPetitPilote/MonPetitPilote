@@ -470,10 +470,6 @@ async function chargerPronosticsUtilisateur() {
     const courseId = selectCourse.value;
     const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
     
-    for (let i = 1; i <= 10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`);
-        if(s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-    }
     if(selectPole) selectPole.value = "";
     
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
@@ -483,10 +479,6 @@ async function chargerPronosticsUtilisateur() {
     if (doc.exists) {
         const data = doc.data();
         const listePilotes = data.classementPilotes || [];
-        listePilotes.forEach((nom, idx) => {
-            const s = document.getElementById(`select-grid-p${idx+1}`);
-            if (s) { s.value = nom; mettreAJourDesignSlot(idx+1, nom); }
-        });
         
         if(selectPole && data.poleman) selectPole.value = data.poleman;
         
