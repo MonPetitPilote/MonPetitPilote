@@ -150,7 +150,7 @@ const optionsWithDefault = computed(() =>
 const optionsHtml = computed(() =>
   optionsWithDefault.value.map(
     (option) =>
-      `<option value="${option.value}" ${option.disabled ? "disabled" : ""}>${option.label}</option>`,
+      `<option value="${option.value}" ${option.disabled ? "disabled" : ""} ${option.value === name.value ? "selected" : ""}>${option.label}</option>`,
   ),
 );
 
