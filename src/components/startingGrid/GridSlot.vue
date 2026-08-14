@@ -125,7 +125,6 @@ import { computed, watch, ref } from "vue";
 import { drivers } from "../../utils";
 
 const props = defineProps(["position", "selectedDrivers", "initDriver"]);
-console.log(props.initDriver);
 const emit = defineEmits(["selectedDriver"]);
 
 const name = ref("");
