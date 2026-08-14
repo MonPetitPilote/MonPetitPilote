@@ -1,4 +1,4 @@
-import { drivers, normaliserNom } from "./utils";
+import { drivers, getNormalizedName } from "./utils";
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
@@ -127,17 +127,17 @@ window.addEventListener('click', (e) => {
 // Retrouve le pilote local (couleur, écurie) correspondant à un nom
 // officiel OpenF1 — même logique de correspondance que dans cron-calcul.js
 function trouverPiloteLocalParNom(nomOfficiel) {
-    const cible = normaliserNom(nomOfficiel);
+    const cible = getNormalizedName(nomOfficiel);
     return drivers.find(p => {
-        const local = normaliserNom(p.nom);
+        const local = getNormalizedName(p.nom);
         return local.includes(cible) || cible.includes(local);
     });
 }
 
 // Compare deux noms (pilote ou écurie) sans tenir compte des accents/casse
 function nomsCorrespondentLocal(nomA, nomB) {
-    const a = normaliserNom(nomA);
-    const b = normaliserNom(nomB);
+    const a = getNormalizedName(nomA);
+    const b = getNormalizedName(nomB);
     return a.includes(b) || b.includes(a);
 }
 
