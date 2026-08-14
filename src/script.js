@@ -73,7 +73,7 @@ window.addEventListener('click', (e) => {
 function trouverPiloteLocalParNom(nomOfficiel) {
     const cible = getNormalizedName(nomOfficiel);
     return drivers.find(p => {
-        const local = getNormalizedName(p.nom);
+        const local = getNormalizedName(p.name);
         return local.includes(cible) || cible.includes(local);
     });
 }
@@ -287,7 +287,7 @@ function initialiserPolePosition() {
     selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
     drivers.forEach(p => {
         const opt = document.createElement('option');
-        opt.value = p.nom; opt.innerText = p.nom; selectPole.appendChild(opt);
+        opt.value = p.name; opt.innerText = p.name; selectPole.appendChild(opt);
     });
 }
 
