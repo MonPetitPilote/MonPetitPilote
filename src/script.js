@@ -1,4 +1,4 @@
-import { drivers } from "./utils";
+import { drivers, normaliserNom } from "./utils";
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
@@ -123,12 +123,6 @@ window.addEventListener('click', (e) => {
 
 // Compare deux noms sans tenir compte des accents ni de la casse
 // (ex : "Nico Hülkenberg" doit correspondre à "Nico Hulkenberg" renvoyé par l'API/le cron)
-function normaliserNom(texte) {
-    return (texte || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-}
 
 // Retrouve le pilote local (couleur, écurie) correspondant à un nom
 // officiel OpenF1 — même logique de correspondance que dans cron-calcul.js
