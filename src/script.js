@@ -254,33 +254,33 @@ function verifierVerrouillageCourse() {
 setInterval(mettreAJourCountdown, 60 * 1000);
 
 // INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
-function initialiserSelectCourse() {
-    if (!selectCourse) return;
-    selectCourse.innerHTML = ""; 
+// function initialiserSelectCourse() {
+//     if (!selectCourse) return;
+//     selectCourse.innerHTML = ""; 
 
-    const aujourdhui = new Date();
-    let prochainRoundValue = "2026/1"; 
-    let roundTrouve = false;
+//     const aujourdhui = new Date();
+//     let prochainRoundValue = "2026/1"; 
+//     let roundTrouve = false;
 
-    calendrier2026.forEach(gp => {
-        const opt = document.createElement('option');
-        opt.value = `2026/${gp.round}`;
+//     calendrier2026.forEach(gp => {
+//         const opt = document.createElement('option');
+//         opt.value = `2026/${gp.round}`;
         
-        const dateObj = new Date(gp.date);
-        const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+//         const dateObj = new Date(gp.date);
+//         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         
-        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
-        selectCourse.appendChild(opt);
+//         opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
+//         selectCourse.appendChild(opt);
 
-        if (!roundTrouve && dateObj >= aujourdhui) {
-            prochainRoundValue = `2026/${gp.round}`;
-            roundTrouve = true; 
-        }
-    });
+//         if (!roundTrouve && dateObj >= aujourdhui) {
+//             prochainRoundValue = `2026/${gp.round}`;
+//             roundTrouve = true; 
+//         }
+//     });
 
-    selectCourse.value = prochainRoundValue;
-    selectCourse.setAttribute('value', prochainRoundValue);
-}
+//     selectCourse.value = prochainRoundValue;
+//     selectCourse.setAttribute('value', prochainRoundValue);
+// }
 
 function initialiserPolePosition() {
     if (!selectPole) return;
@@ -410,7 +410,6 @@ async function chargerPronosticsUtilisateur() {
     if (doc.exists) {
         const data = doc.data();
         const listePilotes = data.classementPilotes || [];
-        
         if(selectPole && data.poleman) selectPole.value = data.poleman;
         
         const ecuriesTop = data.ecuriesTop || [];
@@ -1527,7 +1526,7 @@ function construireComparatifBonusHtml(predictionsJoueur, bonusReel, dejaCalcule
 
 // INITIALISATIONS DE BASE AU CHARGEMENT
 afficherEtatLigueDeconnecte(); // état par défaut tant que Firebase n'a pas confirmé la connexion
-initialiserSelectCourse();
+// initialiserSelectCourse();
 initialiserPolePosition();
 initialiserEcuriesTopFlop();
 chargerClassementGeneral();

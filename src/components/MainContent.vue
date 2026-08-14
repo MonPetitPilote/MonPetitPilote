@@ -47,14 +47,7 @@
         ></select>
       </div>
 
-      <div class="section-course">
-        <label
-          for="select-course"
-          style="display: block; margin-bottom: 8px; font-weight: bold"
-          >SÉLECTIONNER LE WEEK-END :</label
-        >
-        <select id="select-course"></select>
-      </div>
+      <RaceSelector />
 
       <div
         id="banniere-verrouillage"
@@ -334,4 +327,6 @@
 <script setup lang="ts">
 import FriendsRanking from "./FriendsRanking.vue";
 import StartingGrid from "./StartingGrid.vue";
+import RaceSelector from "./RaceSelector.vue";
+
 </script>

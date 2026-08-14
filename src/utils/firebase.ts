@@ -1,5 +1,10 @@
 import { type FirebaseApp, initializeApp } from "firebase/app";
 import { getAuth as firebaseGetAuth } from "firebase/auth";
+import {
+  doc,
+  getDoc as getFirestoreDoc,
+  getFirestore,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
@@ -19,7 +24,23 @@ function initFirebaseIfNeeded() {
   }
 }
 
+function getDb() {
+  initFirebaseIfNeeded();
+  return getFirestore(firebase);
+}
+
 export function getAuth() {
   initFirebaseIfNeeded();
   return firebaseGetAuth(firebase);
+}
+
+export async function getDoc(path: string, pathSegment: string) {
+  const docRef = doc(getDb(), path, pathSegment);
+  const xx = await getFirestoreDoc(docRef);
+  if (xx.exists()) {
+    return xx.data();
+  }
+  const error = `Doc doesnt exist for ${path} ${pathSegment}`;
+  console.error(error);
+  throw new Error(error);
 }
