@@ -6,6 +6,6 @@ export {
   BADGES_INFO,
   calendrier2026
 } from "./data";
-export { getAuth } from "./firebase";
+export { getAuth, getDoc } from "./firebase";
 export { translateFirebaseError } from "./wordings";
 export { getNormalizedName, areNamesIdentical } from "./strings";

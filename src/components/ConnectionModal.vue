@@ -63,11 +63,7 @@
         >
       </div>
 
-      <div
-        v-else
-        id="panneau-inscription"
-        class="auth-panel"
-      >
+      <div v-else id="panneau-inscription" class="auth-panel">
         <div class="auth-field">
           <label for="inscription-pseudo"
             >Pseudo (affiché aux autres joueurs)</label
@@ -122,9 +118,12 @@ import {
   resetPassword,
   updateUserNickname,
 } from "../services";
-import { translateFirebaseError } from "../utils";
+import { useUserStore } from "../stores";
+import { getDoc, translateFirebaseError } from "../utils";
 
 const emit = defineEmits(["close-connection-modal"]);
+
+const userStore = useUserStore();
 
 const nickname = ref("");
 const email = ref("");
@@ -145,10 +144,14 @@ async function handleConnectionClick() {
   isConnectionButtonDisabled.value = true;
   connectionButtonLabel.value = "Connexion en cours...";
   try {
-    await logIn(email.value, password.value);
+    const user = await logIn(email.value, password.value);
+    userStore.setUser(user);
     emit("close-connection-modal");
+    const forecast = await getDoc("pronostics", `${user.user.uid}_${userStore.selectedRace.replace("/", "_")}`);
+    userStore.setForecast(forecast.classementPilotes);
   } catch (error) {
     errorString.value = translateFirebaseError(error);
+    userStore.setUser(null);
   } finally {
     isConnectionButtonDisabled.value = false;
     connectionButtonLabel.value = "🏁 Se connecter";
@@ -169,8 +172,9 @@ async function handleInscriptionClick() {
   isInscriptionButtonDisabled.value = true;
   inscriptionButtonLabel.value = "Création en cours...";
   try {
-    const resultat = await createUser(email.value, password.value);
+    const user = await createUser(email.value, password.value);
     await updateUserNickname(nickname.value);
+    userStore.setUser(user);
 
     const nomUserSpan = document.getElementById("nom-utilisateur");
     if (nomUserSpan) {
@@ -180,6 +184,7 @@ async function handleInscriptionClick() {
   } catch (error) {
     errorString.value = translateFirebaseError(error);
     console.error(error);
+    userStore.setUser(null);
   } finally {
     isInscriptionButtonDisabled.value = false;
     inscriptionButtonLabel.value = "🏆 Créer mon compte";

@@ -45,6 +45,15 @@
 import { ref } from "vue";
 import GridSlot from "./startingGrid/GridSlot.vue";
 import { drivers } from "../utils/data.js";
+import { useUserStore } from "../stores/userStore.ts";
+
+const store = useUserStore();
+
+store.$subscribe((mutation, state) => {
+  if (state.userForecast.length > 0) {
+    initDrivers.value = state.userForecast;
+  }
+});
 
 const selectedDrivers = ref(new Set());
 const initDrivers = ref(Array(10).fill(""));
