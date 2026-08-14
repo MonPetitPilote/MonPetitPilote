@@ -212,3 +212,231 @@ export const drivers = [
     driverImg: "images/drivers/per.avif",
   },
 ];
+
+export const LOGOS_ECURIES_2026 = {
+  "Red Bull": "images/team/redbull.avif",
+  Ferrari: "images/team/ferrari.avif",
+  McLaren: "images/team/mclaren.avif",
+  Mercedes: "images/team/mercedes.avif",
+  "Aston Martin": "images/team/astonmartin.avif",
+  Alpine: "images/team/alpine.avif",
+  Williams: "images/team/williams.avif",
+  "Racing Bulls": "images/team/racingbulls.avif",
+  Audi: "images/team/audi.avif",
+  Haas: "images/team/haas.avif",
+  Cadillac: "images/team/cadillac.avif",
+};
+
+export const ecuriesSaison = [
+  "Red Bull",
+  "Ferrari",
+  "McLaren",
+  "Mercedes",
+  "Aston Martin",
+  "Alpine",
+  "Williams",
+  "Racing Bulls",
+  "Audi",
+  "Haas",
+  "Cadillac",
+];
+
+export const ECURIES_OUTSIDERS = [
+  "Aston Martin",
+  "Alpine",
+  "Williams",
+  "Racing Bulls",
+  "Audi",
+  "Haas",
+  "Cadillac",
+];
+
+export const BADGES_INFO = {
+  pole: {
+    icone: "🎯",
+    nom: "Roi de la Pole",
+    description:
+      "A trouvé le plus de fois le bon pronostic de Pole Position sur la saison.",
+  },
+  victoire: {
+    icone: "🏆",
+    nom: "Chasseur de Vainqueur",
+    description:
+      "A trouvé le plus de fois le bon vainqueur du Grand Prix (P1 exact).",
+  },
+  podium: {
+    icone: "🥇",
+    nom: "Podium Parfait",
+    description:
+      "A trouvé le podium exact (P1, P2 et P3) le plus de fois sur la saison.",
+  },
+  loupe: {
+    icone: "🥶",
+    nom: "Boulet de la Saison",
+    description:
+      "Cumule le plus grand nombre de pronostics ratés (pilotes hors du top 10 réel).",
+  },
+  folie: {
+    icone: "🃏",
+    nom: "Coup de Folie",
+    description:
+      "A misé le plus souvent, avec succès, sur un pilote d'écurie outsider dans son top 10.",
+  },
+};
+
+export const calendrier2026 = [
+  {
+    round: 1,
+    nom: "Grand Prix d'Australie",
+    circuit: "Melbourne",
+    pays: "Australie",
+    date: "2026-03-08",
+  },
+  {
+    round: 2,
+    nom: "Grand Prix de Chine",
+    circuit: "Shanghai",
+    pays: "Chine",
+    date: "2026-03-15",
+  },
+  {
+    round: 3,
+    nom: "Grand Prix du Japon",
+    circuit: "Suzuka",
+    pays: "Japon",
+    date: "2026-03-29",
+  },
+  {
+    round: 4,
+    nom: "Grand Prix de Miami",
+    circuit: "Miami Gardens",
+    pays: "USA",
+    date: "2026-05-03",
+  },
+  {
+    round: 5,
+    nom: "Grand Prix du Canada",
+    circuit: "Montréal",
+    pays: "Canada",
+    date: "2026-05-24",
+  },
+  {
+    round: 6,
+    nom: "Grand Prix de Monaco",
+    circuit: "Monte Carlo",
+    pays: "Monaco",
+    date: "2026-06-07",
+  },
+  {
+    round: 7,
+    nom: "Grand Prix d'Espagne (Barcelone)",
+    circuit: "Barcelona",
+    pays: "Espagne",
+    date: "2026-06-14",
+  },
+  {
+    round: 8,
+    nom: "Grand Prix d'Autriche",
+    circuit: "Spielberg",
+    pays: "Autriche",
+    date: "2026-06-28",
+  },
+  {
+    round: 9,
+    nom: "Grand Prix de Grande-Bretagne",
+    circuit: "Silverstone",
+    pays: "Royaume-Uni",
+    date: "2026-07-05",
+  },
+  {
+    round: 10,
+    nom: "Grand Prix de Belgique",
+    circuit: "Spa-Francorchamps",
+    pays: "Belgique",
+    date: "2026-07-19",
+  },
+  {
+    round: 11,
+    nom: "Grand Prix de Hongrie",
+    circuit: "Budapest",
+    pays: "Hongrie",
+    date: "2026-07-26",
+  },
+  {
+    round: 12,
+    nom: "Grand Prix des Pays-Bas",
+    circuit: "Zandvoort",
+    pays: "Pays-Bas",
+    date: "2026-08-23",
+  },
+  {
+    round: 13,
+    nom: "Grand Prix d'Italie",
+    circuit: "Monza",
+    pays: "Italie",
+    date: "2026-09-06",
+  },
+  {
+    round: 14,
+    nom: "Grand Prix d'Espagne (Madrid)",
+    circuit: "Madrid",
+    pays: "Espagne",
+    date: "2026-09-13",
+  },
+  {
+    round: 15,
+    nom: "Grand Prix d'Azerbaïdjan",
+    circuit: "Baku",
+    pays: "Azerbaïdjan",
+    date: "2026-09-26",
+  },
+  {
+    round: 16,
+    nom: "Grand Prix de Singapour",
+    circuit: "Marina Bay",
+    pays: "Singapour",
+    date: "2026-10-11",
+  },
+  {
+    round: 17,
+    nom: "Grand Prix des États-Unis",
+    circuit: "Austin",
+    pays: "USA",
+    date: "2026-10-25",
+  },
+  {
+    round: 18,
+    nom: "Grand Prix du Mexique",
+    circuit: "Mexico City",
+    pays: "Mexique",
+    date: "2026-11-01",
+  },
+  {
+    round: 19,
+    nom: "Grand Prix du Brésil",
+    circuit: "São Paulo",
+    pays: "Brésil",
+    date: "2026-11-08",
+  },
+  {
+    round: 20,
+    nom: "Grand Prix de Las Vegas",
+    circuit: "Las Vegas",
+    pays: "USA",
+    date: "2026-11-21",
+  },
+  {
+    round: 21,
+    nom: "Grand Prix du Qatar",
+    circuit: "Lusail",
+    pays: "Qatar",
+    date: "2026-11-29",
+  },
+  {
+    round: 22,
+    nom: "Grand Prix d'Abou Dhabi",
+    circuit: "Yas Marina",
+    pays: "Émirats Arabes Unis",
+    date: "2026-12-06",
+  },
+];
