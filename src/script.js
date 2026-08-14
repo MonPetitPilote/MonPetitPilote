@@ -1,4 +1,4 @@
-import { drivers, getNormalizedName, nomsCorrespondentLocal } from "./utils";
+import { drivers, getNormalizedName, areNamesIdentical } from "./utils";
 // ==========================================
 // 1. CONFIGURATION ET INITIALISATION FIREBASE
 // ==========================================
@@ -1133,7 +1133,7 @@ async function construireComparatifHtml(data) {
                 icone = "✅";
             } else if (infoPilote.statut === "dans_le_top10") {
                 icone = "➕";
-                const positionReelle = officialTop10.findIndex(p => nomsCorrespondentLocal(p, pilote));
+                const positionReelle = officialTop10.findIndex(p => areNamesIdentical(p, pilote));
                 if (positionReelle !== -1) precision = ` (fini P${positionReelle + 1})`;
             }
             const colorPoints = infoPilote.points > 0 ? `#4cd137` : `#ef4444`;
@@ -1160,7 +1160,7 @@ async function construireComparatifHtml(data) {
     // --- Comparatif Pole Position ---
     let ligneComparatifPole = `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>`;
     if (dejaCalcule) {
-        const poleCorrecte = data.poleman && officialPoleman && nomsCorrespondentLocal(officialPoleman, data.poleman);
+        const poleCorrecte = data.poleman && officialPoleman && areNamesIdentical(officialPoleman, data.poleman);
         ligneComparatifPole = `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
             <span>${poleCorrecte ? '✅' : '❌'} Poleman : <strong>${data.poleman || 'Aucun'}</strong></span>
             <span style="color: #616e88;">Réel : ${officialPoleman || '—'}</span>
@@ -1172,7 +1172,7 @@ async function construireComparatifHtml(data) {
         if (!dejaCalcule || !nomEcurie || nomEcurie === 'Aucune' || !ecurieGagnante) {
             return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>${nomEcurie}</strong></div>`;
         }
-        const correspond = nomsCorrespondentLocal(ecurieGagnante, nomEcurie);
+        const correspond = areNamesIdentical(ecurieGagnante, nomEcurie);
         const bonPari = estUnTop ? correspond : !correspond;
         return `<div style="display: flex; justify-content: space-between; padding: 4px 0;">
             <span>${bonPari ? '✅' : '❌'} ${label} : <strong>${nomEcurie}</strong></span>

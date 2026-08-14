@@ -5,7 +5,7 @@ export function getNormalizedName(texte) {
     .toLowerCase();
 }
 
-export function nomsCorrespondentLocal(nomA, nomB) {
+export function areNamesIdentical(nomA, nomB) {
   const a = getNormalizedName(nomA);
   const b = getNormalizedName(nomB);
   return a.includes(b) || b.includes(a);
