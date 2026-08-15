@@ -145,7 +145,7 @@ async function handleConnectionClick() {
   connectionButtonLabel.value = "Connexion en cours...";
   try {
     const user = await logIn(email.value, password.value);
-    userStore.setUser(user);
+    userStore.setUser(user.user);
     emit("close-connection-modal");
   } catch (error) {
     errorString.value = translateFirebaseError(error);
@@ -172,7 +172,7 @@ async function handleInscriptionClick() {
   try {
     const user = await createUser(email.value, password.value);
     await updateUserNickname(nickname.value);
-    userStore.setUser(user);
+    userStore.setUser(user.user);
 
     const nomUserSpan = document.getElementById("nom-utilisateur");
     if (nomUserSpan) {

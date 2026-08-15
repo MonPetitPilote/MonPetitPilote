@@ -29,11 +29,14 @@ import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
 import { getAuth } from "./utils/firebase.ts";
 import { loadForecast } from "./services/users.ts";
+import { useUserStore } from "./stores/userStore.ts";
 
 const isConnectionModalOpen = ref(false);
+const store = useUserStore()
 
 onAuthStateChanged(getAuth(), (user) => {
   if (user) {
+    store.setUser(user)
     loadForecast(user)
   }
 });

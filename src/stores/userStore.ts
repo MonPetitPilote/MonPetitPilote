@@ -1,4 +1,4 @@
-import type { UserCredential } from "firebase/auth";
+import type { User } from "firebase/auth";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
@@ -7,11 +7,11 @@ import { ref } from "vue";
 // and `Store` (e.g. `useUserStore`, `useCartStore`, `useProductStore`)
 // the first argument is a unique id of the store across your application
 export const useUserStore = defineStore("user", () => {
-  const currentUser = ref<UserCredential | null>(null);
+  const currentUser = ref<User | null>(null);
   const userForecast = ref<string[]>([]);
   const selectedRace = ref("");
 
-  function setUser(user: UserCredential | null) {
+  function setUser(user: User | null) {
     currentUser.value = user;
   }
 

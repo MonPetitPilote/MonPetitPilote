@@ -14,12 +14,17 @@
 </template>
 
 <script setup lang="ts">
+import { loadForecast } from "../services/users.ts";
 import { useUserStore } from "../stores/userStore.ts";
 import { calendrier2026 } from "../utils/data.ts";
 const store = useUserStore();
 
 function handleSelectedRace(event: Event) {
   store.setSelectedRace((<HTMLSelectElement>event.target).value);
+  const currentUser = store.currentUser;
+  if (currentUser) {
+    loadForecast(currentUser);
+  }
 }
 
 const aujourdhui = new Date();
