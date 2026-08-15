@@ -252,35 +252,6 @@ function verifierVerrouillageCourse() {
 // Rafraîchit le countdown toutes les minutes sans avoir à recharger la page
 setInterval(mettreAJourCountdown, 60 * 1000);
 
-// INITIALISATIONS DE BASE AVEC CALENDRIER ET AUTO-SÉLECTION COMPLÈTE
-// function initialiserSelectCourse() {
-//     if (!selectCourse) return;
-//     selectCourse.innerHTML = ""; 
-
-//     const aujourdhui = new Date();
-//     let prochainRoundValue = "2026/1"; 
-//     let roundTrouve = false;
-
-//     calendrier2026.forEach(gp => {
-//         const opt = document.createElement('option');
-//         opt.value = `2026/${gp.round}`;
-        
-//         const dateObj = new Date(gp.date);
-//         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        
-//         opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
-//         selectCourse.appendChild(opt);
-
-//         if (!roundTrouve && dateObj >= aujourdhui) {
-//             prochainRoundValue = `2026/${gp.round}`;
-//             roundTrouve = true; 
-//         }
-//     });
-
-//     selectCourse.value = prochainRoundValue;
-//     selectCourse.setAttribute('value', prochainRoundValue);
-// }
-
 function initialiserPolePosition() {
     if (!selectPole) return;
     selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
