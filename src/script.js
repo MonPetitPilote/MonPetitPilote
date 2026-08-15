@@ -110,7 +110,6 @@ auth.onAuthStateChanged(async (user) => {
             if(nomUserSpan) nomUserSpan.innerText = user.displayName || user.email;
         }
 
-        chargerPronosticsUtilisateur();
         chargerEtAfficherLigues().then(() => {
             derniereStatsSaison = null;
             chargerClassementGeneral();

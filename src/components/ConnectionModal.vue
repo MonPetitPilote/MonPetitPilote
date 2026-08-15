@@ -147,8 +147,6 @@ async function handleConnectionClick() {
     const user = await logIn(email.value, password.value);
     userStore.setUser(user);
     emit("close-connection-modal");
-    const forecast = await getDoc("pronostics", `${user.user.uid}_${userStore.selectedRace.replace("/", "_")}`);
-    userStore.setForecast(forecast.classementPilotes);
   } catch (error) {
     errorString.value = translateFirebaseError(error);
     userStore.setUser(null);

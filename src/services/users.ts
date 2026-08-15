@@ -1,9 +1,11 @@
-import { getAuth } from "../utils";
+import { useUserStore } from "../stores";
+import { getAuth, getDoc } from "../utils";
 import {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   updateProfile,
+  type User,
 } from "firebase/auth";
 
 export async function createUser(email: string, password: string) {
@@ -27,4 +29,13 @@ export async function updateUserNickname(nickname: string) {
 export async function resetPassword(email: string) {
   const auth = getAuth();
   return await sendPasswordResetEmail(auth, email);
+}
+
+export async function loadForecast(user: User) {
+  const userStore = useUserStore();
+  const forecast = await getDoc(
+    "pronostics",
+    `${user.uid}_${userStore.selectedRace.replace("/", "_")}`,
+  );
+  userStore.setForecast(forecast.classementPilotes);
 }

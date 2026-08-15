@@ -5,7 +5,10 @@
     <TopHeader @open-connection-modal="isConnectionModalOpen = true" />
     <WorkspaceProfile />
     <MainContent />
-    <ConnectionModal v-show="isConnectionModalOpen" @close-connection-modal="isConnectionModalOpen = false"/>
+    <ConnectionModal
+      v-show="isConnectionModalOpen"
+      @close-connection-modal="isConnectionModalOpen = false"
+    />
     <FriendModal />
     <LeagueModal />
     <RulesModal />
@@ -14,6 +17,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { onAuthStateChanged } from "firebase/auth";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
@@ -23,6 +27,14 @@ import NotificationsComponent from "./components/NotificationsComponent.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
+import { getAuth } from "./utils/firebase.ts";
+import { loadForecast } from "./services/users.ts";
 
 const isConnectionModalOpen = ref(false);
+
+onAuthStateChanged(getAuth(), (user) => {
+  if (user) {
+    loadForecast(user)
+  }
+});
 </script>
