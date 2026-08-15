@@ -50,8 +50,8 @@ import { useUserStore } from "../stores/userStore.ts";
 const store = useUserStore();
 
 store.$subscribe((mutation, state) => {
-  if (state.userForecast.length > 0) {
-    initDrivers.value = state.userForecast;
+  if (state.userForecast?.classementPilotes?.length && state.userForecast?.classementPilotes?.length > 0) {
+    initDrivers.value = state.userForecast.classementPilotes;
   }
 });
 

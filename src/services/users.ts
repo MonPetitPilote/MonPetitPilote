@@ -37,5 +37,5 @@ export async function loadForecast(user: User) {
     "pronostics",
     `${user.uid}_${userStore.selectedRace.replace("/", "_")}`,
   );
-  userStore.setForecast(forecast.classementPilotes);
+  userStore.setForecast(forecast as any);
 }
