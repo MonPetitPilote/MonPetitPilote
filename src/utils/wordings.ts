@@ -1,5 +1,5 @@
-export function translateFirebaseError(error: any) {
-  switch (error.code) {
+export function translateFirebaseError(error: { code?: string; message?: string }): string {
+  switch (error?.code) {
     case "auth/invalid-email":
       return "L'adresse email n'est pas valide.";
     case "auth/user-not-found":
@@ -11,6 +11,6 @@ export function translateFirebaseError(error: any) {
     case "auth/weak-password":
       return "Le mot de passe doit contenir au moins 6 caractères.";
     default:
-      return "Une erreur est survenue : " + error.message;
+      return "Une erreur est survenue : " + (error?.message || "Erreur inconnue");
   }
 }

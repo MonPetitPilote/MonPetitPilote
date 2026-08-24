@@ -1,10 +1,5 @@
-import { type FirebaseApp, initializeApp } from "firebase/app";
-import { getAuth as firebaseGetAuth } from "firebase/auth";
-import {
-  doc,
-  getDoc as getFirestoreDoc,
-  getFirestore,
-} from "firebase/firestore";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth as firebaseGetAuth, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
@@ -16,31 +11,16 @@ const firebaseConfig = {
   measurementId: "G-TY047XHDXW",
 };
 
-let firebase: FirebaseApp;
+let firebaseApp: FirebaseApp | undefined;
 
-function initFirebaseIfNeeded() {
-  if (!firebase) {
-    firebase = initializeApp(firebaseConfig);
+function initFirebaseIfNeeded(): FirebaseApp {
+  if (!firebaseApp) {
+    firebaseApp = initializeApp(firebaseConfig);
   }
+  return firebaseApp;
 }
 
-function getDb() {
-  initFirebaseIfNeeded();
-  return getFirestore(firebase);
-}
-
-export function getAuth() {
-  initFirebaseIfNeeded();
-  return firebaseGetAuth(firebase);
-}
-
-export async function getDoc(path: string, pathSegment: string) {
-  const docRef = doc(getDb(), path, pathSegment);
-  const xx = await getFirestoreDoc(docRef);
-  if (xx.exists()) {
-    return xx.data();
-  }
-  const error = `Doc doesnt exist for ${path} ${pathSegment}`;
-  console.error(error);
-  throw new Error(error);
+export function getAuth(): Auth {
+  const app = initFirebaseIfNeeded();
+  return firebaseGetAuth(app);
 }
