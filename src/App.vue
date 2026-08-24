@@ -2,22 +2,30 @@
   <NotificationsComponent />
   <div class="container">
     <Logo />
-    <TopHeader @open-connection-modal="isConnectionModalOpen = true" />
+    <TopHeader
+      @open-connection-modal="isConnectionModalOpen = true"
+      @open-rules-modal="isRulesModalOpen = true"
+    />
     <WorkspaceProfile />
-    <MainContent />
+    <MainContent @open-league-modal="isLeagueModalOpen = true" />
     <ConnectionModal
       v-show="isConnectionModalOpen"
       @close-connection-modal="isConnectionModalOpen = false"
     />
     <FriendModal />
-    <LeagueModal />
-    <RulesModal />
+    <LeagueModal
+      v-show="isLeagueModalOpen"
+      @close="isLeagueModalOpen = false"
+    />
+    <RulesModal
+      v-show="isRulesModalOpen"
+      @close="isRulesModalOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { onAuthStateChanged } from "firebase/auth";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
@@ -27,17 +35,8 @@ import NotificationsComponent from "./components/NotificationsComponent.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
-import { getAuth } from "./utils/firebase.ts";
-import { loadForecast } from "./services/users.ts";
-import { useUserStore } from "./stores/userStore.ts";
 
 const isConnectionModalOpen = ref(false);
-const store = useUserStore()
-
-onAuthStateChanged(getAuth(), (user) => {
-  if (user) {
-    store.setUser(user)
-    loadForecast(user)
-  }
-});
+const isLeagueModalOpen = ref(false);
+const isRulesModalOpen = ref(false);
 </script>

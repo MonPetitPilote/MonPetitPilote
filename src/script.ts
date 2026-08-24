@@ -1,0 +1,497 @@
+import {
+    pilotesData,
+    calendrier2026,
+    afficherNotification,
+    type StatistiquesSaison
+} from "./utils";
+
+import {
+    CODE_LIGUE_MONDIAL,
+    rejoindreLigueParCode,
+    creerNouvelleLigue,
+    recupererLiguesUtilisateur,
+    initialiserBoutonsBonus,
+    lireFormulaireBonus,
+    appliquerFormulaireBonus,
+    afficherGraphiqueEvolution,
+    initialiserEcouteursGraphique,
+    calculerStatistiquesEtClassement,
+    badgesHtmlPourJoueur,
+    afficherBadgesProfil,
+    construireComparatifHtml,
+    voirPronoJoueur,
+    courseEstVerrouillee,
+    verifierVerrouillageCourse,
+    mettreAJourDesignSlot,
+    controlerDoublonsPilotes,
+    creerLaGrilleDeDepartTV,
+    appliquerSelectionEcurieVisuelle,
+    initialiserEcuriesTopFlop
+} from "./services";
+
+declare const firebase: any;
+
+// ==========================================
+// 1. CONFIGURATION ET INITIALISATION FIREBASE
+// ==========================================
+const firebaseConfig = {
+    apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY,
+    authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: (import.meta as any).env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: (import.meta as any).env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: (import.meta as any).env.VITE_FIREBASE_APP_ID
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let utilisateurActuel: any = null;
+let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
+let membresLigueActive: Set<string> | null = null;
+let derniereStatsSaison: StatistiquesSaison | null = null;
+
+const selectCourse = document.getElementById('select-course') as HTMLSelectElement | null;
+const selectPole = document.getElementById('select-pole') as HTMLSelectElement | null;
+const selectLigue = document.getElementById('select-ligue') as HTMLSelectElement | null;
+
+// ==========================================
+// 2. GESTION AUTHENTIFICATION & PROFIL
+// ==========================================
+auth.onAuthStateChanged(async (user: any) => {
+    const authDeconnecte = document.getElementById('auth-deconnecte');
+    const authConnecte = document.getElementById('auth-connecte');
+    const pseudoDisplay = document.getElementById('user-pseudo-display');
+    const profilEmail = document.getElementById('profil-email');
+    const profilPseudoActuel = document.getElementById('profil-pseudo-actuel');
+    const profilInputPseudo = document.getElementById('profil-input-pseudo') as HTMLInputElement | null;
+
+    if (user) {
+        utilisateurActuel = user;
+        const pseudoFinal = user.displayName || user.email.split('@')[0];
+        if (authDeconnecte) authDeconnecte.style.display = 'none';
+        if (authConnecte) authConnecte.style.display = 'flex';
+        if (pseudoDisplay) pseudoDisplay.innerText = pseudoFinal;
+        if (profilEmail) profilEmail.innerText = user.email;
+        if (profilPseudoActuel) profilPseudoActuel.innerText = pseudoFinal;
+        if (profilInputPseudo) profilInputPseudo.value = pseudoFinal;
+
+        const docUser = await db.collection("utilisateurs").doc(user.uid).get();
+        if (!docUser.exists) {
+            await db.collection("utilisateurs").doc(user.uid).set({
+                pseudo: pseudoFinal,
+                email: user.email,
+                dateInscription: new Date(),
+                ligues: [CODE_LIGUE_MONDIAL],
+                ligueActive: CODE_LIGUE_MONDIAL
+            });
+        }
+
+        await chargerLiguesUtilisateur();
+        chargerPronosticsUtilisateur();
+        chargerClassementGeneral();
+    } else {
+        utilisateurActuel = null;
+        if (authDeconnecte) authDeconnecte.style.display = 'flex';
+        if (authConnecte) authConnecte.style.display = 'none';
+        afficherEtatLigueDeconnecte();
+        chargerClassementGeneral();
+    }
+});
+
+document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
+
+// Modification du pseudo dans l'espace Mon Profil
+document.getElementById('btn-sauvegarder-pseudo')?.addEventListener('click', async () => {
+    const inputPseudo = document.getElementById('profil-input-pseudo') as HTMLInputElement | null;
+    const nouveauPseudo = inputPseudo?.value.trim();
+    if (!nouveauPseudo) return afficherNotification("Le pseudo ne peut pas être vide.", "erreur");
+    if (!utilisateurActuel) return;
+
+    try {
+        await utilisateurActuel.updateProfile({ displayName: nouveauPseudo });
+        await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({ pseudo: nouveauPseudo }, { merge: true });
+
+        const snapshot = await db.collection("pronostics").where("uidJoueur", "==", utilisateurActuel.uid).get();
+        const batch = db.batch();
+        snapshot.forEach((doc: any) => batch.update(doc.ref, { pseudo: nouveauPseudo }));
+        await batch.commit();
+
+        const display = document.getElementById('user-pseudo-display');
+        const actuel = document.getElementById('profil-pseudo-actuel');
+        if (display) display.innerText = nouveauPseudo;
+        if (actuel) actuel.innerText = nouveauPseudo;
+
+        afficherNotification("Pseudo mis à jour avec succès !", "succes");
+        chargerClassementGeneral();
+    } catch (error) {
+        afficherNotification("Erreur lors du changement de pseudo.", "erreur");
+    }
+});
+
+// ==========================================
+// 3. GESTION DU CALENDRIER & DU FORMULAIRE
+// ==========================================
+function initialiserSelectCourse(): void {
+    if (!selectCourse) return;
+    selectCourse.innerHTML = "";
+    const aujourdhui = new Date();
+    let prochainRoundValue = "2026/1";
+    let roundTrouve = false;
+
+    calendrier2026.forEach(gp => {
+        const opt = document.createElement('option');
+        opt.value = `2026/${gp.round}`;
+        const dateObj = new Date(gp.date);
+        const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
+        selectCourse.appendChild(opt);
+
+        if (!roundTrouve && dateObj >= aujourdhui) {
+            prochainRoundValue = `2026/${gp.round}`;
+            roundTrouve = true;
+        }
+    });
+
+    selectCourse.value = prochainRoundValue;
+}
+
+function initialiserPolePosition(): void {
+    if (!selectPole) return;
+    selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
+    pilotesData.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nom;
+        opt.innerText = p.nom;
+        selectPole.appendChild(opt);
+    });
+}
+
+async function chargerPronosticsUtilisateur(): Promise<void> {
+    if (!utilisateurActuel || !selectCourse) return;
+    const courseId = selectCourse.value;
+    const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
+
+    for (let i = 1; i <= 10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
+        if (s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
+    }
+    if (selectPole) selectPole.value = "";
+
+    ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
+        appliquerSelectionEcurieVisuelle(id, "");
+    });
+
+    if (doc.exists) {
+        const data = doc.data();
+        (data.classementPilotes || []).forEach((nom: string, idx: number) => {
+            const s = document.getElementById(`select-grid-p${idx + 1}`) as HTMLSelectElement | null;
+            if (s) { s.value = nom; mettreAJourDesignSlot(idx + 1, nom); }
+        });
+
+        if (selectPole && data.poleman) selectPole.value = data.poleman;
+
+        const ecuriesTop = data.ecuriesTop || [];
+        const ecuriesFlop = data.ecuriesFlop || [];
+        appliquerSelectionEcurieVisuelle("ecurie-top-1", ecuriesTop[0] || "");
+        appliquerSelectionEcurieVisuelle("ecurie-top-2", ecuriesTop[1] || "");
+        appliquerSelectionEcurieVisuelle("ecurie-flop-1", ecuriesFlop[0] || "");
+        appliquerSelectionEcurieVisuelle("ecurie-flop-2", ecuriesFlop[1] || "");
+        appliquerFormulaireBonus(data.predictionsBonus);
+    } else {
+        appliquerFormulaireBonus(null);
+    }
+    controlerDoublonsPilotes();
+}
+
+// Validation du pronostic
+document.getElementById('btn-valider')?.addEventListener('click', async () => {
+    if (!utilisateurActuel) return afficherNotification("Tu dois être connecté !", "erreur");
+    if (!selectCourse) return;
+    const courseId = selectCourse.value;
+
+    if (courseEstVerrouillee(courseId)) {
+        return afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
+    }
+
+    const top10Selection: string[] = [];
+    for (let i = 1; i <= 10; i++) {
+        const val = (document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null)?.value;
+        if (!val) return afficherNotification(`Il manque la position P${i} !`, "erreur");
+        top10Selection.push(val);
+    }
+
+    const pronoData = {
+        uidJoueur: utilisateurActuel.uid,
+        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
+        course: courseId,
+        classementPilotes: top10Selection,
+        poleman: selectPole?.value || "",
+        ecuriesTop: [
+            document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "",
+            document.getElementById('ecurie-top-2')?.getAttribute('data-ecurie-value') || ""
+        ],
+        ecuriesFlop: [
+            document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "",
+            document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
+        ],
+        predictionsBonus: lireFormulaireBonus(),
+        dateEnregistrement: new Date()
+    };
+
+    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
+    afficherNotification("🏁 Grille et Écuries enregistrées avec succès !", "succes");
+    chargerClassementGeneral();
+});
+
+// Bouton Grille Aléatoire
+document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
+    const tri = [...pilotesData].sort(() => 0.5 - Math.random());
+    for (let i = 1; i <= 10; i++) {
+        const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
+        if (s) { s.value = tri[i - 1].nom; mettreAJourDesignSlot(i, tri[i - 1].nom); }
+    }
+    controlerDoublonsPilotes();
+});
+
+// ==========================================
+// 4. CLASSEMENT GÉNÉRAL & STATISTIQUES
+// ==========================================
+async function chargerClassementGeneral(): Promise<void> {
+    const liste = document.getElementById('liste-classement');
+    if (!liste) return;
+
+    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
+
+    try {
+        const stats = await calculerStatistiquesEtClassement(db, membresLigueActive);
+        derniereStatsSaison = stats;
+        const { joueurs, badges, historiqueParJoueur, roundsCalcules } = stats;
+
+        liste.innerHTML = "";
+        if (joueurs.length === 0) {
+            liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
+            afficherGraphiqueEvolution(null, null, utilisateurActuel);
+            return;
+        }
+
+        let pos = 1;
+        joueurs.slice(0, 5).forEach(u => {
+            const div = document.createElement('div');
+            div.setAttribute('style', 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff; cursor:pointer;');
+            div.innerHTML = `
+                <div><strong style="color:${pos === 1 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
+                <div>${u.pseudo}${badgesHtmlPourJoueur(u.uid, badges)}</div>
+                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
+            `;
+            div.addEventListener('click', () => {
+                const courseId = selectCourse?.value || "";
+                voirPronoJoueur(db, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
+            });
+            liste.appendChild(div);
+            pos++;
+        });
+
+        afficherGraphiqueEvolution(joueurs, { badges, joueurs, historiqueParJoueur, roundsCalcules }, utilisateurActuel);
+    } catch (error) {
+        console.error("Erreur lors du calcul du classement général :", error);
+        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
+    }
+}
+
+// Modal Voir le prono d'un ami
+document.getElementById('btn-fermer-prono-ami')?.addEventListener('click', () => {
+    const modale = document.getElementById('modale-prono-ami');
+    if (modale) modale.style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+    const modale = document.getElementById('modale-prono-ami');
+    if (e.target === modale) modale.style.display = 'none';
+});
+
+// ==========================================
+// 5. GESTION DES LIGUES
+// ==========================================
+function afficherEtatLigueDeconnecte(): void {
+    if (!selectLigue) return;
+    selectLigue.innerHTML = `<option value="${CODE_LIGUE_MONDIAL}">🌍 Mondial (connectez-vous pour vos ligues)</option>`;
+    selectLigue.value = CODE_LIGUE_MONDIAL;
+    ligueActiveActuelle = CODE_LIGUE_MONDIAL;
+    membresLigueActive = null;
+}
+
+async function chargerMembresLigueActive(codeLigue: string): Promise<void> {
+    if (!codeLigue || codeLigue === CODE_LIGUE_MONDIAL) {
+        membresLigueActive = null;
+        return;
+    }
+    const doc = await db.collection("ligues").doc(codeLigue).get();
+    membresLigueActive = doc.exists ? new Set(doc.data().membres || []) : null;
+}
+
+async function chargerLiguesUtilisateur(): Promise<void> {
+    if (!utilisateurActuel) return;
+    const { ligues, active } = await recupererLiguesUtilisateur(db, utilisateurActuel);
+
+    if (selectLigue) {
+        selectLigue.innerHTML = "";
+        ligues.forEach(ligue => {
+            const opt = document.createElement('option');
+            opt.value = ligue.code;
+            opt.innerText = ligue.code === CODE_LIGUE_MONDIAL ? ligue.nom : `🏆 ${ligue.nom} (${ligue.code})`;
+            selectLigue.appendChild(opt);
+        });
+        selectLigue.value = active;
+    }
+    ligueActiveActuelle = active;
+    await chargerMembresLigueActive(active);
+}
+
+selectLigue?.addEventListener('change', async (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    const nouveauCode = target.value;
+    ligueActiveActuelle = nouveauCode;
+    await chargerMembresLigueActive(nouveauCode);
+    if (utilisateurActuel) {
+        await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({ ligueActive: nouveauCode }, { merge: true });
+    }
+    chargerClassementGeneral();
+});
+
+// Boutons Créer / Rejoindre dans la modal Ligues
+document.getElementById('btn-creer-ligue')?.addEventListener('click', async () => {
+    const inputNom = document.getElementById('nom-nouvelle-ligue') as HTMLInputElement | null;
+    const nom = inputNom?.value.trim();
+    const zoneErreur = document.getElementById('creer-ligue-erreur');
+    if (!nom) {
+        if (zoneErreur) zoneErreur.innerText = "Veuillez saisir un nom de ligue.";
+        return;
+    }
+    try {
+        const code = await creerNouvelleLigue(db, nom, utilisateurActuel);
+        if (inputNom) inputNom.value = "";
+        if (zoneErreur) zoneErreur.innerText = "";
+        afficherNotification(`Ligue "${nom}" créée avec succès (Code : ${code}) !`, "succes");
+        await chargerLiguesUtilisateur();
+        chargerClassementGeneral();
+    } catch (err: any) {
+        if (zoneErreur) zoneErreur.innerText = err.message || "Erreur lors de la création.";
+    }
+});
+
+document.getElementById('btn-rejoindre-ligue')?.addEventListener('click', async () => {
+    const inputCode = document.getElementById('code-ligue-rejoindre') as HTMLInputElement | null;
+    const code = inputCode?.value.trim().toUpperCase();
+    const zoneErreur = document.getElementById('rejoindre-ligue-erreur');
+    if (!code) {
+        if (zoneErreur) zoneErreur.innerText = "Veuillez saisir un code de ligue.";
+        return;
+    }
+    try {
+        await rejoindreLigueParCode(db, code, utilisateurActuel);
+        if (inputCode) inputCode.value = "";
+        if (zoneErreur) zoneErreur.innerText = "";
+        afficherNotification(`Ligue ${code} rejointe avec succès !`, "succes");
+        await chargerLiguesUtilisateur();
+        chargerClassementGeneral();
+    } catch (err: any) {
+        if (zoneErreur) zoneErreur.innerText = err.message || "Erreur lors de la tentative.";
+    }
+});
+
+// ==========================================
+// 6. ESPACE PROFIL & HISTORIQUE
+// ==========================================
+const btnVersProfil = document.getElementById('btn-vers-profil');
+const btnRetourPronos = document.getElementById('btn-retour-pronos');
+const logoAccueil = document.getElementById('logo-accueil');
+const sectionPronos = document.getElementById('main-content-pronos');
+const sectionProfil = document.getElementById('workspace-profil');
+
+function basculerVersProfil(): void {
+    if (sectionPronos) sectionPronos.style.display = 'none';
+    if (sectionProfil) sectionProfil.style.display = 'block';
+    chargerHistoriqueProfil();
+    if (derniereStatsSaison) {
+        afficherBadgesProfil(derniereStatsSaison, utilisateurActuel);
+        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison, utilisateurActuel);
+    } else {
+        chargerClassementGeneral();
+    }
+}
+
+function basculerVersPronos(): void {
+    if (sectionProfil) sectionProfil.style.display = 'none';
+    if (sectionPronos) sectionPronos.style.display = 'grid';
+}
+
+btnVersProfil?.addEventListener('click', basculerVersProfil);
+btnRetourPronos?.addEventListener('click', basculerVersPronos);
+logoAccueil?.addEventListener('click', basculerVersPronos);
+
+function chargerHistoriqueProfil(): void {
+    if (!utilisateurActuel) return;
+    db.collection("pronostics").where("uidJoueur", "==", utilisateurActuel.uid).get().then((querySnapshot: any) => {
+        const listeGpsContainer = document.getElementById('profil-liste-gps');
+        if (!listeGpsContainer) return;
+        listeGpsContainer.innerHTML = "";
+
+        if (querySnapshot.empty) {
+            listeGpsContainer.innerHTML = `<div style="padding: 15px; text-align: center; color: #aaa;">Aucun prono enregistré pour le moment.</div>`;
+            return;
+        }
+
+        querySnapshot.forEach((doc: any) => {
+            const data = doc.data();
+            const courseIdString = data.course || "Inconnu";
+            const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
+            const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+            const nomAffichageGP = gpInfo ? gpInfo.nom.toUpperCase() : `ROUND ${roundNumero}`;
+            const pointsAffiches = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
+
+            const ligne = document.createElement('div');
+            ligne.className = 'ligne-profil-gp';
+            ligne.setAttribute('style', "display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #1c2437; cursor: pointer; color: #fff;");
+            ligne.innerHTML = `
+                <div style="font-weight: bold;">🏎️ ${nomAffichageGP}</div>
+                <div style="text-align: right; color: #4cd137; font-weight: bold;">${pointsAffiches} pts</div>
+            `;
+            ligne.addEventListener('click', async () => {
+                const detailContainer = document.getElementById('profil-detail-gp');
+                if (detailContainer) {
+                    detailContainer.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement du comparatif...</p>`;
+                    detailContainer.innerHTML = await construireComparatifHtml(db, data);
+                }
+            });
+            listeGpsContainer.appendChild(ligne);
+        });
+    });
+}
+
+// ==========================================
+// 7. INITIALISATION AU DÉMARRAGE
+// ==========================================
+initialiserBoutonsBonus();
+initialiserEcouteursGraphique(() => {
+    if (derniereStatsSaison) {
+        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison, utilisateurActuel);
+    }
+});
+afficherEtatLigueDeconnecte();
+initialiserSelectCourse();
+initialiserPolePosition();
+creerLaGrilleDeDepartTV();
+initialiserEcuriesTopFlop();
+verifierVerrouillageCourse(selectCourse, selectPole);
+setInterval(() => verifierVerrouillageCourse(selectCourse, selectPole), 60 * 1000);
+
+if (selectCourse) {
+    selectCourse.addEventListener('change', () => {
+        chargerPronosticsUtilisateur();
+        chargerClassementGeneral();
+        verifierVerrouillageCourse(selectCourse, selectPole);
+    });
+}
