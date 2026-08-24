@@ -2,7 +2,8 @@ import {
     pilotesData,
     calendrier2026,
     afficherNotification,
-    type StatistiquesSaison
+    type StatistiquesSaison,
+    type GrandPrix
 } from "./utils";
 
 import {
@@ -25,8 +26,15 @@ import {
     mettreAJourDesignSlot,
     controlerDoublonsPilotes,
     creerLaGrilleDeDepartTV,
+    mettreAJourDesignSlotSprint,
+    controlerDoublonsSprint,
+    creerLaGrilleSprintTV,
     appliquerSelectionEcurieVisuelle,
-    initialiserEcuriesTopFlop
+    initialiserEcuriesTopFlop,
+    getCalendrierActuel,
+    onCalendrierChange,
+    estWeekendSprint,
+    synchroniserCalendrierDynamique
 } from "./services";
 
 declare const firebase: any;
@@ -137,26 +145,47 @@ document.getElementById('btn-sauvegarder-pseudo')?.addEventListener('click', asy
 // ==========================================
 function initialiserSelectCourse(): void {
     if (!selectCourse) return;
+    const valeurSelectionneePrecedente = selectCourse.value;
     selectCourse.innerHTML = "";
     const aujourdhui = new Date();
     let prochainRoundValue = "2026/1";
     let roundTrouve = false;
 
-    calendrier2026.forEach(gp => {
+    const calendrier = getCalendrierActuel();
+
+    calendrier.forEach(gp => {
         const opt = document.createElement('option');
         opt.value = `2026/${gp.round}`;
         const dateObj = new Date(gp.date);
         const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays}) — 📅 ${dateFormatee}`;
+        const tagSprint = gp.hasSprint ? ' ⚡ [SPRINT]' : '';
+        const tagStatut = gp.statut === 'annule' ? ' ⚠️ [ANNULÉ]' : (gp.statut === 'remplace' ? ' 🔄 [REMPLACÉ]' : '');
+        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays})${tagSprint}${tagStatut} — 📅 ${dateFormatee}`;
         selectCourse.appendChild(opt);
 
-        if (!roundTrouve && dateObj >= aujourdhui) {
+        if (!roundTrouve && dateObj >= aujourdhui && gp.statut !== 'annule') {
             prochainRoundValue = `2026/${gp.round}`;
             roundTrouve = true;
         }
     });
 
-    selectCourse.value = prochainRoundValue;
+    if (valeurSelectionneePrecedente && Array.from(selectCourse.options).some(o => o.value === valeurSelectionneePrecedente)) {
+        selectCourse.value = valeurSelectionneePrecedente;
+    } else {
+        selectCourse.value = prochainRoundValue;
+    }
+
+    gererAffichageSectionSprint();
+}
+
+function gererAffichageSectionSprint(): void {
+    const courseId = selectCourse?.value || "2026/1";
+    const sectionSprint = document.getElementById('section-sprint-container');
+    const aUnSprint = estWeekendSprint(courseId);
+
+    if (sectionSprint) {
+        sectionSprint.style.display = aUnSprint ? 'block' : 'none';
+    }
 }
 
 function initialiserPolePosition(): void {
@@ -173,13 +202,22 @@ function initialiserPolePosition(): void {
 async function chargerPronosticsUtilisateur(): Promise<void> {
     if (!utilisateurActuel || !selectCourse) return;
     const courseId = selectCourse.value;
+    gererAffichageSectionSprint();
+
     const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
 
+    // Réinitialisation de la grille Top 10
     for (let i = 1; i <= 10; i++) {
         const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
         if (s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
     }
     if (selectPole) selectPole.value = "";
+
+    // Réinitialisation de la grille Sprint Top 5
+    for (let i = 1; i <= 5; i++) {
+        const s = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
+        if (s) { s.value = ""; mettreAJourDesignSlotSprint(i, ""); }
+    }
 
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
         appliquerSelectionEcurieVisuelle(id, "");
@@ -190,6 +228,12 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         (data.classementPilotes || []).forEach((nom: string, idx: number) => {
             const s = document.getElementById(`select-grid-p${idx + 1}`) as HTMLSelectElement | null;
             if (s) { s.value = nom; mettreAJourDesignSlot(idx + 1, nom); }
+        });
+
+        // Chargement du prono Sprint s'il existe
+        (data.classementSprint || []).forEach((nom: string, idx: number) => {
+            const s = document.getElementById(`select-sprint-p${idx + 1}`) as HTMLSelectElement | null;
+            if (s) { s.value = nom; mettreAJourDesignSlotSprint(idx + 1, nom); }
         });
 
         if (selectPole && data.poleman) selectPole.value = data.poleman;
@@ -205,6 +249,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         appliquerFormulaireBonus(null);
     }
     controlerDoublonsPilotes();
+    controlerDoublonsSprint();
 }
 
 // Validation du pronostic
@@ -220,15 +265,27 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     const top10Selection: string[] = [];
     for (let i = 1; i <= 10; i++) {
         const val = (document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null)?.value;
-        if (!val) return afficherNotification(`Il manque la position P${i} !`, "erreur");
+        if (!val) return afficherNotification(`Il manque la position P${i} du GP !`, "erreur");
         top10Selection.push(val);
     }
 
-    const pronoData = {
+    // Récupération de la sélection Sprint si applicable
+    const top5SprintSelection: string[] = [];
+    const aUnSprint = estWeekendSprint(courseId);
+    if (aUnSprint) {
+        for (let i = 1; i <= 5; i++) {
+            const val = (document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null)?.value;
+            if (!val) return afficherNotification(`Il manque la position S${i} de la Course Sprint !`, "erreur");
+            top5SprintSelection.push(val);
+        }
+    }
+
+    const pronoData: Record<string, any> = {
         uidJoueur: utilisateurActuel.uid,
         pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
         course: courseId,
         classementPilotes: top10Selection,
+        classementSprint: aUnSprint ? top5SprintSelection : [],
         poleman: selectPole?.value || "",
         ecuriesTop: [
             document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "",
@@ -243,11 +300,11 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
     };
 
     await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
-    afficherNotification("🏁 Grille et Écuries enregistrées avec succès !", "succes");
+    afficherNotification(aUnSprint ? "🏁 Grille GP, Course Sprint et Écuries enregistrées avec succès !" : "🏁 Grille et Écuries enregistrées avec succès !", "succes");
     chargerClassementGeneral();
 });
 
-// Bouton Grille Aléatoire
+// Bouton Grille Aléatoire Top 10
 document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
     const tri = [...pilotesData].sort(() => 0.5 - Math.random());
     for (let i = 1; i <= 10; i++) {
@@ -255,6 +312,16 @@ document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
         if (s) { s.value = tri[i - 1].nom; mettreAJourDesignSlot(i, tri[i - 1].nom); }
     }
     controlerDoublonsPilotes();
+});
+
+// Bouton Grille Aléatoire Sprint Top 5
+document.getElementById('btn-sprint-aleatoire')?.addEventListener('click', () => {
+    const tri = [...pilotesData].sort(() => 0.5 - Math.random());
+    for (let i = 1; i <= 5; i++) {
+        const s = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
+        if (s) { s.value = tri[i - 1].nom; mettreAJourDesignSlotSprint(i, tri[i - 1].nom); }
+    }
+    controlerDoublonsSprint();
 });
 
 // ==========================================
@@ -484,12 +551,23 @@ afficherEtatLigueDeconnecte();
 initialiserSelectCourse();
 initialiserPolePosition();
 creerLaGrilleDeDepartTV();
+creerLaGrilleSprintTV();
 initialiserEcuriesTopFlop();
 verifierVerrouillageCourse(selectCourse, selectPole);
 setInterval(() => verifierVerrouillageCourse(selectCourse, selectPole), 60 * 1000);
 
+// Écoute des mises à jour dynamiques du calendrier
+onCalendrierChange(() => {
+    initialiserSelectCourse();
+    verifierVerrouillageCourse(selectCourse, selectPole);
+});
+
+// Synchronisation asynchrone du calendrier (Firestore / API OpenF1)
+synchroniserCalendrierDynamique(db).catch(err => console.warn("Sync calendrier:", err));
+
 if (selectCourse) {
     selectCourse.addEventListener('change', () => {
+        gererAffichageSectionSprint();
         chargerPronosticsUtilisateur();
         chargerClassementGeneral();
         verifierVerrouillageCourse(selectCourse, selectPole);

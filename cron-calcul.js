@@ -408,6 +408,35 @@ async function demarrer() {
             const vainqueurNumero = top10OfficielNums[0];
             const ecurieGagnanteRelle = trouverEcuriePilote(vainqueurNumero);
 
+            // --- ÉCURIES : Calcul automatique des performances constructeurs sur le GP ---
+            const pointsParEcurieGP = {};
+            const positionsParEcurieGP = {};
+            const ECURIES_OFFICIELLES = ["Red Bull", "Ferrari", "McLaren", "Mercedes", "Aston Martin", "Alpine", "Williams", "Racing Bulls", "Audi", "Haas", "Cadillac"];
+            ECURIES_OFFICIELLES.forEach(ec => {
+                pointsParEcurieGP[ec] = 0;
+                positionsParEcurieGP[ec] = [];
+            });
+
+            const BAREME_CONSTRUCTEUR_GP = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+            top10OfficielNums.forEach((num, idx) => {
+                const ec = trouverEcuriePilote(num);
+                if (ec && pointsParEcurieGP[ec] !== undefined) {
+                    pointsParEcurieGP[ec] += (BAREME_CONSTRUCTEUR_GP[idx] || 0);
+                    positionsParEcurieGP[ec].push(idx + 1);
+                }
+            });
+
+            const classementConstructeursGP = ECURIES_OFFICIELLES.map(ec => ({
+                ecurie: ec,
+                points: pointsParEcurieGP[ec] || 0,
+                meilleurePos: positionsParEcurieGP[ec]?.length > 0 ? Math.min(...positionsParEcurieGP[ec]) : 99
+            })).sort((a, b) => b.points - a.points || a.meilleurePos - b.meilleurePos);
+
+            const topEcurie1GP = classementConstructeursGP[0]?.ecurie || ecurieGagnanteRelle;
+            const topEcurie2GP = classementConstructeursGP[1]?.ecurie || "";
+            const flopEcuriesGP = classementConstructeursGP.filter((item, idx) => item.points === 0 || idx >= 7).map(item => item.ecurie);
+            console.log(`🏎️ Performances Constructeurs GP : Top 1=${topEcurie1GP} (${classementConstructeursGP[0]?.points} pts), Top 2=${topEcurie2GP} (${classementConstructeursGP[1]?.points} pts) | Flops=${flopEcuriesGP.join(', ')}`);
+
             // --- BONUS : Safety Car & Drapeau Rouge via race_control ---
             const evenements = await detecterEvenementsRaceControl(sessionKey);
 
@@ -481,12 +510,124 @@ async function demarrer() {
                                 bonusPole = 5;
                             }
 
-                            if (ecurieGagnanteRelle) {
-                                const checkEcurie = (ecJoueur, ecReelle) => nomsCorrespondent(ecReelle, ecJoueur);
-                                if (ecuriesTopJoueur[0] && checkEcurie(ecuriesTopJoueur[0], ecurieGagnanteRelle)) pointsDesEcuries += 5;
-                                if (ecuriesTopJoueur[1] && checkEcurie(ecuriesTopJoueur[1], ecurieGagnanteRelle)) pointsDesEcuries += 2;
-                                if (ecuriesFlopJoueur.some(ef => checkEcurie(ef, ecurieGagnanteRelle))) pointsDesEcuries -= 5;
-                            }
+                            // --- Calcul automatique des points Écuries Top / Flop (Cascade de Priorité) ---
+                            let pointsDesEcuries = 0;
+                            const detailEcuries = [];
+
+                            // Déterminer le groupe championnat de l'écurie (Cadors 1-4, Milieu 5-7, Outsiders 8-11)
+                            const determinerGroupe = (nomEc) => {
+                                const idx = ECURIES_OFFICIELLES.findIndex(e => nomsCorrespondent(e, nomEc));
+                                if (idx <= 3) return 'cador';
+                                if (idx <= 6) return 'milieu';
+                                return 'outsider';
+                            };
+
+                            const ecuriesPodiumGP = top10OfficielNums.slice(0, 3).map(num => trouverEcuriePilote(num)).filter(Boolean);
+
+                            // 1. Écuries Top (Top 1 & Top 2)
+                            ecuriesTopJoueur.forEach((ec, idx) => {
+                                if (!ec) return;
+                                const typePari = idx === 0 ? 'top1' : 'top2';
+                                const groupe = determinerGroupe(ec);
+                                const positions = positionsParEcurieGP[ec] || [];
+                                const nbTop10 = positions.length;
+                                const meilleurPos = positions.length > 0 ? Math.min(...positions) : 99;
+
+                                let pts = 0;
+                                let correct = false;
+                                let desc = "";
+
+                                if (groupe === 'outsider') {
+                                    // Prio 1 (Outsiders)
+                                    if (nbTop10 >= 2) {
+                                        pts = 6;
+                                        correct = true;
+                                        desc = "Masterclass Outsider (2 pilotes Top 10)";
+                                    } else if (nbTop10 >= 1) {
+                                        pts = 4;
+                                        correct = true;
+                                        desc = `Exploit Outsider (Pilote P${meilleurPos})`;
+                                    }
+                                } else if (groupe === 'milieu') {
+                                    // Prio 2 (Milieu)
+                                    if (nbTop10 >= 2) {
+                                        pts = 5;
+                                        correct = true;
+                                        desc = "Tir groupé Milieu (2 pilotes Top 10)";
+                                    } else if (meilleurPos <= 6) {
+                                        pts = 3;
+                                        correct = true;
+                                        desc = `Coup d'éclat Milieu (P${meilleurPos})`;
+                                    }
+                                } else {
+                                    // Prio 3 (Cadors)
+                                    if (nomsCorrespondent(ec, ecurieGagnanteRelle)) {
+                                        pts = typePari === 'top1' ? 5 : 3;
+                                        correct = true;
+                                        desc = "Victoire GP du Cador (P1)";
+                                    } else if (positions.filter(p => p <= 5).length >= 2) {
+                                        pts = 3;
+                                        correct = true;
+                                        desc = "Double Top 5 du Cador";
+                                    }
+                                }
+
+                                pointsDesEcuries += pts;
+                                detailEcuries.push({ ecurie: ec, typePari, correct, points: pts, description: desc });
+                            });
+
+                            // 2. Écuries Flop (Flop 1 & Flop 2)
+                            ecuriesFlopJoueur.forEach((ec, idx) => {
+                                if (!ec) return;
+                                const typePari = idx === 0 ? 'flop1' : 'flop2';
+                                const groupe = determinerGroupe(ec);
+                                const positions = positionsParEcurieGP[ec] || [];
+                                const nbTop10 = positions.length;
+                                const meilleurPos = positions.length > 0 ? Math.min(...positions) : 99;
+                                const dnfCount = (evenements.pilotesAbandonsSet && Array.from(evenements.pilotesAbandonsSet).filter(num => nomsCorrespondent(trouverEcuriePilote(num), ec)).length) || 0;
+
+                                let pts = 0;
+                                let correct = false;
+                                let desc = "";
+
+                                if (nomsCorrespondent(ec, ecurieGagnanteRelle) || ecuriesPodiumGP.some(p => nomsCorrespondent(p, ec))) {
+                                    pts = -4;
+                                    correct = false;
+                                    desc = "Pénalité : Écurie sur le podium / P1";
+                                } else if (groupe === 'cador') {
+                                    // Prio 1 (Cadors)
+                                    if (nbTop10 === 0 || dnfCount >= 2) {
+                                        pts = 5;
+                                        correct = true;
+                                        desc = "Défaillance totale Cador (0 pt / double DNF)";
+                                    } else if (dnfCount >= 1 && meilleurPos >= 7) {
+                                        pts = 4;
+                                        correct = true;
+                                        desc = `Crash/DNF Cador et meilleur P${meilleurPos}`;
+                                    } else if (positions.filter(p => p <= 5).length === 0) {
+                                        pts = 3;
+                                        correct = true;
+                                        desc = "Échec Cador (hors Top 5)";
+                                    }
+                                } else if (groupe === 'milieu') {
+                                    // Prio 2 (Milieu)
+                                    if (nbTop10 === 0) {
+                                        pts = 3;
+                                        correct = true;
+                                        desc = "Zéro pointé Milieu";
+                                    }
+                                } else {
+                                    // Prio 3 (Outsiders)
+                                    if (nbTop10 === 0) {
+                                        pts = 2;
+                                        correct = true;
+                                        desc = "Zéro pointé Outsider";
+                                    }
+                                }
+
+                                pointsDesEcuries += pts;
+                                detailEcuries.push({ ecurie: ec, typePari, correct, points: pts, description: desc });
+                            });
 
                             // --- Calcul des points bonus ---
                             let pointsDesBonus = 0;
@@ -518,32 +659,66 @@ async function demarrer() {
                                 detailBonus.push({ cle: 'nombreDNF', question: "Nombre d'abandons (DNF)", reponseJoueur: null, resultatReel: bonusReel.nombreDNF, correct: false, points: 0 });
                             }
 
+                            // --- Calcul des points Sprint (Top 5) si applicable ---
+                            let pointsSprintBruts = 0;
+                            const detailSprint = [];
+                            const grilleSprintJoueur = pronoData.classementSprint || [];
+                            const histoDocActuel = await histoRef.get();
+                            const top5SprintOfficiel = (histoDocActuel.exists && histoDocActuel.data()?.top5Sprint) || [];
+                            const BAREME_SPRINT = [5, 4, 3, 2, 1];
+
+                            if (grilleSprintJoueur.length > 0 && top5SprintOfficiel.length > 0) {
+                                grilleSprintJoueur.forEach((piloteChoisi, idxJoueur) => {
+                                    const idxReel = top5SprintOfficiel.findIndex(pReel => nomsCorrespondent(pReel, piloteChoisi));
+                                    let pts = 0;
+                                    let statut = "hors_top5";
+
+                                    if (idxReel !== -1) {
+                                        if (idxJoueur === idxReel) {
+                                            pts = BAREME_SPRINT[idxJoueur] || 1;
+                                            statut = "position_exacte";
+                                        } else {
+                                            pts = 1;
+                                            statut = "dans_le_top5";
+                                        }
+                                    }
+                                    pointsSprintBruts += pts;
+                                    detailSprint.push({ pilote: piloteChoisi, points: pts, statut });
+                                });
+                            }
+
                             const jokerActif = pronoData.jokerUtilise === true;
                             const multiplicateur = jokerActif ? 2 : 1;
 
                             const pointsGrilleFinal = pointsDuTop10 * multiplicateur;
+                            const pointsSprintFinal = pointsSprintBruts * multiplicateur;
                             const pointsPoleFinal = bonusPole * multiplicateur;
                             const pointsEcuriesFinal = pointsDesEcuries * multiplicateur;
                             const pointsBonusFinal = pointsDesBonus * multiplicateur;
-                            const pointsGagnes = pointsGrilleFinal + pointsPoleFinal + pointsEcuriesFinal + pointsBonusFinal;
+                            const pointsGagnes = pointsGrilleFinal + pointsSprintFinal + pointsPoleFinal + pointsEcuriesFinal + pointsBonusFinal;
                             const detailPilotesFinal = detailPilotes.map(d => ({ ...d, points: d.points * multiplicateur }));
+                            const detailSprintFinal = detailSprint.map(d => ({ ...d, points: d.points * multiplicateur }));
+                            const detailEcuriesFinal = detailEcuries.map(d => ({ ...d, points: d.points * multiplicateur }));
                             const detailBonusFinal = detailBonus.map(d => ({ ...d, points: d.points * multiplicateur }));
 
                             transaction.set(pronoRef, {
                                 bilanCalcul: {
                                     pointsTotaux: pointsGagnes,
                                     pointsGrille: pointsGrilleFinal,
+                                    pointsSprint: pointsSprintFinal,
                                     pointsPole: pointsPoleFinal,
                                     pointsEcuries: pointsEcuriesFinal,
                                     pointsBonus: pointsBonusFinal,
                                     detailPilotes: detailPilotesFinal,
+                                    detailSprint: detailSprintFinal,
+                                    detailEcuries: detailEcuriesFinal,
                                     detailBonus: detailBonusFinal,
                                     jokerApplique: pronoData.jokerUtilise || false,
                                     calculeLe: new Date()
                                 }
                             }, { merge: true });
                             
-                            console.log(`   ✅ Points mis à jour pour [${pseudo}] : +${pointsGagnes} pts (dont bonus: +${pointsBonusFinal})`);
+                            console.log(`   ✅ Points mis à jour pour [${pseudo}] : +${pointsGagnes} pts (dont sprint: +${pointsSprintFinal}, ecuries: +${pointsEcuriesFinal}, bonus: +${pointsBonusFinal})`);
                         });
                     } catch (txError) {
                         console.error(`   ❌ Erreur joueur ${doc.id}:`, txError.message);
@@ -556,6 +731,8 @@ async function demarrer() {
                 top10: top10OfficielNoms,
                 poleman: polemanOfficiel,
                 ecurieGagnante: ecurieGagnanteRelle,
+                pointsConstructeurs: pointsParEcurieGP,
+                classementConstructeurs: classementConstructeursGP,
                 bonusReel: bonusReel
             });
             console.log(`ℹ️ GP ${round} (${session.location || session.circuit_short_name}) archivé avec bonus.`);

@@ -1,0 +1,8 @@
+{
+  "name": "Mon Petit Pilote",
+  "description": "Un site de pronostics des résultats de F1 par GP de la saison 2026 entre amis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

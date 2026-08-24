@@ -4,7 +4,7 @@
     <div class="groupe-ecuries">
       <div class="ecuries-header">
         <span class="ecuries-titre-top">🚀 TES 2 ÉCURIES TOP</span>
-        <span class="badge-points-top">+5 pts si gagnante</span>
+        <span class="badge-points-top">+4 à +6 pts (Outsider) | +3 à +5 pts</span>
       </div>
       <div class="slots-ecuries-grid">
         <div
@@ -26,6 +26,9 @@
           />
           <div v-if="ecuriesTop[0]" class="nom-selectionne">
             {{ ecuriesTop[0] }}
+            <span v-if="getGroupeTag(ecuriesTop[0])" class="badge-groupe-slot" :style="{ color: getGroupeTag(ecuriesTop[0]).color }">
+              {{ getGroupeTag(ecuriesTop[0]).badge }}
+            </span>
           </div>
         </div>
 
@@ -48,6 +51,9 @@
           />
           <div v-if="ecuriesTop[1]" class="nom-selectionne">
             {{ ecuriesTop[1] }}
+            <span v-if="getGroupeTag(ecuriesTop[1])" class="badge-groupe-slot" :style="{ color: getGroupeTag(ecuriesTop[1]).color }">
+              {{ getGroupeTag(ecuriesTop[1]).badge }}
+            </span>
           </div>
         </div>
       </div>
@@ -57,7 +63,7 @@
     <div class="groupe-ecuries">
       <div class="ecuries-header">
         <span class="ecuries-titre-flop">⚠️ TES 2 ÉCURIES FLOP</span>
-        <span class="badge-points-flop">+3 pts si elle ne gagne pas</span>
+        <span class="badge-points-flop">+3 à +5 pts (Crash/0 pt) | -4 malus</span>
       </div>
       <div class="slots-ecuries-grid">
         <div
@@ -79,6 +85,9 @@
           />
           <div v-if="ecuriesFlop[0]" class="nom-selectionne">
             {{ ecuriesFlop[0] }}
+            <span v-if="getGroupeTag(ecuriesFlop[0])" class="badge-groupe-slot" :style="{ color: getGroupeTag(ecuriesFlop[0]).color }">
+              {{ getGroupeTag(ecuriesFlop[0]).badge }}
+            </span>
           </div>
         </div>
 
@@ -101,6 +110,9 @@
           />
           <div v-if="ecuriesFlop[1]" class="nom-selectionne">
             {{ ecuriesFlop[1] }}
+            <span v-if="getGroupeTag(ecuriesFlop[1])" class="badge-groupe-slot" :style="{ color: getGroupeTag(ecuriesFlop[1]).color }">
+              {{ getGroupeTag(ecuriesFlop[1]).badge }}
+            </span>
           </div>
         </div>
       </div>
@@ -152,6 +164,12 @@
             <span class="nom-tuile">
               {{ ecurie }}{{ estEcurieVerrouillee(ecurie) ? ' 🔒' : '' }}
             </span>
+            <span v-if="statsConstructeurs[ecurie]" class="badge-saison-tuile">
+              {{ statsConstructeurs[ecurie].rang === 1 ? '🥇' : statsConstructeurs[ecurie].rang === 2 ? '🥈' : statsConstructeurs[ecurie].rang === 3 ? '🥉' : `#${statsConstructeurs[ecurie].rang}` }} • {{ statsConstructeurs[ecurie].pointsTotal }} pts
+            </span>
+            <span v-if="getGroupeTag(ecurie)" class="badge-groupe-tuile" :style="{ borderColor: getGroupeTag(ecurie).color, color: getGroupeTag(ecurie).color }">
+              {{ getGroupeTag(ecurie).badge }}
+            </span>
           </div>
         </div>
       </div>
@@ -160,8 +178,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { ecuriesSaison, LOGOS_ECURIES_2026 } from "../utils";
+import { chargerStatsConstructeursSaison, determinerGroupeEcurie, getLabelGroupe } from "../services/teamsService";
 
 const props = defineProps({
   isLocked: {
@@ -174,6 +193,26 @@ const emit = defineEmits(["update:ecuriesTop", "update:ecuriesFlop"]);
 
 const ecuriesTop = ref(["", ""]);
 const ecuriesFlop = ref(["", ""]);
+const statsConstructeurs = ref<Record<string, { rang: number; pointsTotal: number }>>({});
+
+function getGroupeTag(nomEcurie: string) {
+  if (!nomEcurie) return null;
+  const rang = statsConstructeurs.value[nomEcurie]?.rang || 5;
+  const grp = determinerGroupeEcurie(rang);
+  return getLabelGroupe(grp);
+}
+
+onMounted(async () => {
+  try {
+    const db = (window as any).db;
+    const stats = await chargerStatsConstructeursSaison(db);
+    const map: Record<string, { rang: number; pointsTotal: number }> = {};
+    stats.forEach(s => {
+      map[s.ecurie] = { rang: s.rang, pointsTotal: s.pointsTotal };
+    });
+    statsConstructeurs.value = map;
+  } catch (_) {}
+});
 
 const isModalOpen = ref(false);
 const cibleSlotType = ref("top"); // "top" ou "flop"
@@ -462,5 +501,32 @@ defineExpose({
   color: #a0aec0;
   text-align: center;
   text-transform: uppercase;
+}
+
+.badge-saison-tuile {
+  margin-top: 4px;
+  font-size: 9px;
+  color: #00e6c3;
+  background: rgba(0, 230, 195, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.badge-groupe-tuile {
+  margin-top: 2px;
+  font-size: 8.5px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  font-weight: bold;
+}
+
+.badge-groupe-slot {
+  display: block;
+  font-size: 9px;
+  margin-top: 2px;
+  font-weight: bold;
 }
 </style>

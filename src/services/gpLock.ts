@@ -1,10 +1,12 @@
-import { calendrier2026 } from "../utils";
+import { getCalendrierActuel } from "./calendarService";
 
-// Un Grand Prix est considéré "clôturé" dès que sa date est passée
+// Un Grand Prix est considéré "clôturé" dès que sa date est passée ou si le statut est annulé
 export function courseEstVerrouillee(courseIdString?: string | null): boolean {
     const round = parseInt((courseIdString || "").split('/')[1], 10);
-    const gp = calendrier2026.find(g => g.round === round);
+    const calendrier = getCalendrierActuel();
+    const gp = calendrier.find(g => g.round === round);
     if (!gp) return false;
+    if (gp.statut === 'annule') return true;
     return new Date(gp.date) <= new Date();
 }
 
@@ -12,10 +14,20 @@ export function appliquerVerrouillage(verrouille: boolean, selectPole?: HTMLSele
     const banniere = document.getElementById('banniere-verrouillage');
     if (banniere) banniere.style.display = verrouille ? 'flex' : 'none';
 
+    // Verrouillage Top 10
     for (let i = 1; i <= 10; i++) {
         const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
         if (s) s.disabled = verrouille;
     }
+
+    // Verrouillage Sprint Top 5
+    for (let i = 1; i <= 5; i++) {
+        const s = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
+        if (s) s.disabled = verrouille;
+    }
+    const btnSprintAleatoire = document.getElementById('btn-sprint-aleatoire') as HTMLButtonElement | null;
+    if (btnSprintAleatoire) btnSprintAleatoire.disabled = verrouille;
+
     if (selectPole) selectPole.disabled = verrouille;
 
     ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
@@ -52,7 +64,8 @@ export function mettreAJourCountdown(selectCourse?: HTMLSelectElement | null): v
     if (!zone || !selectCourse) return;
 
     const round = parseInt((selectCourse.value || "").split('/')[1], 10);
-    const gp = calendrier2026.find(g => g.round === round);
+    const calendrier = getCalendrierActuel();
+    const gp = calendrier.find(g => g.round === round);
     if (!gp) { zone.style.display = 'none'; return; }
 
     const echeance = new Date(gp.date).getTime();

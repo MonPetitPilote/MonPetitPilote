@@ -1,4 +1,5 @@
 import { pilotesData, ecuriesSaison, LOGOS_ECURIES_2026 } from "../utils";
+import { resoudrePilote } from "./driversService";
 
 export function mettreAJourDesignSlot(position: number, nomPilote: string): void {
     const card = document.getElementById(`card-f1-p${position}`);
@@ -9,7 +10,7 @@ export function mettreAJourDesignSlot(position: number, nomPilote: string): void
     const carTarget = document.getElementById(`car-grid-p${position}`) as HTMLImageElement | null;
     const teamTarget = document.getElementById(`team-grid-p${position}`);
     
-    const localData = pilotesData.find(p => p.nom === nomPilote);
+    const localData = pilotesData.find(p => p.nom === nomPilote) || (nomPilote ? resoudrePilote(nomPilote) : null);
 
     if (nomPilote && localData) {
         if (card) card.style.borderLeft = `5px solid ${localData.couleur}`;
@@ -228,4 +229,125 @@ export function initialiserEcuriesTopFlop(): void {
 
         conteneur.onclick = () => ouvrirSelecteurVisuelEcurie(id);
     });
+}
+
+export function mettreAJourDesignSlotSprint(position: number, nomPilote: string): void {
+    const card = document.getElementById(`card-sprint-p${position}`);
+    const badge = document.getElementById(`badge-sprint-p${position}`);
+    const numTarget = document.getElementById(`num-sprint-p${position}`);
+    const flagTarget = document.getElementById(`flag-sprint-p${position}`) as HTMLImageElement | null;
+    const imgTarget = document.getElementById(`img-sprint-p${position}`) as HTMLImageElement | null;
+    const carTarget = document.getElementById(`car-sprint-p${position}`) as HTMLImageElement | null;
+    const teamTarget = document.getElementById(`team-sprint-p${position}`);
+
+    const localData = pilotesData.find(p => p.nom === nomPilote) || (nomPilote ? resoudrePilote(nomPilote) : null);
+
+    if (nomPilote && localData) {
+        if (card) card.style.borderLeft = `5px solid ${localData.couleur}`;
+        if (badge) badge.style.background = localData.couleur;
+
+        if (numTarget) {
+            numTarget.innerText = localData.numero;
+            numTarget.style.color = localData.couleur;
+        }
+        if (flagTarget) {
+            flagTarget.src = `https://flagcdn.com/w20/${localData.pays}.png`;
+            flagTarget.style.display = "inline-block";
+        }
+
+        if (imgTarget) {
+            imgTarget.src = localData.driverImg;
+            imgTarget.style.display = "block";
+        }
+        if (carTarget) {
+            carTarget.src = localData.carImg;
+            carTarget.style.display = "block";
+        }
+
+        if (teamTarget) {
+            teamTarget.innerText = localData.ecurie;
+            teamTarget.style.color = "#00e6c3";
+        }
+    } else {
+        if (card) card.style.borderLeft = `1px solid #3b4263`;
+        if (badge) badge.style.background = "#4f46e5";
+        if (numTarget) {
+            numTarget.innerText = "--";
+            numTarget.style.color = "rgba(255,255,255,0.2)";
+        }
+        if (flagTarget) flagTarget.style.display = "none";
+        if (imgTarget) imgTarget.style.display = "none";
+        if (carTarget) carTarget.style.display = "none";
+        if (teamTarget) {
+            teamTarget.innerText = "⚡ PLACE SPRINT À PRENDRE";
+            teamTarget.style.color = "#818cf8";
+        }
+    }
+}
+
+export function controlerDoublonsSprint(): void {
+    const selections: string[] = [];
+    for (let i = 1; i <= 5; i++) {
+        const val = (document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null)?.value;
+        if (val) selections.push(val);
+    }
+
+    for (let i = 1; i <= 5; i++) {
+        const select = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
+        if (!select) continue;
+        const valeurActuelle = select.value;
+
+        Array.from(select.options).forEach(option => {
+            if (option.value === "") return;
+            if (selections.includes(option.value) && option.value !== valeurActuelle) {
+                option.disabled = true;
+            } else {
+                option.disabled = false;
+            }
+        });
+    }
+}
+
+export function creerLaGrilleSprintTV(onSlotChange?: (pos: number, val: string) => void): void {
+    const conteneurGrille = document.getElementById('grille-sprint-slots');
+    if (!conteneurGrille) return;
+    conteneurGrille.innerHTML = "";
+
+    for (let i = 1; i <= 5; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'sprint-slot';
+        slot.setAttribute('data-pos', String(i));
+        slot.setAttribute('style', 'display:flex; align-items:center; gap:10px; margin-bottom:10px;');
+
+        let optionsHtml = `<option value="">👉 CHOISIS TON PILOTE SPRINT</option>`;
+        pilotesData.forEach(p => { optionsHtml += `<option value="${p.nom}">${p.nom} (${p.ecurie})</option>`; });
+
+        slot.innerHTML = `
+            <div class="sprint-pos-badge" id="badge-sprint-p${i}" style="min-width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.85rem; border-radius:8px; background:#4f46e5; color:#fff; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.3); transition:background 0.3s ease;">⚡ S${i}</div>
+            <div class="sprint-card-f1" id="card-sprint-p${i}" style="position:relative; background:#1e2640; display:flex; align-items:center; flex-grow:1; min-width:0; border-radius:8px; border:1px solid #3b4263; padding:6px 12px; transition:all 0.3s ease; overflow:hidden;">
+                <img id="car-sprint-p${i}" class="car-bg-image-sprint" src="" style="position:absolute; right:0; bottom:-8px; height:120%; max-width:55%; opacity:0.28; object-fit:contain; pointer-events:none; z-index:1; display:none;">
+                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; min-width:0; position:relative; z-index:2;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                        <span id="num-sprint-p${i}" style="font-size:18px; font-weight:900; font-style:italic; color:rgba(255,255,255,0.2);">--</span>
+                        <img id="flag-sprint-p${i}" src="" style="width:18px; border-radius:2px; display:none;">
+                    </div>
+                    <select id="select-sprint-p${i}" class="sprint-select-paddock" data-position="${i}" style="width:100%; background:transparent; border:none; color:#fff; font-size:14px; font-weight:bold; cursor:pointer; padding:2px 0; outline:none; text-overflow:ellipsis;">
+                        ${optionsHtml}
+                    </select>
+                    <div id="team-sprint-p${i}" style="color:#818cf8; font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⚡ PLACE SPRINT À PRENDRE</div>
+                </div>
+                <div style="position:relative; width:55px; height:55px; display:flex; justify-content:center; overflow:hidden; margin-left:10px; border-radius:4px; z-index:2; flex-shrink:0;">
+                    <img id="img-sprint-p${i}" src="" style="width:100%; height:100%; object-fit:cover; object-position:top; display:none;">
+                </div>
+            </div>
+        `;
+        conteneurGrille.appendChild(slot);
+
+        const selectElem = slot.querySelector('select');
+        selectElem?.addEventListener('change', function(this: HTMLSelectElement) {
+            mettreAJourDesignSlotSprint(i, this.value);
+            controlerDoublonsSprint();
+            if (onSlotChange) onSlotChange(i, this.value);
+        });
+    }
 }

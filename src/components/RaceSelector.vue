@@ -41,13 +41,23 @@
         @change="$emit('update:selectedCourse', $event.target.value)"
       >
         <option
-          v-for="gp in calendrier2026"
+          v-for="gp in listeCalendrier"
           :key="gp.round"
           :value="`2026/${gp.round}`"
         >
-          Round {{ gp.round }} : {{ gp.nom }} - {{ gp.circuit }} ({{ gp.pays }}) — 📅 {{ formatDate(gp.date) }}
+          Round {{ gp.round }} : {{ gp.nom }} - {{ gp.circuit }} ({{ gp.pays }}) {{ gp.hasSprint ? '⚡ [SPRINT]' : '' }} — 📅 {{ formatDate(gp.date) }}
         </option>
       </select>
+    </div>
+
+    <!-- Bannière Week-end Sprint si applicable -->
+    <div
+      v-if="currentGp && currentGp.hasSprint"
+      id="banniere-sprint-info"
+      class="banniere-sprint-info"
+    >
+      <span class="badge-sprint-tag">⚡ WEEK-END SPRINT</span>
+      <span>Ce Grand Prix comporte une <strong>Course Sprint</strong> ! Pensez à remplir votre <strong>Top 5 Sprint</strong>.</span>
     </div>
 
     <!-- Bannière de verrouillage si GP passé -->
@@ -73,8 +83,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { calendrier2026 } from "../utils";
-import { CODE_LIGUE_MONDIAL } from "../services";
+import { type GrandPrix } from "../utils";
+import { CODE_LIGUE_MONDIAL, getCalendrierActuel, onCalendrierChange } from "../services";
 
 const props = defineProps({
   selectedCourse: {
@@ -93,13 +103,15 @@ const props = defineProps({
 
 const emit = defineEmits(["update:selectedCourse", "update:activeLeague", "open-league-modal", "lock-change"]);
 
+const listeCalendrier = ref<GrandPrix[]>(getCalendrierActuel());
 const countdownText = ref("");
 const isCountdownUrgent = ref(false);
-let timerInterval = null;
+let timerInterval: any = null;
+let unsubscribeCalendrier: (() => void) | null = null;
 
 const currentGp = computed(() => {
   const round = parseInt((props.selectedCourse || "").split('/')[1]);
-  return calendrier2026.find(g => g.round === round) || null;
+  return listeCalendrier.value.find(g => g.round === round) || null;
 });
 
 const isLocked = computed(() => {
@@ -111,7 +123,7 @@ watch(isLocked, (nouveauVerrouille) => {
   emit("lock-change", nouveauVerrouille);
 }, { immediate: true });
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   const dateObj = new Date(dateStr);
   return dateObj.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
@@ -124,7 +136,7 @@ function calculerCountdown() {
 
   const echeance = new Date(currentGp.value.date);
   const maintenant = new Date();
-  const diffMs = echeance - maintenant;
+  const diffMs = echeance.getTime() - maintenant.getTime();
 
   if (diffMs <= 0) {
     countdownText.value = "";
@@ -151,12 +163,17 @@ watch(() => props.selectedCourse, () => {
 });
 
 onMounted(() => {
+  unsubscribeCalendrier = onCalendrierChange((nouveau) => {
+    listeCalendrier.value = [...nouveau];
+    calculerCountdown();
+  });
   calculerCountdown();
   timerInterval = setInterval(calculerCountdown, 60 * 1000);
 });
 
 onBeforeUnmount(() => {
   if (timerInterval) clearInterval(timerInterval);
+  if (unsubscribeCalendrier) unsubscribeCalendrier();
 });
 </script>
 
@@ -219,6 +236,30 @@ onBeforeUnmount(() => {
   padding: 10px;
   border-radius: 6px;
   font-size: 0.95rem;
+}
+
+.banniere-sprint-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid #6366f1;
+  color: #c7d2fe;
+  padding: 9px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+.badge-sprint-tag {
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
 }
 
 .banniere-verrouillage {

@@ -67,25 +67,33 @@
               :data-position="pos"
               :value="selections[pos - 1]"
               :disabled="isLocked"
-              @change="onPiloteChange(pos - 1, $event.target.value)"
+              @change="onPiloteChange(pos - 1, ($event.target as HTMLSelectElement).value)"
             >
               <option value="">👉 CHOISIS TON PILOTE</option>
               <option
-                v-for="p in pilotesData"
+                v-for="p in listePilotesAffichee"
                 :key="p.nom"
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
               >
-                {{ p.nom }}
+                {{ p.nom }} ({{ p.ecurie }})
               </option>
             </select>
 
-            <div
-              :id="`team-grid-p${pos}`"
-              class="driver-team-text"
-              :style="{ color: getPiloteEcurie(selections[pos - 1]) ? '#ff8000' : '#616e88' }"
-            >
-              {{ getPiloteEcurie(selections[pos - 1]) || '⚡ PLACE À PRENDRE' }}
+            <div class="driver-team-line">
+              <img
+                v-if="getPiloteLogoImg(selections[pos - 1])"
+                :src="getPiloteLogoImg(selections[pos - 1])"
+                class="driver-team-logo"
+                alt="Logo Écurie"
+              />
+              <div
+                :id="`team-grid-p${pos}`"
+                class="driver-team-text"
+                :style="{ color: getPiloteEcurie(selections[pos - 1]) ? '#ff8000' : '#616e88' }"
+              >
+                {{ getPiloteEcurie(selections[pos - 1]) || '⚡ PLACE À PRENDRE' }}
+              </div>
             </div>
           </div>
 
@@ -105,8 +113,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { pilotesData } from "../utils";
+import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP, type Pilote } from "../services/driversService";
 
 const props = defineProps({
   isLocked: {
@@ -117,55 +126,77 @@ const props = defineProps({
 
 const emit = defineEmits(["update:selections"]);
 
-const selections = ref(Array(10).fill(""));
+const selections = ref<string[]>(Array(10).fill(""));
+const listePilotes = ref<Pilote[]>([...pilotesData]);
 
-function getPiloteData(nom) {
+const listePilotesAffichee = computed(() => {
+  return listePilotes.value.length > 0 ? listePilotes.value : pilotesData;
+});
+
+onMounted(async () => {
+  try {
+    const db = (window as any).db;
+    const pilotesSync = await synchroniserPilotesGP(undefined, db);
+    if (pilotesSync && pilotesSync.length > 0) {
+      listePilotes.value = pilotesSync;
+    }
+  } catch (_) {}
+});
+
+function getPiloteData(nom?: string | null): Pilote | null {
   if (!nom) return null;
-  return pilotesData.find(p => p.nom === nom) || null;
+  return listePilotes.value.find(p => p.nom === nom) || pilotesData.find(p => p.nom === nom) || resoudrePilote(nom);
 }
 
-function getPiloteColor(nom) {
+function getPiloteColor(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.couleur : null;
 }
 
-function getPiloteNumero(nom) {
+function getPiloteNumero(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.numero : null;
 }
 
-function getPilotePays(nom) {
+function getPilotePays(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.pays : null;
 }
 
-function getPiloteEcurie(nom) {
+function getPiloteEcurie(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.ecurie : null;
 }
 
-function getPiloteDriverImg(nom) {
+function getPiloteDriverImg(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.driverImg : "";
 }
 
-function getPiloteCarImg(nom) {
+function getPiloteCarImg(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.carImg : "";
 }
 
-function isPiloteAlreadySelected(nom, currentPosIndex) {
+function getPiloteLogoImg(nom?: string | null) {
+  const p = getPiloteData(nom);
+  if (!p || !p.ecurie) return "";
+  return TEAMS_CONFIG[p.ecurie]?.logoImg || "";
+}
+
+function isPiloteAlreadySelected(nom: string, currentPosIndex: number) {
   return selections.value.some((selectedName, idx) => idx !== currentPosIndex && selectedName === nom);
 }
 
-function onPiloteChange(posIndex, nomPilote) {
+function onPiloteChange(posIndex: number, nomPilote: string) {
   selections.value[posIndex] = nomPilote;
   emit("update:selections", [...selections.value]);
 }
 
 function remplirGrilleAleatoire() {
   if (props.isLocked) return;
-  const melange = [...pilotesData].sort(() => 0.5 - Math.random());
+  const source = listePilotesAffichee.value.length >= 10 ? listePilotesAffichee.value : pilotesData;
+  const melange = [...source].sort(() => 0.5 - Math.random());
   for (let i = 0; i < 10; i++) {
     selections.value[i] = melange[i].nom;
   }
@@ -174,7 +205,7 @@ function remplirGrilleAleatoire() {
 
 defineExpose({
   selections,
-  setSelections: (nouvellesSelections) => {
+  setSelections: (nouvellesSelections?: string[]) => {
     selections.value = Array(10).fill("").map((_, i) => (nouvellesSelections && nouvellesSelections[i]) || "");
   }
 });
@@ -237,6 +268,20 @@ defineExpose({
   align-items: center;
   gap: 8px;
   margin-bottom: 2px;
+}
+
+.driver-team-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.driver-team-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .driver-flag {

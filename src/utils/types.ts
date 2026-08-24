@@ -14,6 +14,10 @@ export interface GrandPrix {
   circuit: string;
   pays: string;
   date: string;
+  hasSprint?: boolean;
+  sprintDate?: string;
+  statut?: 'programme' | 'annule' | 'reporte' | 'remplace';
+  remplacePar?: string;
 }
 
 export interface BadgeInfo {
@@ -50,16 +54,42 @@ export interface DetailBonusItem {
 export interface DetailPilote {
   pilote: string;
   points: number;
-  statut: 'position_exacte' | 'dans_le_top10' | 'hors_top10' | string;
+  statut: 'position_exacte' | 'dans_le_top10' | 'dans_le_top5' | 'hors_top10' | 'hors_top5' | string;
+}
+
+export interface EcurieResultatGP {
+  ecurie: string;
+  pointsGP: number;
+  rangGP: number;
+  positionsPilotes: number[];
+}
+
+export interface EcurieSaisonStats {
+  ecurie: string;
+  pointsTotal: number;
+  victoires: number;
+  podiums: number;
+  rang: number;
+}
+
+export interface DetailEcurie {
+  ecurie: string;
+  typePari: 'top1' | 'top2' | 'flop1' | 'flop2';
+  correct: boolean;
+  points: number;
+  description: string;
 }
 
 export interface BilanCalcul {
   pointsTotaux?: number;
   pointsGrille?: number;
+  pointsSprint?: number;
   pointsPole?: number;
   pointsEcuries?: number;
   pointsBonus?: number;
   detailPilotes?: DetailPilote[];
+  detailSprint?: DetailPilote[];
+  detailEcuries?: DetailEcurie[];
   detailBonus?: DetailBonusItem[];
   jokerApplique?: boolean;
 }
@@ -69,6 +99,7 @@ export interface PronosticDoc {
   pseudo?: string;
   course: string;
   classementPilotes: string[];
+  classementSprint?: string[];
   poleman: string;
   ecuriesTop: string[];
   ecuriesFlop: string[];

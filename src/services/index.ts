@@ -42,7 +42,36 @@ export {
   mettreAJourDesignSlot,
   controlerDoublonsPilotes,
   creerLaGrilleDeDepartTV,
+  mettreAJourDesignSlotSprint,
+  controlerDoublonsSprint,
+  creerLaGrilleSprintTV,
   appliquerSelectionEcurieVisuelle,
   ouvrirSelecteurVisuelEcurie,
   initialiserEcuriesTopFlop
 } from "./grid";
+export {
+  getCalendrierActuel,
+  onCalendrierChange,
+  estWeekendSprint,
+  recupererGpParRound,
+  synchroniserCalendrierDynamique
+} from "./calendarService";
+export {
+  trouverEcurieDePilote,
+  determinerGroupeEcurie,
+  getLabelGroupe,
+  evaluerPronosticsEcuriesComplet,
+  chargerStatsConstructeursSaison
+} from "./teamsService";
+export {
+  TEAMS_CONFIG,
+  PILOTES_METADATA,
+  trouverTeamConfig,
+  trouverEcuriePourPilote,
+  resoudrePilote,
+  genererPilotesInitiaux,
+  pilotesActifs,
+  definirPilotesActifs,
+  synchroniserPilotesGP
+} from "./driversService";
+

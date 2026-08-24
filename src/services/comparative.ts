@@ -73,6 +73,7 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
 
     const ptsTotaux = bilan.pointsTotaux || 0;
     const ptsGrille = bilan.pointsGrille || 0;
+    const ptsSprint = bilan.pointsSprint || 0;
     const ptsPole = bilan.pointsPole || 0;
     const ptsEcuries = bilan.pointsEcuries || 0;
     const ptsBonus = bilan.pointsBonus || 0;
@@ -81,6 +82,48 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
     const ecoTop2 = (data.ecuriesTop && data.ecuriesTop[1]) || 'Aucune';
     const ecoFlop1 = (data.ecuriesFlop && data.ecuriesFlop[0]) || 'Aucune';
     const ecoFlop2 = (data.ecuriesFlop && data.ecuriesFlop[1]) || 'Aucune';
+
+    // Comparatif Sprint Top 5 si existant
+    let sprintHtml = "";
+    const listeSprint: string[] = data.classementSprint || [];
+    let officialTop5Sprint: string[] = [];
+    try {
+        const histoDoc = await db.collection("historique_courses").doc(`2026_${roundNumero}`).get();
+        if (histoDoc.exists) {
+            officialTop5Sprint = histoDoc.data().top5Sprint || [];
+        }
+    } catch (_) {}
+
+    if (listeSprint.length > 0) {
+        const detailSprint = bilan.detailSprint || [];
+        const lignesSprint = listeSprint.map((pilote, idx) => {
+            const reel = officialTop5Sprint[idx] || "—";
+            if (!dejaCalcule) {
+                return `<li style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #3730a3; font-size:0.85rem;">
+                    <span><strong>S${idx + 1} :</strong> ${pilote}</span>
+                    <span style="color:#818cf8;">-- pts</span>
+                </li>`;
+            }
+            const infoS = detailSprint[idx] || { points: 0, statut: "hors_top5" };
+            const icone = infoS.statut === "position_exacte" ? "⚡" : (infoS.statut === "dans_le_top5" ? "➕" : "❌");
+            const colorPts = infoS.points > 0 ? "#4cd137" : "#ef4444";
+            return `<li style="display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px dashed #3730a3; font-size:0.85rem;">
+                <span style="min-width:24px;">${icone}</span>
+                <span style="flex:1;"><strong>S${idx + 1} :</strong> ${pilote}</span>
+                <span style="flex:1; text-align:right; color:#818cf8;">Sprint : ${reel}</span>
+                <span style="min-width:45px; text-align:right; color:${colorPts}; font-weight:bold;">+${infoS.points} pts</span>
+            </li>`;
+        }).join('');
+
+        sprintHtml = `
+            <h5 style="margin: 20px 0 10px 0; color: #a5b4fc; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">⚡ Course Sprint Top 5 vs Résultat réel</h5>
+            <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid #3730a3; border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                <ul style="margin: 0; padding: 0; list-style: none;">
+                    ${lignesSprint}
+                </ul>
+            </div>
+        `;
+    }
 
     let ligneComparatifPole = `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>`;
     if (dejaCalcule) {
@@ -91,12 +134,28 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
         </div>`;
     }
 
-    function ligneEcurie(label: string, nomEcurie: string, estUnTop: boolean): string {
-        if (!dejaCalcule || !nomEcurie || nomEcurie === 'Aucune' || !ecurieGagnante) {
+    function ligneEcurie(label: string, nomEcurie: string, typePari: 'top1' | 'top2' | 'flop1' | 'flop2'): string {
+        if (!nomEcurie || nomEcurie === 'Aucune') {
+            return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>Aucune</strong></div>`;
+        }
+        if (!dejaCalcule) {
             return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>${nomEcurie}</strong></div>`;
         }
-        const correspond = nomsCorrespondentLocal(ecurieGagnante, nomEcurie);
-        const bonPari = estUnTop ? correspond : !correspond;
+        const detailTrouve = (bilan.detailEcuries || []).find(d => d.typePari === typePari || d.ecurie === nomEcurie);
+        if (detailTrouve) {
+            const icone = detailTrouve.correct ? '✅' : '❌';
+            const colorPts = detailTrouve.points > 0 ? '#4cd137' : (detailTrouve.points < 0 ? '#ef4444' : '#616e88');
+            const descHtml = detailTrouve.description ? `<div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">${detailTrouve.description}</div>` : '';
+            return `<div style="padding: 5px 0; border-bottom: 1px dashed #2d3954;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>${icone} ${label} : <strong>${nomEcurie}</strong></span>
+                    <span style="color: ${colorPts}; font-weight: bold;">${detailTrouve.points >= 0 ? `+${detailTrouve.points}` : detailTrouve.points} pts</span>
+                </div>
+                ${descHtml}
+            </div>`;
+        }
+        const correspond = ecurieGagnante && nomsCorrespondentLocal(ecurieGagnante, nomEcurie);
+        const bonPari = typePari.startsWith('top') ? correspond : !correspond;
         return `<div style="display: flex; justify-content: space-between; padding: 4px 0;">
             <span>${bonPari ? '✅' : '❌'} ${label} : <strong>${nomEcurie}</strong></span>
         </div>`;
@@ -114,6 +173,7 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
         <h5 style="margin: 0 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📊 Répartition des Points</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏎️ Prono Grille Top 10 :</span> <strong style="color: #fff;">+${ptsGrille} pts</strong></div>
+            ${ptsSprint > 0 || listeSprint.length > 0 ? `<div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Prono Course Sprint :</span> <strong style="color: #a5b4fc;">+${ptsSprint} pts</strong></div>` : ''}
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${ptsPole} pts</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${ptsEcuries} pts</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🎲 Prédictions Bonus :</span> <strong style="color: #fff;">+${ptsBonus} pts</strong></div>
@@ -121,13 +181,15 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
 
         <hr style="border: 0; border-top: 1px solid #2d3954; margin: 15px 0;">
 
-        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Choix vs le résultat réel</h5>
+        ${sprintHtml}
+
+        <h5 style="margin: 0 0 10px 0; color: #ff8000; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📋 Choix Écuries vs Résultats</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 15px;">
             ${ligneComparatifPole}
-            ${ligneEcurie('🚀 Écurie Top 1', ecoTop1, true)}
-            ${ligneEcurie('🚀 Écurie Top 2', ecoTop2, true)}
-            ${ligneEcurie('⚠️ Écurie Flop 1', ecoFlop1, false)}
-            ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, false)}
+            ${ligneEcurie('🚀 Écurie Top 1', ecoTop1, 'top1')}
+            ${ligneEcurie('🚀 Écurie Top 2', ecoTop2, 'top2')}
+            ${ligneEcurie('⚠️ Écurie Flop 1', ecoFlop1, 'flop1')}
+            ${ligneEcurie('⚠️ Écurie Flop 2', ecoFlop2, 'flop2')}
         </div>
 
         <h5 style="margin: 20px 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">🎲 Prédictions Bonus</h5>
