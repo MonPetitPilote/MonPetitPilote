@@ -1,57 +1,59 @@
 <template>
-  <div id="modale-ligues" class="modal-back" style="display: none">
+  <div id="modale-ligues" class="modal-back" @click.self="$emit('close')">
     <div class="modal-content-inner" style="max-width: 420px">
-      <span class="close-modal" id="btn-fermer-ligues">&times;</span>
+      <span class="close-modal" id="btn-fermer-ligues" @click="$emit('close')">&times;</span>
 
       <div class="auth-tabs">
         <button
           type="button"
-          class="auth-tab actif"
+          :class="['auth-tab', { actif: activeTab === 'creer' }]"
           id="tab-creer-ligue"
-          data-panel="panneau-creer-ligue"
+          @click="activeTab = 'creer'"
         >
           Créer une ligue
         </button>
         <button
           type="button"
-          class="auth-tab"
+          :class="['auth-tab', { actif: activeTab === 'rejoindre' }]"
           id="tab-rejoindre-ligue"
-          data-panel="panneau-rejoindre-ligue"
+          @click="activeTab = 'rejoindre'"
         >
           Rejoindre
         </button>
       </div>
 
-      <div id="panneau-creer-ligue" class="auth-panel">
+      <div v-show="activeTab === 'creer'" id="panneau-creer-ligue" class="auth-panel">
         <div class="auth-field">
           <label for="nom-nouvelle-ligue">Nom de la ligue</label>
           <input
             type="text"
             id="nom-nouvelle-ligue"
+            v-model="nomLigue"
             placeholder="Ex : Les Copains du Garage"
           />
         </div>
-        <div id="creer-ligue-erreur" class="auth-erreur"></div>
+        <div id="creer-ligue-erreur" class="auth-erreur">{{ erreurCreer }}</div>
         <button id="btn-creer-ligue" class="create-league-button">
           🏁 Créer ma ligue
         </button>
       </div>
 
       <div
+        v-show="activeTab === 'rejoindre'"
         id="panneau-rejoindre-ligue"
         class="auth-panel"
-        style="display: none"
       >
         <div class="auth-field">
           <label for="code-ligue-rejoindre">Code d'invitation</label>
           <input
             type="text"
             id="code-ligue-rejoindre"
+            v-model="codeLigue"
             placeholder="Ex : F1-X7K2"
             style="text-transform: uppercase"
           />
         </div>
-        <div id="rejoindre-ligue-erreur" class="auth-erreur"></div>
+        <div id="rejoindre-ligue-erreur" class="auth-erreur">{{ erreurRejoindre }}</div>
         <button id="btn-rejoindre-ligue" class="create-league-button">
           🤝 Rejoindre la ligue
         </button>
@@ -86,6 +88,18 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+
+defineEmits(["close"]);
+
+const activeTab = ref("creer");
+const nomLigue = ref("");
+const codeLigue = ref("");
+const erreurCreer = ref("");
+const erreurRejoindre = ref("");
+</script>
 
 <style lang="css" scoped>
 .create-league-button {

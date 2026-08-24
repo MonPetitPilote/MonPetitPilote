@@ -1,7 +1,11 @@
 <template>
   <header class="brand-header">
     <div class="brand-actions">
-      <button id="btn-reglement" class="btn-brand-action btn-brand-orange">
+      <button
+        id="btn-reglement"
+        class="btn-brand-action btn-brand-orange"
+        @click="$emit('open-rules-modal')"
+      >
         📜 RÈGLEMENT
       </button>
     </div>

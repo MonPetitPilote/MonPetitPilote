@@ -8,27 +8,23 @@
       <div class="auth-tabs">
         <button
           type="button"
-          class="auth-tab"
-          :class="selectedTab === 0 ? 'actif' : ''"
+          class="auth-tab actif"
           id="tab-connexion"
           data-panel="panneau-connexion"
-          @click="selectedTab = 0"
         >
           Connexion
         </button>
         <button
           type="button"
           class="auth-tab"
-          :class="selectedTab === 1 ? 'actif' : ''"
           id="tab-inscription"
           data-panel="panneau-inscription"
-          @click="selectedTab = 1"
         >
           Inscription
         </button>
       </div>
 
-      <div v-if="selectedTab === 0" id="panneau-connexion" class="auth-panel">
+      <div id="panneau-connexion" class="auth-panel">
         <div class="auth-field">
           <label for="login-email">Email</label>
           <input
@@ -63,7 +59,7 @@
         >
       </div>
 
-      <div v-else id="panneau-inscription" class="auth-panel">
+      <div id="panneau-inscription" class="auth-panel" style="display: none">
         <div class="auth-field">
           <label for="inscription-pseudo"
             >Pseudo (affiché aux autres joueurs)</label
@@ -118,12 +114,9 @@ import {
   resetPassword,
   updateUserNickname,
 } from "../services";
-import { useUserStore } from "../stores";
-import { getDoc, translateFirebaseError } from "../utils";
+import { translateFirebaseError } from "../utils";
 
 const emit = defineEmits(["close-connection-modal"]);
-
-const userStore = useUserStore();
 
 const nickname = ref("");
 const email = ref("");
@@ -133,7 +126,6 @@ const inscriptionButtonLabel = ref("🏆 Créer mon compte");
 const isConnectionButtonDisabled = ref(false);
 const connectionButtonLabel = ref("🏁 Se connecter");
 const errorString = ref("");
-const selectedTab = ref(0);
 
 async function handleConnectionClick() {
   if (!email.value || !password.value) {
@@ -144,12 +136,10 @@ async function handleConnectionClick() {
   isConnectionButtonDisabled.value = true;
   connectionButtonLabel.value = "Connexion en cours...";
   try {
-    const user = await logIn(email.value, password.value);
-    userStore.setUser(user.user);
+    await logIn(email.value, password.value);
     emit("close-connection-modal");
   } catch (error) {
     errorString.value = translateFirebaseError(error);
-    userStore.setUser(null);
   } finally {
     isConnectionButtonDisabled.value = false;
     connectionButtonLabel.value = "🏁 Se connecter";
@@ -170,9 +160,8 @@ async function handleInscriptionClick() {
   isInscriptionButtonDisabled.value = true;
   inscriptionButtonLabel.value = "Création en cours...";
   try {
-    const user = await createUser(email.value, password.value);
+    const resultat = await createUser(email.value, password.value);
     await updateUserNickname(nickname.value);
-    userStore.setUser(user.user);
 
     const nomUserSpan = document.getElementById("nom-utilisateur");
     if (nomUserSpan) {
@@ -182,7 +171,6 @@ async function handleInscriptionClick() {
   } catch (error) {
     errorString.value = translateFirebaseError(error);
     console.error(error);
-    userStore.setUser(null);
   } finally {
     isInscriptionButtonDisabled.value = false;
     inscriptionButtonLabel.value = "🏆 Créer mon compte";
@@ -197,8 +185,8 @@ async function handleForgotPassword() {
   try {
     await resetPassword(email.value);
     errorString.value = `📨 Email de réinitialisation envoyé à ${email.value} (pense à vérifier tes spams).`;
-  } catch (error) {
-    errorString.value = translateFirebaseError(error);
+  } catch {
+    errorString.value = traduireErreurFirebase(error);
   }
 }
 </script>

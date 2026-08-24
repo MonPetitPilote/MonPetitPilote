@@ -37,6 +37,7 @@
               font-size: 0.75rem;
               font-weight: bold;
             "
+            @click="$emit('open-league-modal')"
           >
             ⚙️ CRÉER / REJOINDRE
           </button>
@@ -47,7 +48,14 @@
         ></select>
       </div>
 
-      <RaceSelector />
+      <div class="section-course">
+        <label
+          for="select-course"
+          style="display: block; margin-bottom: 8px; font-weight: bold"
+          >SÉLECTIONNER LE WEEK-END :</label
+        >
+        <select id="select-course"></select>
+      </div>
 
       <div
         id="banniere-verrouillage"
@@ -95,7 +103,39 @@
         <select id="select-pole"></select>
       </div>
 
-      <StartingGrid />
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 25px;
+          flex-wrap: wrap;
+          gap: 10px;
+        "
+      >
+        <h2 style="margin: 0; font-size: 1.3rem" id="titre-grille">
+          🏆 TA GRILLE DE DÉPART TOP 10 :
+        </h2>
+        <button
+          id="btn-aleatoire"
+          style="
+            background: #3b4b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: background 0.2s;
+          "
+        >
+          🎲 PRONO ALÉATOIRE
+        </button>
+      </div>
+
+      <div id="grille-pronos" class="f1-starting-grid"></div>
+
       <div
         style="
           margin: 20px 0;
@@ -128,7 +168,73 @@
       style="display: flex; flex-direction: column; gap: 30px"
     >
       <FriendsRanking />
-      <TeamForecast />
+      <div
+        class="section-top-flop"
+        style="
+          background: #222c43;
+          padding: 15px;
+          border-radius: 8px;
+          border-left: 4px solid #e10600;
+        "
+      >
+        <h3
+          style="
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+          "
+        >
+          🏎️ PRONOSTIC ÉCURIES (TOP / FLOP)
+        </h3>
+        <div
+          class="ecuries-block"
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+          "
+        >
+          <div>
+            <h4
+              style="
+                color: #00e6c3;
+                font-size: 13px;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              "
+            >
+              🚀 Top Écuries (Bonus)
+            </h4>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div id="ecurie-top-1" class="carte-selection-team"></div>
+              <div id="ecurie-top-2" class="carte-selection-team"></div>
+            </div>
+          </div>
+
+          <div>
+            <h4
+              style="
+                color: #ef4444;
+                font-size: 13px;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              "
+            >
+              ⚠️ Flop Écuries (Malus)
+            </h4>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div id="ecurie-flop-1" class="carte-selection-team"></div>
+              <div id="ecurie-flop-2" class="carte-selection-team"></div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         class="section-predictions-bonus"
         style="
@@ -260,8 +366,6 @@
 
 <script setup lang="ts">
 import FriendsRanking from "./FriendsRanking.vue";
-import StartingGrid from "./StartingGrid.vue";
-import RaceSelector from "./RaceSelector.vue";
-import TeamForecast from "./TeamForecast.vue";
 
+defineEmits(["open-league-modal"]);
 </script>

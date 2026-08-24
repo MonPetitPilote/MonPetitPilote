@@ -1,18 +1,8 @@
 <template>
   <div
     id="modale-reglement"
-    style="
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    "
+    class="modal-back"
+    @click.self="$emit('close')"
   >
     <div
       style="
@@ -43,6 +33,7 @@
           font-size: 1.2rem;
           cursor: pointer;
         "
+        @click="$emit('close')"
       >
         ❌
       </button>
@@ -264,3 +255,7 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+defineEmits(["close"]);
+</script>
