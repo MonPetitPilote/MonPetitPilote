@@ -18,88 +18,88 @@ export const TEAMS_CONFIG: Record<string, TeamConfig> = {
         nom: "Red Bull",
         key: "redbull",
         couleur: "#3671C6",
-        carImg: "images/cars/redbull.avif",
-        logoImg: "images/team/redbull.avif",
+        carImg: "/images/cars/redbull.avif",
+        logoImg: "/images/team/redbull.avif",
         pilotesDefaut: ["Max Verstappen", "Isack Hadjar"]
     },
     "Ferrari": {
         nom: "Ferrari",
         key: "ferrari",
         couleur: "#E80020",
-        carImg: "images/cars/ferrari.avif",
-        logoImg: "images/team/ferrari.avif",
+        carImg: "/images/cars/ferrari.avif",
+        logoImg: "/images/team/ferrari.avif",
         pilotesDefaut: ["Lewis Hamilton", "Charles Leclerc"]
     },
     "McLaren": {
         nom: "McLaren",
         key: "mclaren",
         couleur: "#FF8000",
-        carImg: "images/cars/mclaren.avif",
-        logoImg: "images/team/mclaren.avif",
+        carImg: "/images/cars/mclaren.avif",
+        logoImg: "/images/team/mclaren.avif",
         pilotesDefaut: ["Lando Norris", "Oscar Piastri"]
     },
     "Mercedes": {
         nom: "Mercedes",
         key: "mercedes",
         couleur: "#27CCB4",
-        carImg: "images/cars/mercedes.avif",
-        logoImg: "images/team/mercedes.avif",
+        carImg: "/images/cars/mercedes.avif",
+        logoImg: "/images/team/mercedes.avif",
         pilotesDefaut: ["George Russell", "Kimi Antonelli"]
     },
     "Aston Martin": {
         nom: "Aston Martin",
         key: "astonmartin",
         couleur: "#229971",
-        carImg: "images/cars/astonmartin.avif",
-        logoImg: "images/team/astonmartin.avif",
+        carImg: "/images/cars/astonmartin.avif",
+        logoImg: "/images/team/astonmartin.avif",
         pilotesDefaut: ["Fernando Alonso", "Lance Stroll"]
     },
     "Alpine": {
         nom: "Alpine",
         key: "alpine",
         couleur: "#0093CC",
-        carImg: "images/cars/alpine.avif",
-        logoImg: "images/team/alpine.avif",
+        carImg: "/images/cars/alpine.avif",
+        logoImg: "/images/team/alpine.avif",
         pilotesDefaut: ["Pierre Gasly", "Franco Colapinto"]
     },
     "Williams": {
         nom: "Williams",
         key: "williams",
         couleur: "#37BEDD",
-        carImg: "images/cars/williams.avif",
-        logoImg: "images/team/williams.avif",
+        carImg: "/images/cars/williams.avif",
+        logoImg: "/images/team/williams.avif",
         pilotesDefaut: ["Carlos Sainz", "Alex Albon"]
     },
     "Racing Bulls": {
         nom: "Racing Bulls",
         key: "racingbulls",
         couleur: "#6692FF",
-        carImg: "images/cars/racingbulls.avif",
-        logoImg: "images/team/racingbulls.avif",
+        carImg: "/images/cars/racingbulls.avif",
+        logoImg: "/images/team/racingbulls.avif",
         pilotesDefaut: ["Liam Lawson", "Arvid Lindblad"]
     },
     "Audi": {
         nom: "Audi",
         key: "audi",
         couleur: "#00E6C3",
-        carImg: "images/cars/audi.avif",
-        logoImg: "images/team/audi.avif",
+        carImg: "/images/cars/audi.avif",
+        logoImg: "/images/team/audi.avif",
         pilotesDefaut: ["Nico Hülkenberg", "Gabriel Bortoleto"]
     },
     "Haas": {
         nom: "Haas",
         key: "haas",
         couleur: "#B6BABD",
-        carImg: "images/cars/haas.avif",
-        logoImg: "images/team/haas.avif",
+        carImg: "/images/cars/haas.avif",
+        logoImg: "/images/team/haas.avif",
         pilotesDefaut: ["Oliver Bearman", "Esteban Ocon"]
     },
     "Cadillac": {
         nom: "Cadillac",
         key: "cadillac",
         couleur: "#900C3F",
-        carImg: "images/cars/cadillac.avif",
-        logoImg: "images/team/cadillac.avif",
+        carImg: "/images/cars/cadillac.avif",
+        logoImg: "/images/team/cadillac.avif",
         pilotesDefaut: ["Valtteri Bottas", "Sergio Pérez"]
     }
 };
@@ -108,30 +108,30 @@ export const TEAMS_CONFIG: Record<string, TeamConfig> = {
  * Base de données des métadonnées des pilotes connus (numéro, pays, portrait)
  */
 export const PILOTES_METADATA: Record<string, { code: string; numero: string; pays: string; img: string }> = {
-    "max verstappen": { code: "VER", numero: "3", pays: "nl", img: "images/drivers/ver.avif" },
-    "isack hadjar": { code: "HAD", numero: "43", pays: "fr", img: "images/drivers/had.avif" },
-    "lewis hamilton": { code: "HAM", numero: "44", pays: "gb", img: "images/drivers/ham.avif" },
-    "charles leclerc": { code: "LEC", numero: "16", pays: "mc", img: "images/drivers/lec.avif" },
-    "lando norris": { code: "NOR", numero: "1", pays: "gb", img: "images/drivers/nor.avif" },
-    "oscar piastri": { code: "PIA", numero: "81", pays: "au", img: "images/drivers/pia.avif" },
-    "george russell": { code: "RUS", numero: "63", pays: "gb", img: "images/drivers/rus.avif" },
-    "kimi antonelli": { code: "ANT", numero: "12", pays: "it", img: "images/drivers/ant.avif" },
-    "fernando alonso": { code: "ALO", numero: "14", pays: "es", img: "images/drivers/alo.avif" },
-    "lance stroll": { code: "STR", numero: "18", pays: "ca", img: "images/drivers/str.avif" },
-    "pierre gasly": { code: "GAS", numero: "10", pays: "fr", img: "images/drivers/gas.avif" },
-    "franco colapinto": { code: "COL", numero: "43", pays: "ar", img: "images/drivers/col.avif" },
-    "carlos sainz": { code: "SAI", numero: "55", pays: "es", img: "images/drivers/sai.avif" },
-    "alex albon": { code: "ALB", numero: "23", pays: "th", img: "images/drivers/alb.avif" },
-    "liam lawson": { code: "LAW", numero: "30", pays: "nz", img: "images/drivers/law.avif" },
-    "arvid lindblad": { code: "LIN", numero: "40", pays: "gb", img: "images/drivers/lin.avif" },
-    "nico hulkenberg": { code: "HUL", numero: "27", pays: "de", img: "images/drivers/hul.avif" },
-    "nico hülkenberg": { code: "HUL", numero: "27", pays: "de", img: "images/drivers/hul.avif" },
-    "gabriel bortoleto": { code: "BOR", numero: "5", pays: "br", img: "images/drivers/bor.avif" },
-    "oliver bearman": { code: "BEA", numero: "87", pays: "gb", img: "images/drivers/bea.avif" },
-    "esteban ocon": { code: "OCO", numero: "31", pays: "fr", img: "images/drivers/oco.avif" },
-    "valtteri bottas": { code: "BOT", numero: "77", pays: "fi", img: "images/drivers/bot.avif" },
-    "sergio perez": { code: "PER", numero: "11", pays: "mx", img: "images/drivers/per.avif" },
-    "sergio pérez": { code: "PER", numero: "11", pays: "mx", img: "images/drivers/per.avif" }
+    "max verstappen": { code: "VER", numero: "3", pays: "nl", img: "/images/drivers/ver.avif" },
+    "isack hadjar": { code: "HAD", numero: "43", pays: "fr", img: "/images/drivers/had.avif" },
+    "lewis hamilton": { code: "HAM", numero: "44", pays: "gb", img: "/images/drivers/ham.avif" },
+    "charles leclerc": { code: "LEC", numero: "16", pays: "mc", img: "/images/drivers/lec.avif" },
+    "lando norris": { code: "NOR", numero: "1", pays: "gb", img: "/images/drivers/nor.avif" },
+    "oscar piastri": { code: "PIA", numero: "81", pays: "au", img: "/images/drivers/pia.avif" },
+    "george russell": { code: "RUS", numero: "63", pays: "gb", img: "/images/drivers/rus.avif" },
+    "kimi antonelli": { code: "ANT", numero: "12", pays: "it", img: "/images/drivers/ant.avif" },
+    "fernando alonso": { code: "ALO", numero: "14", pays: "es", img: "/images/drivers/alo.avif" },
+    "lance stroll": { code: "STR", numero: "18", pays: "ca", img: "/images/drivers/str.avif" },
+    "pierre gasly": { code: "GAS", numero: "10", pays: "fr", img: "/images/drivers/gas.avif" },
+    "franco colapinto": { code: "COL", numero: "43", pays: "ar", img: "/images/drivers/col.avif" },
+    "carlos sainz": { code: "SAI", numero: "55", pays: "es", img: "/images/drivers/sai.avif" },
+    "alex albon": { code: "ALB", numero: "23", pays: "th", img: "/images/drivers/alb.avif" },
+    "liam lawson": { code: "LAW", numero: "30", pays: "nz", img: "/images/drivers/law.avif" },
+    "arvid lindblad": { code: "LIN", numero: "40", pays: "gb", img: "/images/drivers/lin.avif" },
+    "nico hulkenberg": { code: "HUL", numero: "27", pays: "de", img: "/images/drivers/hul.avif" },
+    "nico hülkenberg": { code: "HUL", numero: "27", pays: "de", img: "/images/drivers/hul.avif" },
+    "gabriel bortoleto": { code: "BOR", numero: "5", pays: "br", img: "/images/drivers/bor.avif" },
+    "oliver bearman": { code: "BEA", numero: "87", pays: "gb", img: "/images/drivers/bea.avif" },
+    "esteban ocon": { code: "OCO", numero: "31", pays: "fr", img: "/images/drivers/oco.avif" },
+    "valtteri bottas": { code: "BOT", numero: "77", pays: "fi", img: "/images/drivers/bot.avif" },
+    "sergio perez": { code: "PER", numero: "11", pays: "mx", img: "/images/drivers/per.avif" },
+    "sergio pérez": { code: "PER", numero: "11", pays: "mx", img: "/images/drivers/per.avif" }
 };
 
 /**
@@ -201,7 +201,7 @@ export function resoudrePilote(nom: string, ecurieOptionnelle?: string): Pilote 
     const teamConfig = trouverTeamConfig(ecurie);
     const meta = PILOTES_METADATA[clean(nom)];
 
-    // Déterminer le portrait du pilote (fichier dans images/drivers/...)
+    // Déterminer le portrait du pilote (fichier dans /images/drivers/...)
     let driverImg = "";
     if (meta && meta.img) {
         driverImg = meta.img;
@@ -210,7 +210,7 @@ export function resoudrePilote(nom: string, ecurieOptionnelle?: string): Pilote 
         const parts = clean(nom).split(" ");
         const nomFamille = parts[parts.length - 1] || "";
         const trigramme = nomFamille.substring(0, 3);
-        driverImg = `images/drivers/${trigramme}.avif`;
+        driverImg = `/images/drivers/${trigramme}.avif`;
     }
 
     return {

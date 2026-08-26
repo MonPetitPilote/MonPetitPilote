@@ -12,7 +12,7 @@ export const LOGOS_2026: Record<string, string> = Object.fromEntries(
     Object.values(TEAMS_CONFIG).map(t => [t.key, t.carImg])
 );
 
-// Chemins vers les logos officiels des écuries (dossier images/team)
+// Chemins vers les logos officiels des écuries (dossier /images/team)
 export const LOGOS_ECURIES_2026: Record<string, string> = Object.fromEntries(
     Object.values(TEAMS_CONFIG).map(t => [t.nom, t.logoImg])
 );

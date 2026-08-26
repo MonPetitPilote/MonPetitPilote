@@ -1,15 +1,15 @@
 const LOGOS_2026 = {
-  redbull: "images/cars/redbull.avif",
-  ferrari: "images/cars/ferrari.avif",
-  mclaren: "images/cars/mclaren.avif",
-  mercedes: "images/cars/mercedes.avif",
-  aston: "images/cars/astonmartin.avif",
-  alpine: "images/cars/alpine.avif",
-  williams: "images/cars/williams.avif",
-  racingbulls: "images/cars/racingbulls.avif",
-  audi: "images/cars/audi.avif",
-  haas: "images/cars/haas.avif",
-  cadillac: "images/cars/cadillac.avif",
+  redbull: "/images/cars/redbull.avif",
+  ferrari: "/images/cars/ferrari.avif",
+  mclaren: "/images/cars/mclaren.avif",
+  mercedes: "/images/cars/mercedes.avif",
+  aston: "/images/cars/astonmartin.avif",
+  alpine: "/images/cars/alpine.avif",
+  williams: "/images/cars/williams.avif",
+  racingbulls: "/images/cars/racingbulls.avif",
+  audi: "/images/cars/audi.avif",
+  haas: "/images/cars/haas.avif",
+  cadillac: "/images/cars/cadillac.avif",
 };
 
 export const drivers = [
@@ -20,7 +20,7 @@ export const drivers = [
     country: "nl",
     color: "#3671C6",
     carImg: LOGOS_2026.redbull,
-    driverImg: "images/drivers/ver.avif",
+    driverImg: "/images/drivers/ver.avif",
   },
   {
     name: "Isack Hadjar",
@@ -29,7 +29,7 @@ export const drivers = [
     country: "fr",
     color: "#3671C6",
     carImg: LOGOS_2026.redbull,
-    driverImg: "images/drivers/had.avif",
+    driverImg: "/images/drivers/had.avif",
   },
   {
     name: "Lewis Hamilton",
@@ -38,7 +38,7 @@ export const drivers = [
     country: "gb",
     color: "#E80020",
     carImg: LOGOS_2026.ferrari,
-    driverImg: "images/drivers/ham.avif",
+    driverImg: "/images/drivers/ham.avif",
   },
   {
     name: "Charles Leclerc",
@@ -47,7 +47,7 @@ export const drivers = [
     country: "mc",
     color: "#E80020",
     carImg: LOGOS_2026.ferrari,
-    driverImg: "images/drivers/lec.avif",
+    driverImg: "/images/drivers/lec.avif",
   },
   {
     name: "Lando Norris",
@@ -56,7 +56,7 @@ export const drivers = [
     country: "gb",
     color: "#FF8000",
     carImg: LOGOS_2026.mclaren,
-    driverImg: "images/drivers/nor.avif",
+    driverImg: "/images/drivers/nor.avif",
   },
   {
     name: "Oscar Piastri",
@@ -65,7 +65,7 @@ export const drivers = [
     country: "au",
     color: "#FF8000",
     carImg: LOGOS_2026.mclaren,
-    driverImg: "images/drivers/pia.avif",
+    driverImg: "/images/drivers/pia.avif",
   },
   {
     name: "George Russell",
@@ -74,7 +74,7 @@ export const drivers = [
     country: "gb",
     color: "#27CCB4",
     carImg: LOGOS_2026.mercedes,
-    driverImg: "images/drivers/rus.avif",
+    driverImg: "/images/drivers/rus.avif",
   },
   {
     name: "Kimi Antonelli",
@@ -83,7 +83,7 @@ export const drivers = [
     country: "it",
     color: "#27CCB4",
     carImg: LOGOS_2026.mercedes,
-    driverImg: "images/drivers/ant.avif",
+    driverImg: "/images/drivers/ant.avif",
   },
   {
     name: "Fernando Alonso",
@@ -92,7 +92,7 @@ export const drivers = [
     country: "es",
     color: "#229971",
     carImg: LOGOS_2026.aston,
-    driverImg: "images/drivers/alo.avif",
+    driverImg: "/images/drivers/alo.avif",
   },
   {
     name: "Lance Stroll",
@@ -101,7 +101,7 @@ export const drivers = [
     country: "ca",
     color: "#229971",
     carImg: LOGOS_2026.aston,
-    driverImg: "images/drivers/str.avif",
+    driverImg: "/images/drivers/str.avif",
   },
   {
     name: "Pierre Gasly",
@@ -110,7 +110,7 @@ export const drivers = [
     country: "fr",
     color: "#0093CC",
     carImg: LOGOS_2026.alpine,
-    driverImg: "images/drivers/gas.avif",
+    driverImg: "/images/drivers/gas.avif",
   },
   {
     name: "Franco Colapinto",
@@ -119,7 +119,7 @@ export const drivers = [
     country: "ar",
     color: "#0093CC",
     carImg: LOGOS_2026.alpine,
-    driverImg: "images/drivers/col.avif",
+    driverImg: "/images/drivers/col.avif",
   },
   {
     name: "Carlos Sainz",
@@ -128,7 +128,7 @@ export const drivers = [
     country: "es",
     color: "#37BEDD",
     carImg: LOGOS_2026.williams,
-    driverImg: "images/drivers/sai.avif",
+    driverImg: "/images/drivers/sai.avif",
   },
   {
     name: "Alex Albon",
@@ -137,7 +137,7 @@ export const drivers = [
     country: "th",
     color: "#37BEDD",
     carImg: LOGOS_2026.williams,
-    driverImg: "images/drivers/alb.avif",
+    driverImg: "/images/drivers/alb.avif",
   },
   {
     name: "Liam Lawson",
@@ -146,7 +146,7 @@ export const drivers = [
     country: "nz",
     color: "#6692FF",
     carImg: LOGOS_2026.racingbulls,
-    driverImg: "images/drivers/law.avif",
+    driverImg: "/images/drivers/law.avif",
   },
   {
     name: "Arvid Lindblad",
@@ -155,7 +155,7 @@ export const drivers = [
     country: "gb",
     color: "#6692FF",
     carImg: LOGOS_2026.racingbulls,
-    driverImg: "images/drivers/lin.avif",
+    driverImg: "/images/drivers/lin.avif",
   },
   {
     name: "Nico Hülkenberg",
@@ -164,7 +164,7 @@ export const drivers = [
     country: "de",
     color: "#00E6C3",
     carImg: LOGOS_2026.audi,
-    driverImg: "images/drivers/hul.avif",
+    driverImg: "/images/drivers/hul.avif",
   },
   {
     name: "Gabriel Bortoleto",
@@ -173,7 +173,7 @@ export const drivers = [
     country: "br",
     color: "#00E6C3",
     carImg: LOGOS_2026.audi,
-    driverImg: "images/drivers/bor.avif",
+    driverImg: "/images/drivers/bor.avif",
   },
   {
     name: "Oliver Bearman",
@@ -182,7 +182,7 @@ export const drivers = [
     country: "gb",
     color: "#B6BABD",
     carImg: LOGOS_2026.haas,
-    driverImg: "images/drivers/bea.avif",
+    driverImg: "/images/drivers/bea.avif",
   },
   {
     name: "Esteban Ocon",
@@ -191,7 +191,7 @@ export const drivers = [
     country: "fr",
     color: "#B6BABD",
     carImg: LOGOS_2026.haas,
-    driverImg: "images/drivers/oco.avif",
+    driverImg: "/images/drivers/oco.avif",
   },
   {
     name: "Valtteri Bottas",
@@ -200,7 +200,7 @@ export const drivers = [
     country: "fi",
     color: "#900C3F",
     carImg: LOGOS_2026.cadillac,
-    driverImg: "images/drivers/bot.avif",
+    driverImg: "/images/drivers/bot.avif",
   },
   {
     name: "Sergio Pérez",
@@ -209,22 +209,22 @@ export const drivers = [
     country: "mx",
     color: "#900C3F",
     carImg: LOGOS_2026.cadillac,
-    driverImg: "images/drivers/per.avif",
+    driverImg: "/images/drivers/per.avif",
   },
 ];
 
 export const LOGOS_ECURIES_2026 = {
-  "Red Bull": "images/team/redbull.avif",
-  Ferrari: "images/team/ferrari.avif",
-  McLaren: "images/team/mclaren.avif",
-  Mercedes: "images/team/mercedes.avif",
-  "Aston Martin": "images/team/astonmartin.avif",
-  Alpine: "images/team/alpine.avif",
-  Williams: "images/team/williams.avif",
-  "Racing Bulls": "images/team/racingbulls.avif",
-  Audi: "images/team/audi.avif",
-  Haas: "images/team/haas.avif",
-  Cadillac: "images/team/cadillac.avif",
+  "Red Bull": "/images/team/redbull.avif",
+  Ferrari: "/images/team/ferrari.avif",
+  McLaren: "/images/team/mclaren.avif",
+  Mercedes: "/images/team/mercedes.avif",
+  "Aston Martin": "/images/team/astonmartin.avif",
+  Alpine: "/images/team/alpine.avif",
+  Williams: "/images/team/williams.avif",
+  "Racing Bulls": "/images/team/racingbulls.avif",
+  Audi: "/images/team/audi.avif",
+  Haas: "/images/team/haas.avif",
+  Cadillac: "/images/team/cadillac.avif",
 };
 
 export const ecuriesSaison = [
