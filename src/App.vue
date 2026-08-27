@@ -1,12 +1,13 @@
 <template>
   <NotificationsComponent />
   <div class="container">
-    <Logo />
+    <Logo @vers-pronos="workspaceProfileRef?.basculerVersPronos()" />
     <TopHeader
       @open-connection-modal="isConnectionModalOpen = true"
       @open-rules-modal="isRulesModalOpen = true"
+      @vers-profil="workspaceProfileRef?.basculerVersProfil()"
     />
-    <WorkspaceProfile />
+    <WorkspaceProfile ref="workspaceProfileRef" />
     <MainContent @open-league-modal="isLeagueModalOpen = true" />
     <ConnectionModal
       v-show="isConnectionModalOpen"
@@ -42,6 +43,7 @@ import WorkspaceProfile from "./components/WorkspaceProfile.vue";
 const isConnectionModalOpen = ref(false);
 const isLeagueModalOpen = ref(false);
 const isRulesModalOpen = ref(false);
+const workspaceProfileRef = ref<InstanceType<typeof WorkspaceProfile> | null>(null);
 
 const userStore = useUserStore();
 let unsubscribeAuth: (() => void) | null = null;

@@ -37,6 +37,8 @@ import {
     synchroniserCalendrierDynamique
 } from "./services";
 
+import { getFirestore as getFirestoreModerne } from "./utils/firebase";
+
 declare const firebase: any;
 
 // ==========================================
@@ -56,6 +58,7 @@ if (!firebase.apps.length) {
 }
 const db = firebase.firestore();
 const auth = firebase.auth();
+const dbModerne = getFirestoreModerne();
 
 let utilisateurActuel: any = null;
 let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
@@ -69,74 +72,22 @@ const selectLigue = document.getElementById('select-ligue') as HTMLSelectElement
 // ==========================================
 // 2. GESTION AUTHENTIFICATION & PROFIL
 // ==========================================
+// ==========================================
+// 2. GESTION AUTHENTIFICATION & PROFIL
+// ==========================================
+// L'affichage connecté/déconnecté, le pseudo et son édition sont désormais
+// gérés par TopHeader.vue et WorkspaceProfile.vue (Vue + userStore).
+// Ce listener ne garde que ce qui n'est pas encore migré.
 auth.onAuthStateChanged(async (user: any) => {
-    const authDeconnecte = document.getElementById('auth-deconnecte');
-    const authConnecte = document.getElementById('auth-connecte');
-    const pseudoDisplay = document.getElementById('user-pseudo-display');
-    const profilEmail = document.getElementById('profil-email');
-    const profilPseudoActuel = document.getElementById('profil-pseudo-actuel');
-    const profilInputPseudo = document.getElementById('profil-input-pseudo') as HTMLInputElement | null;
-
     if (user) {
         utilisateurActuel = user;
-        const pseudoFinal = user.displayName || user.email.split('@')[0];
-        if (authDeconnecte) authDeconnecte.style.display = 'none';
-        if (authConnecte) authConnecte.style.display = 'flex';
-        if (pseudoDisplay) pseudoDisplay.innerText = pseudoFinal;
-        if (profilEmail) profilEmail.innerText = user.email;
-        if (profilPseudoActuel) profilPseudoActuel.innerText = pseudoFinal;
-        if (profilInputPseudo) profilInputPseudo.value = pseudoFinal;
-
-        const docUser = await db.collection("utilisateurs").doc(user.uid).get();
-        if (!docUser.exists) {
-            await db.collection("utilisateurs").doc(user.uid).set({
-                pseudo: pseudoFinal,
-                email: user.email,
-                dateInscription: new Date(),
-                ligues: [CODE_LIGUE_MONDIAL],
-                ligueActive: CODE_LIGUE_MONDIAL
-            });
-        }
-
         await chargerLiguesUtilisateur();
         chargerPronosticsUtilisateur();
         chargerClassementGeneral();
     } else {
         utilisateurActuel = null;
-        if (authDeconnecte) authDeconnecte.style.display = 'flex';
-        if (authConnecte) authConnecte.style.display = 'none';
         afficherEtatLigueDeconnecte();
         chargerClassementGeneral();
-    }
-});
-
-document.getElementById('btn-deconnexion')?.addEventListener('click', () => auth.signOut());
-
-// Modification du pseudo dans l'espace Mon Profil
-document.getElementById('btn-sauvegarder-pseudo')?.addEventListener('click', async () => {
-    const inputPseudo = document.getElementById('profil-input-pseudo') as HTMLInputElement | null;
-    const nouveauPseudo = inputPseudo?.value.trim();
-    if (!nouveauPseudo) return afficherNotification("Le pseudo ne peut pas être vide.", "erreur");
-    if (!utilisateurActuel) return;
-
-    try {
-        await utilisateurActuel.updateProfile({ displayName: nouveauPseudo });
-        await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({ pseudo: nouveauPseudo }, { merge: true });
-
-        const snapshot = await db.collection("pronostics").where("uidJoueur", "==", utilisateurActuel.uid).get();
-        const batch = db.batch();
-        snapshot.forEach((doc: any) => batch.update(doc.ref, { pseudo: nouveauPseudo }));
-        await batch.commit();
-
-        const display = document.getElementById('user-pseudo-display');
-        const actuel = document.getElementById('profil-pseudo-actuel');
-        if (display) display.innerText = nouveauPseudo;
-        if (actuel) actuel.innerText = nouveauPseudo;
-
-        afficherNotification("Pseudo mis à jour avec succès !", "succes");
-        chargerClassementGeneral();
-    } catch (error) {
-        afficherNotification("Erreur lors du changement de pseudo.", "erreur");
     }
 });
 
@@ -356,7 +307,7 @@ async function chargerClassementGeneral(): Promise<void> {
             `;
             div.addEventListener('click', () => {
                 const courseId = selectCourse?.value || "";
-                voirPronoJoueur(db, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
+                voirPronoJoueur(dbModerne, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
             });
             liste.appendChild(div);
             pos++;
@@ -401,7 +352,7 @@ async function chargerMembresLigueActive(codeLigue: string): Promise<void> {
 
 async function chargerLiguesUtilisateur(): Promise<void> {
     if (!utilisateurActuel) return;
-    const { ligues, active } = await recupererLiguesUtilisateur(db, utilisateurActuel);
+    const { ligues, active } = await recupererLiguesUtilisateur(dbModerne, utilisateurActuel);
 
     if (selectLigue) {
         selectLigue.innerHTML = "";
@@ -433,71 +384,7 @@ selectLigue?.addEventListener('change', async (e: Event) => {
 // ==========================================
 // 6. ESPACE PROFIL & HISTORIQUE
 // ==========================================
-const btnVersProfil = document.getElementById('btn-vers-profil');
-const btnRetourPronos = document.getElementById('btn-retour-pronos');
-const logoAccueil = document.getElementById('logo-accueil');
-const sectionPronos = document.getElementById('main-content-pronos');
-const sectionProfil = document.getElementById('workspace-profil');
-
-function basculerVersProfil(): void {
-    if (sectionPronos) sectionPronos.style.display = 'none';
-    if (sectionProfil) sectionProfil.style.display = 'block';
-    chargerHistoriqueProfil();
-    if (derniereStatsSaison) {
-        afficherBadgesProfil(derniereStatsSaison, utilisateurActuel);
-        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison, utilisateurActuel);
-    } else {
-        chargerClassementGeneral();
-    }
-}
-
-function basculerVersPronos(): void {
-    if (sectionProfil) sectionProfil.style.display = 'none';
-    if (sectionPronos) sectionPronos.style.display = 'grid';
-}
-
-btnVersProfil?.addEventListener('click', basculerVersProfil);
-btnRetourPronos?.addEventListener('click', basculerVersPronos);
-logoAccueil?.addEventListener('click', basculerVersPronos);
-
-function chargerHistoriqueProfil(): void {
-    if (!utilisateurActuel) return;
-    db.collection("pronostics").where("uidJoueur", "==", utilisateurActuel.uid).get().then((querySnapshot: any) => {
-        const listeGpsContainer = document.getElementById('profil-liste-gps');
-        if (!listeGpsContainer) return;
-        listeGpsContainer.innerHTML = "";
-
-        if (querySnapshot.empty) {
-            listeGpsContainer.innerHTML = `<div style="padding: 15px; text-align: center; color: #aaa;">Aucun prono enregistré pour le moment.</div>`;
-            return;
-        }
-
-        querySnapshot.forEach((doc: any) => {
-            const data = doc.data();
-            const courseIdString = data.course || "Inconnu";
-            const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
-            const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
-            const nomAffichageGP = gpInfo ? gpInfo.nom.toUpperCase() : `ROUND ${roundNumero}`;
-            const pointsAffiches = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
-
-            const ligne = document.createElement('div');
-            ligne.className = 'ligne-profil-gp';
-            ligne.setAttribute('style', "display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #1c2437; cursor: pointer; color: #fff;");
-            ligne.innerHTML = `
-                <div style="font-weight: bold;">🏎️ ${nomAffichageGP}</div>
-                <div style="text-align: right; color: #4cd137; font-weight: bold;">${pointsAffiches} pts</div>
-            `;
-            ligne.addEventListener('click', async () => {
-                const detailContainer = document.getElementById('profil-detail-gp');
-                if (detailContainer) {
-                    detailContainer.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement du comparatif...</p>`;
-                    detailContainer.innerHTML = await construireComparatifHtml(db, data);
-                }
-            });
-            listeGpsContainer.appendChild(ligne);
-        });
-    });
-}
+// Entièrement géré désormais par WorkspaceProfile.vue et ProfileHistory.vue.
 
 // ==========================================
 // 7. INITIALISATION AU DÉMARRAGE

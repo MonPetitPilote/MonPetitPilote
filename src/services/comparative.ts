@@ -1,8 +1,9 @@
+import { doc, getDoc, type Firestore } from "firebase/firestore";
 import { calendrier2026, trouverPiloteLocalParNom, nomsCorrespondentLocal, type PronosticDoc, type BonusReelData } from "../utils";
 import { construireComparatifBonusHtml } from "./bonus";
 
 // Construit le HTML du comparatif "prono vs résultat réel" pour un pronostic donné.
-export async function construireComparatifHtml(db: any, data: Partial<PronosticDoc> & Record<string, any>): Promise<string> {
+export async function construireComparatifHtml(db: Firestore, data: Partial<PronosticDoc> & Record<string, any>): Promise<string> {
     const bilan = data.bilanCalcul || {};
     const detailPilotes = bilan.detailPilotes || [];
     const dejaCalcule = bilan.pointsTotaux !== undefined;
@@ -20,13 +21,14 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
     let officialPoleman: string | null = null;
     let ecurieGagnante: string | null = null;
     let bonusReelGP: BonusReelData | null = null;
+    let histoData: any = null;
     try {
-        const histoDoc = await db.collection("historique_courses").doc(`2026_${roundNumero}`).get();
-        if (histoDoc.exists) {
-            const histo = histoDoc.data();
-            officialTop10 = histo.top10 || [];
-            officialPoleman = histo.poleman || null;
-            bonusReelGP = histo.bonusReel || null;
+        const histoSnap = await getDoc(doc(db, "historique_courses", `2026_${roundNumero}`));
+        if (histoSnap.exists()) {
+            histoData = histoSnap.data();
+            officialTop10 = histoData.top10 || [];
+            officialPoleman = histoData.poleman || null;
+            bonusReelGP = histoData.bonusReel || null;
             if (officialTop10[0]) {
                 const local = trouverPiloteLocalParNom(officialTop10[0]);
                 ecurieGagnante = local ? local.ecurie : null;
@@ -83,16 +85,10 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
     const ecoFlop1 = (data.ecuriesFlop && data.ecuriesFlop[0]) || 'Aucune';
     const ecoFlop2 = (data.ecuriesFlop && data.ecuriesFlop[1]) || 'Aucune';
 
-    // Comparatif Sprint Top 5 si existant
+    // Comparatif Sprint Top 5 si existant (on réutilise histoData déjà récupéré ci-dessus)
     let sprintHtml = "";
     const listeSprint: string[] = data.classementSprint || [];
-    let officialTop5Sprint: string[] = [];
-    try {
-        const histoDoc = await db.collection("historique_courses").doc(`2026_${roundNumero}`).get();
-        if (histoDoc.exists) {
-            officialTop5Sprint = histoDoc.data().top5Sprint || [];
-        }
-    } catch (_) {}
+    const officialTop5Sprint: string[] = (histoData && histoData.top5Sprint) || [];
 
     if (listeSprint.length > 0) {
         const detailSprint = bilan.detailSprint || [];
@@ -141,7 +137,7 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
         if (!dejaCalcule) {
             return `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>${label} :</span> <strong>${nomEcurie}</strong></div>`;
         }
-        const detailTrouve = (bilan.detailEcuries || []).find(d => d.typePari === typePari || d.ecurie === nomEcurie);
+        const detailTrouve = (bilan.detailEcuries || []).find((d: any) => d.typePari === typePari || d.ecurie === nomEcurie);
         if (detailTrouve) {
             const icone = detailTrouve.correct ? '✅' : '❌';
             const colorPts = detailTrouve.points > 0 ? '#4cd137' : (detailTrouve.points < 0 ? '#ef4444' : '#616e88');
@@ -205,7 +201,7 @@ export async function construireComparatifHtml(db: any, data: Partial<PronosticD
 }
 
 // Affiche dans une modale le prono d'un ami
-export async function voirPronoJoueur(db: any, uid: string, pseudo: string, courseId: string, verrouille: boolean): Promise<void> {
+export async function voirPronoJoueur(db: Firestore, uid: string, pseudo: string, courseId: string, verrouille: boolean): Promise<void> {
     const modale = document.getElementById('modale-prono-ami');
     const zone = document.getElementById('zone-prono-ami');
     if (!modale || !zone) return;
@@ -226,12 +222,12 @@ export async function voirPronoJoueur(db: any, uid: string, pseudo: string, cour
     zone.innerHTML = `<p style="color:#aaa; text-align:center;">Chargement...</p>`;
 
     try {
-        const doc = await db.collection("pronostics").doc(`${uid}_${courseId.replace('/', '_')}`).get();
-        if (!doc.exists) {
+        const snap = await getDoc(doc(db, "pronostics", `${uid}_${courseId.replace('/', '_')}`));
+        if (!snap.exists()) {
             zone.innerHTML = `<h4 style="color:#ff8000; margin-top:0;">👤 ${pseudo}</h4><p style="color:#aaa; font-style:italic;">Ce joueur n'a soumis aucun pronostic pour ce Grand Prix.</p>`;
             return;
         }
-        const comparatifHtml = await construireComparatifHtml(db, doc.data());
+        const comparatifHtml = await construireComparatifHtml(db, snap.data());
         zone.innerHTML = `<h4 style="color:#ff8000; margin-top:0;">👤 ${pseudo}</h4>` + comparatifHtml;
     } catch (error) {
         console.error("Erreur chargement prono ami :", error);

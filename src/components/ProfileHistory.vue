@@ -45,28 +45,27 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { collection, query, where, getDocs, type Firestore } from "firebase/firestore";
 import { calendrier2026 } from "../utils";
 import { construireComparatifHtml } from "../services";
 
-const props = defineProps({
-  db: {
-    type: Object,
-    default: null
-  }
-});
+const props = defineProps<{
+  db?: Firestore | null;
+}>();
 
-const historiquePronos = ref([]);
-const gpSelectionneId = ref(null);
+const historiquePronos = ref<any[]>([]);
+const gpSelectionneId = ref<string | null>(null);
 const comparatifHtml = ref("");
 const chargementComparatif = ref(false);
 
-async function chargerHistorique(dbInstance, uid) {
+async function chargerHistorique(dbInstance: Firestore, uid: string) {
   if (!dbInstance || !uid) return;
   try {
-    const querySnapshot = await dbInstance.collection("pronostics").where("uidJoueur", "==", uid).get();
-    const liste = [];
-    querySnapshot.forEach(doc => {
-      const data = doc.data();
+    const q = query(collection(dbInstance, "pronostics"), where("uidJoueur", "==", uid));
+    const querySnapshot = await getDocs(q);
+    const liste: any[] = [];
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data();
       const courseIdString = data.course || "Inconnu";
       const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
       const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
@@ -74,7 +73,7 @@ async function chargerHistorique(dbInstance, uid) {
       const points = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
 
       liste.push({
-        id: doc.id,
+        id: docSnap.id,
         data,
         roundNumero,
         nomAffichage,
@@ -93,7 +92,7 @@ async function chargerHistorique(dbInstance, uid) {
   }
 }
 
-async function selectionnerGP(item) {
+async function selectionnerGP(item: any) {
   gpSelectionneId.value = item.id;
   chargementComparatif.value = true;
   try {
