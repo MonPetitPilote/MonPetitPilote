@@ -1,14 +1,15 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth as firebaseGetAuth, type Auth } from "firebase/auth";
+import { getFirestore as firebaseGetFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
-  authDomain: "monpetitpilote.firebaseapp.com",
-  projectId: "monpetitpilote",
-  storageBucket: "monpetitpilote.firebasestorage.app",
-  messagingSenderId: "267371118460",
-  appId: "1:267371118460:web:af95dad6fa4368fdffaef9",
-  measurementId: "G-TY047XHDXW",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 let firebaseApp: FirebaseApp | undefined;
@@ -23,4 +24,9 @@ function initFirebaseIfNeeded(): FirebaseApp {
 export function getAuth(): Auth {
   const app = initFirebaseIfNeeded();
   return firebaseGetAuth(app);
+}
+
+export function getFirestore(): Firestore {
+  const app = initFirebaseIfNeeded();
+  return firebaseGetFirestore(app);
 }

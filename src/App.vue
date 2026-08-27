@@ -25,7 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
+import { onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "./utils/firebase";
+import { useUserStore } from "./stores";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
@@ -39,4 +42,18 @@ import WorkspaceProfile from "./components/WorkspaceProfile.vue";
 const isConnectionModalOpen = ref(false);
 const isLeagueModalOpen = ref(false);
 const isRulesModalOpen = ref(false);
+
+const userStore = useUserStore();
+let unsubscribeAuth: (() => void) | null = null;
+
+onMounted(() => {
+  const auth = getAuth();
+  unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    userStore.setUser(firebaseUser);
+  });
+});
+
+onUnmounted(() => {
+  if (unsubscribeAuth) unsubscribeAuth();
+});
 </script>
