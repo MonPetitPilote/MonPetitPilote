@@ -33,7 +33,12 @@
           />
         </div>
         <div id="creer-ligue-erreur" class="auth-erreur">{{ erreurCreer }}</div>
-        <button id="btn-creer-ligue" class="create-league-button">
+        <button
+          id="btn-creer-ligue"
+          class="create-league-button"
+          :disabled="isSubmittingCreer"
+          @click="onCreerLigue"
+        >
           🏁 Créer ma ligue
         </button>
       </div>
@@ -54,15 +59,20 @@
           />
         </div>
         <div id="rejoindre-ligue-erreur" class="auth-erreur">{{ erreurRejoindre }}</div>
-        <button id="btn-rejoindre-ligue" class="create-league-button">
+        <button
+          id="btn-rejoindre-ligue"
+          class="create-league-button"
+          :disabled="isSubmittingRejoindre"
+          @click="onRejoindreLigue"
+        >
           🤝 Rejoindre la ligue
         </button>
       </div>
 
       <div
+        v-if="codePartage"
         id="ligue-code-partage"
         style="
-          display: none;
           margin-top: 16px;
           background: #111622;
           border: 1px dashed #ff8000;
@@ -83,7 +93,7 @@
             letter-spacing: 2px;
           "
           id="texte-code-partage"
-        ></p>
+        >{{ codePartage }}</p>
       </div>
     </div>
   </div>
@@ -91,14 +101,64 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useUserStore } from "../stores";
+import { getFirestore } from "../utils/firebase";
+import { creerNouvelleLigue, rejoindreLigueParCode } from "../services";
 
-defineEmits(["close"]);
+const emit = defineEmits(["close", "ligue-rejointe"]);
+
+const userStore = useUserStore();
+const db = getFirestore();
 
 const activeTab = ref("creer");
 const nomLigue = ref("");
 const codeLigue = ref("");
 const erreurCreer = ref("");
 const erreurRejoindre = ref("");
+const codePartage = ref("");
+const isSubmittingCreer = ref(false);
+const isSubmittingRejoindre = ref(false);
+
+async function onCreerLigue() {
+  erreurCreer.value = "";
+  const nom = nomLigue.value.trim();
+  if (!nom) {
+    erreurCreer.value = "Veuillez saisir un nom de ligue.";
+    return;
+  }
+
+  isSubmittingCreer.value = true;
+  try {
+    const code = await creerNouvelleLigue(db, nom, userStore.currentUser);
+    nomLigue.value = "";
+    codePartage.value = code;
+    emit("ligue-rejointe");
+  } catch (err) {
+    erreurCreer.value = err instanceof Error ? err.message : "Erreur lors de la création.";
+  } finally {
+    isSubmittingCreer.value = false;
+  }
+}
+
+async function onRejoindreLigue() {
+  erreurRejoindre.value = "";
+  const code = codeLigue.value.trim().toUpperCase();
+  if (!code) {
+    erreurRejoindre.value = "Veuillez saisir un code de ligue.";
+    return;
+  }
+
+  isSubmittingRejoindre.value = true;
+  try {
+    await rejoindreLigueParCode(db, code, userStore.currentUser);
+    codeLigue.value = "";
+    emit("ligue-rejointe");
+  } catch (err) {
+    erreurRejoindre.value = err instanceof Error ? err.message : "Erreur lors de la tentative.";
+  } finally {
+    isSubmittingRejoindre.value = false;
+  }
+}
 </script>
 
 <style lang="css" scoped>

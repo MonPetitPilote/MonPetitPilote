@@ -1,6 +1,14 @@
+import {
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    deleteField,
+    type Firestore
+} from "firebase/firestore";
+import type { User } from "firebase/auth";
 import type { LigueDoc } from "../utils";
-
-declare const firebase: any;
 
 export const CODE_LIGUE_MONDIAL = "MONDIAL";
 
@@ -13,11 +21,11 @@ export function genererCodeLigue(): string {
     return `F1-${suffixe}`;
 }
 
-export async function assurerExistenceLigueMondial(db: any): Promise<any> {
-    const ref = db.collection("ligues").doc(CODE_LIGUE_MONDIAL);
-    const doc = await ref.get();
-    if (!doc.exists) {
-        await ref.set({
+export async function assurerExistenceLigueMondial(db: Firestore) {
+    const ref = doc(db, "ligues", CODE_LIGUE_MONDIAL);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+        await setDoc(ref, {
             nom: "🌍 Mondial",
             code: CODE_LIGUE_MONDIAL,
             createurUid: "system",
@@ -28,13 +36,18 @@ export async function assurerExistenceLigueMondial(db: any): Promise<any> {
     return ref;
 }
 
-export async function rejoindreLigueParCode(db: any, code: string, user: any, opts: { definirCommeActive?: boolean } = {}): Promise<string> {
+export async function rejoindreLigueParCode(
+    db: Firestore,
+    code: string,
+    user: User | null,
+    opts: { definirCommeActive?: boolean } = {}
+): Promise<string> {
     if (!user) throw new Error("Vous devez être connecté.");
     const codeNormalise = code.trim().toUpperCase();
-    const ligueRef = db.collection("ligues").doc(codeNormalise);
-    const ligueDoc = await ligueRef.get();
+    const ligueRef = doc(db, "ligues", codeNormalise);
+    const ligueSnap = await getDoc(ligueRef);
 
-    if (!ligueDoc.exists) {
+    if (!ligueSnap.exists()) {
         if (codeNormalise === CODE_LIGUE_MONDIAL) {
             await assurerExistenceLigueMondial(db);
         } else {
@@ -42,21 +55,21 @@ export async function rejoindreLigueParCode(db: any, code: string, user: any, op
         }
     }
 
-    await ligueRef.update({
-        membres: firebase.firestore.FieldValue.arrayUnion(user.uid)
+    await updateDoc(ligueRef, {
+        membres: arrayUnion(user.uid)
     });
 
-    const userRef = db.collection("utilisateurs").doc(user.uid);
-    await userRef.set({
-        ligues: firebase.firestore.FieldValue.arrayUnion(codeNormalise),
+    const userRef = doc(db, "utilisateurs", user.uid);
+    await setDoc(userRef, {
+        ligues: arrayUnion(codeNormalise),
         pseudo: user.displayName || user.email,
-        ligueActive: opts.definirCommeActive === false ? firebase.firestore.FieldValue.delete() : codeNormalise
+        ligueActive: opts.definirCommeActive === false ? deleteField() : codeNormalise
     }, { merge: true });
 
     return codeNormalise;
 }
 
-export async function creerNouvelleLigue(db: any, nomLigue: string, user: any): Promise<string> {
+export async function creerNouvelleLigue(db: Firestore, nomLigue: string, user: User | null): Promise<string> {
     if (!user) throw new Error("Vous devez être connecté.");
     let code = "";
     let disponible = false;
@@ -64,13 +77,13 @@ export async function creerNouvelleLigue(db: any, nomLigue: string, user: any): 
 
     while (!disponible && tentatives < 8) {
         code = genererCodeLigue();
-        const doc = await db.collection("ligues").doc(code).get();
-        disponible = !doc.exists;
+        const snap = await getDoc(doc(db, "ligues", code));
+        disponible = !snap.exists();
         tentatives++;
     }
     if (!disponible) throw new Error("Impossible de générer un code unique, réessaie.");
 
-    await db.collection("ligues").doc(code).set({
+    await setDoc(doc(db, "ligues", code), {
         nom: nomLigue,
         code: code,
         createurUid: user.uid,
@@ -78,8 +91,8 @@ export async function creerNouvelleLigue(db: any, nomLigue: string, user: any): 
         creeLe: new Date()
     });
 
-    await db.collection("utilisateurs").doc(user.uid).set({
-        ligues: firebase.firestore.FieldValue.arrayUnion(code),
+    await setDoc(doc(db, "utilisateurs", user.uid), {
+        ligues: arrayUnion(code),
         pseudo: user.displayName || user.email,
         ligueActive: code
     }, { merge: true });
@@ -93,24 +106,24 @@ export interface UserLiguesResult {
     ligues: LigueDoc[];
 }
 
-export async function recupererLiguesUtilisateur(db: any, user: any): Promise<UserLiguesResult> {
+export async function recupererLiguesUtilisateur(db: Firestore, user: User | null): Promise<UserLiguesResult> {
     if (!user) return { codes: [CODE_LIGUE_MONDIAL], active: CODE_LIGUE_MONDIAL, ligues: [] };
 
-    const userRef = db.collection("utilisateurs").doc(user.uid);
-    let userDoc = await userRef.get();
+    const userRef = doc(db, "utilisateurs", user.uid);
+    let userSnap = await getDoc(userRef);
 
-    if (!userDoc.exists || !(userDoc.data().ligues || []).length) {
+    if (!userSnap.exists() || !(userSnap.data()?.ligues || []).length) {
         await assurerExistenceLigueMondial(db);
         await rejoindreLigueParCode(db, CODE_LIGUE_MONDIAL, user);
-        userDoc = await userRef.get();
+        userSnap = await getDoc(userRef);
     }
 
-    const donneesUser = userDoc.data() || {};
+    const donneesUser = userSnap.data() || {};
     const codesLigues: string[] = donneesUser.ligues || [CODE_LIGUE_MONDIAL];
     const ligueActive: string = donneesUser.ligueActive || codesLigues[0] || CODE_LIGUE_MONDIAL;
 
-    const ligueDocs = await Promise.all(codesLigues.map((c: string) => db.collection("ligues").doc(c).get()));
-    const ligues: LigueDoc[] = ligueDocs.filter((d: any) => d.exists).map((d: any) => d.data());
+    const ligueSnaps = await Promise.all(codesLigues.map((c: string) => getDoc(doc(db, "ligues", c))));
+    const ligues: LigueDoc[] = ligueSnaps.filter((d) => d.exists()).map((d) => d.data() as LigueDoc);
 
     return {
         codes: codesLigues,

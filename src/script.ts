@@ -428,46 +428,7 @@ selectLigue?.addEventListener('change', async (e: Event) => {
     chargerClassementGeneral();
 });
 
-// Boutons Créer / Rejoindre dans la modal Ligues
-document.getElementById('btn-creer-ligue')?.addEventListener('click', async () => {
-    const inputNom = document.getElementById('nom-nouvelle-ligue') as HTMLInputElement | null;
-    const nom = inputNom?.value.trim();
-    const zoneErreur = document.getElementById('creer-ligue-erreur');
-    if (!nom) {
-        if (zoneErreur) zoneErreur.innerText = "Veuillez saisir un nom de ligue.";
-        return;
-    }
-    try {
-        const code = await creerNouvelleLigue(db, nom, utilisateurActuel);
-        if (inputNom) inputNom.value = "";
-        if (zoneErreur) zoneErreur.innerText = "";
-        afficherNotification(`Ligue "${nom}" créée avec succès (Code : ${code}) !`, "succes");
-        await chargerLiguesUtilisateur();
-        chargerClassementGeneral();
-    } catch (err: any) {
-        if (zoneErreur) zoneErreur.innerText = err.message || "Erreur lors de la création.";
-    }
-});
 
-document.getElementById('btn-rejoindre-ligue')?.addEventListener('click', async () => {
-    const inputCode = document.getElementById('code-ligue-rejoindre') as HTMLInputElement | null;
-    const code = inputCode?.value.trim().toUpperCase();
-    const zoneErreur = document.getElementById('rejoindre-ligue-erreur');
-    if (!code) {
-        if (zoneErreur) zoneErreur.innerText = "Veuillez saisir un code de ligue.";
-        return;
-    }
-    try {
-        await rejoindreLigueParCode(db, code, utilisateurActuel);
-        if (inputCode) inputCode.value = "";
-        if (zoneErreur) zoneErreur.innerText = "";
-        afficherNotification(`Ligue ${code} rejointe avec succès !`, "succes");
-        await chargerLiguesUtilisateur();
-        chargerClassementGeneral();
-    } catch (err: any) {
-        if (zoneErreur) zoneErreur.innerText = err.message || "Erreur lors de la tentative.";
-    }
-});
 
 // ==========================================
 // 6. ESPACE PROFIL & HISTORIQUE
