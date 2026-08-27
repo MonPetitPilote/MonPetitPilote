@@ -24,9 +24,7 @@ export {
 export {
   BADGES_STAT_KEY,
   calculerStatistiquesEtClassement,
-  badgesHtmlPourJoueur,
-  afficherClassementBadges,
-  afficherBadgesProfil
+  badgesHtmlPourJoueur
 } from "./ranking";
 export {
   construireComparatifHtml,
@@ -74,4 +72,3 @@ export {
   definirPilotesActifs,
   synchroniserPilotesGP
 } from "./driversService";
-

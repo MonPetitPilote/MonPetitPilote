@@ -14,11 +14,8 @@ import {
     initialiserBoutonsBonus,
     lireFormulaireBonus,
     appliquerFormulaireBonus,
-    afficherGraphiqueEvolution,
-    initialiserEcouteursGraphique,
     calculerStatistiquesEtClassement,
     badgesHtmlPourJoueur,
-    afficherBadgesProfil,
     construireComparatifHtml,
     voirPronoJoueur,
     courseEstVerrouillee,
@@ -38,6 +35,7 @@ import {
 } from "./services";
 
 import { getFirestore as getFirestoreModerne } from "./utils/firebase";
+import { useStatsStore } from "./stores";
 
 declare const firebase: any;
 
@@ -59,6 +57,7 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 const auth = firebase.auth();
 const dbModerne = getFirestoreModerne();
+const statsStore = useStatsStore();
 
 let utilisateurActuel: any = null;
 let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
@@ -285,14 +284,14 @@ async function chargerClassementGeneral(): Promise<void> {
     liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
 
     try {
-        const stats = await calculerStatistiquesEtClassement(db, membresLigueActive);
+        const stats = await calculerStatistiquesEtClassement(dbModerne, membresLigueActive);
         derniereStatsSaison = stats;
-        const { joueurs, badges, historiqueParJoueur, roundsCalcules } = stats;
+        statsStore.setSeasonStats(stats);
+        const { joueurs, badges } = stats;
 
         liste.innerHTML = "";
         if (joueurs.length === 0) {
             liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
-            afficherGraphiqueEvolution(null, null, utilisateurActuel);
             return;
         }
 
@@ -312,8 +311,6 @@ async function chargerClassementGeneral(): Promise<void> {
             liste.appendChild(div);
             pos++;
         });
-
-        afficherGraphiqueEvolution(joueurs, { badges, joueurs, historiqueParJoueur, roundsCalcules }, utilisateurActuel);
     } catch (error) {
         console.error("Erreur lors du calcul du classement général :", error);
         liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
@@ -390,11 +387,6 @@ selectLigue?.addEventListener('change', async (e: Event) => {
 // 7. INITIALISATION AU DÉMARRAGE
 // ==========================================
 initialiserBoutonsBonus();
-initialiserEcouteursGraphique(() => {
-    if (derniereStatsSaison) {
-        afficherGraphiqueEvolution(derniereStatsSaison.joueurs, derniereStatsSaison, utilisateurActuel);
-    }
-});
 afficherEtatLigueDeconnecte();
 initialiserSelectCourse();
 initialiserPolePosition();
