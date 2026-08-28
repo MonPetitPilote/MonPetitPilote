@@ -15,9 +15,6 @@ import {
     lireFormulaireBonus,
     appliquerFormulaireBonus,
     calculerStatistiquesEtClassement,
-    badgesHtmlPourJoueur,
-    construireComparatifHtml,
-    voirPronoJoueur,
     courseEstVerrouillee,
     verifierVerrouillageCourse,
     mettreAJourDesignSlot,
@@ -277,43 +274,14 @@ document.getElementById('btn-sprint-aleatoire')?.addEventListener('click', () =>
 // ==========================================
 // 4. CLASSEMENT GÉNÉRAL & STATISTIQUES
 // ==========================================
+// L'affichage de la liste est désormais géré par FriendsRanking.vue (via statsStore).
 async function chargerClassementGeneral(): Promise<void> {
-    const liste = document.getElementById('liste-classement');
-    if (!liste) return;
-
-    liste.innerHTML = "<div style='color:#616e88; padding:10px;'>Calcul du classement général...</div>";
-
     try {
         const stats = await calculerStatistiquesEtClassement(dbModerne, membresLigueActive);
         derniereStatsSaison = stats;
         statsStore.setSeasonStats(stats);
-        const { joueurs, badges } = stats;
-
-        liste.innerHTML = "";
-        if (joueurs.length === 0) {
-            liste.innerHTML = "<div style='color:#616e88; padding:10px; text-align:center;'>Aucun pronostic enregistré sur la saison.</div>";
-            return;
-        }
-
-        let pos = 1;
-        joueurs.slice(0, 5).forEach(u => {
-            const div = document.createElement('div');
-            div.setAttribute('style', 'display:grid; grid-template-columns:50px 1fr 80px; padding:12px; border-bottom:1px solid #1c2437; align-items:center; color:#fff; cursor:pointer;');
-            div.innerHTML = `
-                <div><strong style="color:${pos === 1 ? '#ff8000' : '#616e88'}">#${pos}</strong></div>
-                <div>${u.pseudo}${badgesHtmlPourJoueur(u.uid, badges)}</div>
-                <div style="text-align:right; font-weight:bold; color:#ff8000;">${u.points} pts</div>
-            `;
-            div.addEventListener('click', () => {
-                const courseId = selectCourse?.value || "";
-                voirPronoJoueur(dbModerne, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
-            });
-            liste.appendChild(div);
-            pos++;
-        });
     } catch (error) {
         console.error("Erreur lors du calcul du classement général :", error);
-        liste.innerHTML = "<div style='color:#ef4444; padding:10px;'>Erreur d'accès au classement Firebase.</div>";
     }
 }
 

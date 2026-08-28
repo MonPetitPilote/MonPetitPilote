@@ -11,16 +11,19 @@
         <p style="color: #aaa; font-size: 0.85rem; margin: 0 0 4px 0;">Email : <span id="profil-email">{{ userStore.currentUser?.email }}</span></p>
         <p style="color: #aaa; font-size: 0.85rem; margin: 0 0 15px 0;">Pseudo actuel : <span id="profil-pseudo-actuel">{{ pseudoActuel }}</span></p>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <input
-            id="profil-input-pseudo"
-            type="text"
-            v-model="pseudoInput"
-            placeholder="Nouveau pseudo"
-            style="flex: 1; min-width: 180px; padding: 8px 12px; border-radius: 6px; border: 1px solid #2d3954; background: #141c2e; color: #fff;"
-          />
+          <div style="flex: 1; min-width: 180px;">
+            <label for="profil-input-pseudo" style="display: block; font-size: 0.75rem; color: #a5b1c2; margin-bottom: 4px;">Modifier mon pseudo :</label>
+            <input
+              id="profil-input-pseudo"
+              type="text"
+              v-model="pseudoInput"
+              placeholder="Nouveau pseudo"
+              style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #2d3954; background: #141c2e; color: #fff; box-sizing: border-box;"
+            />
+          </div>
           <button
             id="btn-sauvegarder-pseudo"
-            style="background: #ff8000; color: #fff; border: none; padding: 9px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;"
+            style="background: #ff8000; color: #fff; border: none; padding: 9px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; align-self: flex-end;"
             @click="sauvegarderPseudo(pseudoInput)"
           >
             Enregistrer
@@ -135,6 +138,7 @@ function basculerVersPronos() {
 defineExpose({
   basculerVersProfil,
   basculerVersPronos,
-  sauvegarderPseudo
+  sauvegarderPseudo,
+  profilVisible
 });
 </script>

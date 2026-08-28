@@ -8,7 +8,7 @@
       @vers-profil="workspaceProfileRef?.basculerVersProfil()"
     />
     <WorkspaceProfile ref="workspaceProfileRef" />
-    <MainContent @open-league-modal="isLeagueModalOpen = true" />
+    <MainContent v-show="!workspaceProfileRef?.profilVisible" @open-league-modal="isLeagueModalOpen = true" />
     <ConnectionModal
       v-show="isConnectionModalOpen"
       @close-connection-modal="isConnectionModalOpen = false"
