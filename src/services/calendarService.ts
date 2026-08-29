@@ -1,3 +1,4 @@
+import { doc, getDoc, setDoc, type Firestore } from "firebase/firestore";
 import { type GrandPrix } from "../utils/types";
 
 // Base compacte par défaut initialisée avant réponse API (24 GP F1 2026)
@@ -70,13 +71,14 @@ export function recupererGpParRound(roundOuCourseId: number | string): GrandPrix
 }
 
 // Synchronise le calendrier dynamiquement (Firestore > Jolpica / Ergast API > Base)
-export async function synchroniserCalendrierDynamique(db?: any): Promise<GrandPrix[]> {
+export async function synchroniserCalendrierDynamique(db?: Firestore): Promise<GrandPrix[]> {
     // 1. Tenter de charger depuis Firestore (configuration administrée à chaud)
     if (db) {
         try {
-            const configDoc = await db.collection("configuration_saison").doc("calendrier_2026").get();
-            if (configDoc.exists) {
-                const data = configDoc.data();
+            const configRef = doc(db, "configuration_saison", "calendrier_2026");
+            const configSnap = await getDoc(configRef);
+            if (configSnap.exists()) {
+                const data = configSnap.data();
                 if (data && Array.isArray(data.grandsPrix) && data.grandsPrix.length > 0) {
                     calendrierActuel = data.grandsPrix;
                     notifierEcouteurs();
@@ -123,7 +125,7 @@ export async function synchroniserCalendrierDynamique(db?: any): Promise<GrandPr
                 notifierEcouteurs();
 
                 if (db) {
-                    db.collection("configuration_saison").doc("calendrier_2026").set({
+                    setDoc(doc(db, "configuration_saison", "calendrier_2026"), {
                         grandsPrix: nouveauCalendrier,
                         derniereSync: new Date().toISOString()
                     }, { merge: true }).catch(() => {});

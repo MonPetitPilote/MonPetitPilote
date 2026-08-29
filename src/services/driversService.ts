@@ -1,3 +1,4 @@
+import { doc, getDoc, type Firestore } from "firebase/firestore";
 import { type Pilote } from "../utils/types";
 
 export interface TeamConfig {
@@ -250,13 +251,13 @@ export function definirPilotesActifs(nouveauxPilotes: Array<{ nom: string; ecuri
 /**
  * Synchronise les pilotes d'un Grand Prix depuis l'API publique F1 ou Firestore
  */
-export async function synchroniserPilotesGP(round?: number, db?: any): Promise<Pilote[]> {
+export async function synchroniserPilotesGP(round?: number, db?: Firestore): Promise<Pilote[]> {
     // 1. Tenter depuis Firestore (document spécifique de personnalisation si pilote remplacé)
     if (db) {
         try {
-            const docRef = db.collection("configuration_saison").doc("pilotes_2026");
-            const snap = await docRef.get();
-            if (snap.exists && Array.isArray(snap.data()?.pilotes)) {
+            const docRef = doc(db, "configuration_saison", "pilotes_2026");
+            const snap = await getDoc(docRef);
+            if (snap.exists() && Array.isArray(snap.data()?.pilotes)) {
                 const listeFS = snap.data().pilotes;
                 definirPilotesActifs(listeFS);
                 return pilotesActifs;

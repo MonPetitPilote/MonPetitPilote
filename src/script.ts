@@ -17,9 +17,6 @@ import {
     calculerStatistiquesEtClassement,
     courseEstVerrouillee,
     verifierVerrouillageCourse,
-    mettreAJourDesignSlot,
-    controlerDoublonsPilotes,
-    creerLaGrilleDeDepartTV,
     mettreAJourDesignSlotSprint,
     controlerDoublonsSprint,
     creerLaGrilleSprintTV,
@@ -31,8 +28,9 @@ import {
     synchroniserCalendrierDynamique
 } from "./services";
 
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getFirestore as getFirestoreModerne } from "./utils/firebase";
-import { useStatsStore } from "./stores";
+import { useStatsStore, useGridStore } from "./stores";
 
 declare const firebase: any;
 
@@ -55,6 +53,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 const dbModerne = getFirestoreModerne();
 const statsStore = useStatsStore();
+const gridStore = useGridStore();
 
 let utilisateurActuel: any = null;
 let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
@@ -151,13 +150,10 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
     const courseId = selectCourse.value;
     gererAffichageSectionSprint();
 
-    const doc = await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).get();
+    const docSnap = await getDoc(doc(dbModerne, "pronostics", `${utilisateurActuel.uid}_${courseId.replace('/', '_')}`));
 
-    // Réinitialisation de la grille Top 10
-    for (let i = 1; i <= 10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
-        if (s) { s.value = ""; mettreAJourDesignSlot(i, ""); }
-    }
+    // Réinitialisation de la grille Top 10 (gérée par StartingGrid.vue via gridStore)
+    gridStore.setTop10(Array(10).fill(""));
     if (selectPole) selectPole.value = "";
 
     // Réinitialisation de la grille Sprint Top 5
@@ -170,12 +166,11 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         appliquerSelectionEcurieVisuelle(id, "");
     });
 
-    if (doc.exists) {
-        const data = doc.data();
-        (data.classementPilotes || []).forEach((nom: string, idx: number) => {
-            const s = document.getElementById(`select-grid-p${idx + 1}`) as HTMLSelectElement | null;
-            if (s) { s.value = nom; mettreAJourDesignSlot(idx + 1, nom); }
-        });
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.classementPilotes && data.classementPilotes.length === 10) {
+            gridStore.setTop10(data.classementPilotes);
+        }
 
         // Chargement du prono Sprint s'il existe
         (data.classementSprint || []).forEach((nom: string, idx: number) => {
@@ -195,7 +190,6 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
     } else {
         appliquerFormulaireBonus(null);
     }
-    controlerDoublonsPilotes();
     controlerDoublonsSprint();
 }
 
@@ -209,11 +203,9 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         return afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
     }
 
-    const top10Selection: string[] = [];
-    for (let i = 1; i <= 10; i++) {
-        const val = (document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null)?.value;
-        if (!val) return afficherNotification(`Il manque la position P${i} du GP !`, "erreur");
-        top10Selection.push(val);
+    const top10Selection = gridStore.top10;
+    for (let i = 0; i < 10; i++) {
+        if (!top10Selection[i]) return afficherNotification(`Il manque la position P${i + 1} du GP !`, "erreur");
     }
 
     // Récupération de la sélection Sprint si applicable
@@ -246,19 +238,9 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         dateEnregistrement: new Date()
     };
 
-    await db.collection("pronostics").doc(`${utilisateurActuel.uid}_${courseId.replace('/', '_')}`).set(pronoData, { merge: true });
+    await setDoc(doc(dbModerne, "pronostics", `${utilisateurActuel.uid}_${courseId.replace('/', '_')}`), pronoData, { merge: true });
     afficherNotification(aUnSprint ? "🏁 Grille GP, Course Sprint et Écuries enregistrées avec succès !" : "🏁 Grille et Écuries enregistrées avec succès !", "succes");
     chargerClassementGeneral();
-});
-
-// Bouton Grille Aléatoire Top 10
-document.getElementById('btn-aleatoire')?.addEventListener('click', () => {
-    const tri = [...pilotesData].sort(() => 0.5 - Math.random());
-    for (let i = 1; i <= 10; i++) {
-        const s = document.getElementById(`select-grid-p${i}`) as HTMLSelectElement | null;
-        if (s) { s.value = tri[i - 1].nom; mettreAJourDesignSlot(i, tri[i - 1].nom); }
-    }
-    controlerDoublonsPilotes();
 });
 
 // Bouton Grille Aléatoire Sprint Top 5
@@ -358,7 +340,6 @@ initialiserBoutonsBonus();
 afficherEtatLigueDeconnecte();
 initialiserSelectCourse();
 initialiserPolePosition();
-creerLaGrilleDeDepartTV();
 creerLaGrilleSprintTV();
 initialiserEcuriesTopFlop();
 verifierVerrouillageCourse(selectCourse, selectPole);
@@ -371,7 +352,7 @@ onCalendrierChange(() => {
 });
 
 // Synchronisation asynchrone du calendrier (Firestore / API OpenF1)
-synchroniserCalendrierDynamique(db).catch(err => console.warn("Sync calendrier:", err));
+synchroniserCalendrierDynamique(dbModerne).catch(err => console.warn("Sync calendrier:", err));
 
 if (selectCourse) {
     selectCourse.addEventListener('change', () => {

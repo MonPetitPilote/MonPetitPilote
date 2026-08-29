@@ -37,9 +37,6 @@ export {
   verifierVerrouillageCourse
 } from "./gpLock";
 export {
-  mettreAJourDesignSlot,
-  controlerDoublonsPilotes,
-  creerLaGrilleDeDepartTV,
   mettreAJourDesignSlotSprint,
   controlerDoublonsSprint,
   creerLaGrilleSprintTV,

@@ -186,38 +186,7 @@
         <div id="grille-sprint-slots" class="sprint-slots-grid"></div>
       </div>
 
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 25px;
-          flex-wrap: wrap;
-          gap: 10px;
-        "
-      >
-        <h2 style="margin: 0; font-size: 1.3rem" id="titre-grille">
-          🏆 TA GRILLE DE DÉPART TOP 10 :
-        </h2>
-        <button
-          id="btn-aleatoire"
-          style="
-            background: #3b4b6b;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: bold;
-            transition: background 0.2s;
-          "
-        >
-          🎲 PRONO ALÉATOIRE
-        </button>
-      </div>
-
-      <div id="grille-pronos" class="f1-starting-grid"></div>
+      <StartingGrid ref="startingGridRef" />
 
       <div
         style="
@@ -449,6 +418,14 @@
 
 <script setup lang="ts">
 import FriendsRanking from "./FriendsRanking.vue";
+import StartingGrid from "./StartingGrid.vue";
+import { ref } from "vue";
+import { useGridStore } from "../stores";
+
+const gridStore = useGridStore();
+const startingGridRef = ref<InstanceType<typeof StartingGrid> | null>(null);
+
+defineExpose({ startingGridRef });
 
 defineEmits(["open-league-modal"]);
 </script>

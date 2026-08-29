@@ -76,7 +76,7 @@
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
               >
-                {{ p.nom }} ({{ p.ecurie }})
+                {{ p.nom }}
               </option>
             </select>
 
@@ -113,9 +113,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { pilotesData } from "../utils";
-import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP, type Pilote } from "../services/driversService";
+import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP } from "../services/driversService";
+import { type Pilote } from "../utils/types";
+import { getFirestore } from "../utils/firebase";
+import { useGridStore } from "../stores";
+import { ref } from "vue";
 
 const props = defineProps({
   isLocked: {
@@ -124,9 +128,9 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["update:selections"]);
+const gridStore = useGridStore();
+const selections = gridStore.top10; // même référence que le store : toute écriture ici met à jour le store directement
 
-const selections = ref<string[]>(Array(10).fill(""));
 const listePilotes = ref<Pilote[]>([...pilotesData]);
 
 const listePilotesAffichee = computed(() => {
@@ -135,7 +139,7 @@ const listePilotesAffichee = computed(() => {
 
 onMounted(async () => {
   try {
-    const db = (window as any).db;
+    const db = getFirestore();
     const pilotesSync = await synchroniserPilotesGP(undefined, db);
     if (pilotesSync && pilotesSync.length > 0) {
       listePilotes.value = pilotesSync;
@@ -185,12 +189,11 @@ function getPiloteLogoImg(nom?: string | null) {
 }
 
 function isPiloteAlreadySelected(nom: string, currentPosIndex: number) {
-  return selections.value.some((selectedName, idx) => idx !== currentPosIndex && selectedName === nom);
+  return selections.some((selectedName, idx) => idx !== currentPosIndex && selectedName === nom);
 }
 
 function onPiloteChange(posIndex: number, nomPilote: string) {
-  selections.value[posIndex] = nomPilote;
-  emit("update:selections", [...selections.value]);
+  selections[posIndex] = nomPilote;
 }
 
 function remplirGrilleAleatoire() {
@@ -198,20 +201,58 @@ function remplirGrilleAleatoire() {
   const source = listePilotesAffichee.value.length >= 10 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
   for (let i = 0; i < 10; i++) {
-    selections.value[i] = melange[i].nom;
+    selections[i] = melange[i].nom;
   }
-  emit("update:selections", [...selections.value]);
 }
-
-defineExpose({
-  selections,
-  setSelections: (nouvellesSelections?: string[]) => {
-    selections.value = Array(10).fill("").map((_, i) => (nouvellesSelections && nouvellesSelections[i]) || "");
-  }
-});
 </script>
 
 <style scoped>
+.grid-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.grid-card-f1 {
+  position: relative;
+  background: #1f293d;
+  border-radius: 8px;
+  padding: 6px 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  min-width: 0;
+  border: 1px solid #2f3e56;
+  transition: all 0.3s ease;
+}
+
+.car-bg-image {
+  position: absolute;
+  right: 0;
+  bottom: -10px;
+  height: 120%;
+  max-width: 60%;
+  opacity: 0.35;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.driver-portrait-container {
+  position: relative;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-left: 10px;
+  border-radius: 4px;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
 .section-grille-depart {
   margin-top: 15px;
 }
@@ -268,6 +309,20 @@ defineExpose({
   align-items: center;
   gap: 8px;
   margin-bottom: 2px;
+}
+
+.grid-select-paddock {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
 }
 
 .driver-team-line {
