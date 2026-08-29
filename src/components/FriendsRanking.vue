@@ -34,18 +34,18 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStatsStore } from "../stores";
+import { useStatsStore, useGridStore } from "../stores";
 import { getFirestore } from "../utils/firebase";
 import { badgesHtmlPourJoueur, voirPronoJoueur, courseEstVerrouillee } from "../services";
 
 const statsStore = useStatsStore();
+const gridStore = useGridStore();
 const db = getFirestore();
 
 const top5 = computed(() => (statsStore.seasonStats?.joueurs || []).slice(0, 5));
 
 function voirProno(u: { uid: string; pseudo: string }) {
-  const selectCourse = document.getElementById("select-course") as HTMLSelectElement | null;
-  const courseId = selectCourse?.value || "";
+  const courseId = gridStore.selectedCourse;
   voirPronoJoueur(db, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
 }
 </script>

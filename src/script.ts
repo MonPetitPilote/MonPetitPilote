@@ -11,12 +11,9 @@ import {
     recupererLiguesUtilisateur,
     calculerStatistiquesEtClassement,
     courseEstVerrouillee,
-    verifierVerrouillageCourse,
     mettreAJourDesignSlotSprint,
     controlerDoublonsSprint,
     creerLaGrilleSprintTV,
-    getCalendrierActuel,
-    onCalendrierChange,
     estWeekendSprint,
     synchroniserCalendrierDynamique
 } from "./services";
@@ -24,6 +21,7 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getFirestore as getFirestoreModerne } from "./utils/firebase";
 import { useStatsStore, useGridStore } from "./stores";
+import { watch } from "vue";
 
 declare const firebase: any;
 
@@ -53,13 +51,10 @@ let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
 let membresLigueActive: Set<string> | null = null;
 let derniereStatsSaison: StatistiquesSaison | null = null;
 
-const selectCourse = document.getElementById('select-course') as HTMLSelectElement | null;
+// #select-course et #select-ligue sont désormais gérés par RaceSelector.vue (via gridStore).
+// #select-pole reste en DOM natif pour l'instant.
 const selectPole = document.getElementById('select-pole') as HTMLSelectElement | null;
-const selectLigue = document.getElementById('select-ligue') as HTMLSelectElement | null;
 
-// ==========================================
-// 2. GESTION AUTHENTIFICATION & PROFIL
-// ==========================================
 // ==========================================
 // 2. GESTION AUTHENTIFICATION & PROFIL
 // ==========================================
@@ -82,43 +77,10 @@ auth.onAuthStateChanged(async (user: any) => {
 // ==========================================
 // 3. GESTION DU CALENDRIER & DU FORMULAIRE
 // ==========================================
-function initialiserSelectCourse(): void {
-    if (!selectCourse) return;
-    const valeurSelectionneePrecedente = selectCourse.value;
-    selectCourse.innerHTML = "";
-    const aujourdhui = new Date();
-    let prochainRoundValue = "2026/1";
-    let roundTrouve = false;
-
-    const calendrier = getCalendrierActuel();
-
-    calendrier.forEach(gp => {
-        const opt = document.createElement('option');
-        opt.value = `2026/${gp.round}`;
-        const dateObj = new Date(gp.date);
-        const dateFormatee = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        const tagSprint = gp.hasSprint ? ' ⚡ [SPRINT]' : '';
-        const tagStatut = gp.statut === 'annule' ? ' ⚠️ [ANNULÉ]' : (gp.statut === 'remplace' ? ' 🔄 [REMPLACÉ]' : '');
-        opt.innerText = `Round ${gp.round} : ${gp.nom} - ${gp.circuit} (${gp.pays})${tagSprint}${tagStatut} — 📅 ${dateFormatee}`;
-        selectCourse.appendChild(opt);
-
-        if (!roundTrouve && dateObj >= aujourdhui && gp.statut !== 'annule') {
-            prochainRoundValue = `2026/${gp.round}`;
-            roundTrouve = true;
-        }
-    });
-
-    if (valeurSelectionneePrecedente && Array.from(selectCourse.options).some(o => o.value === valeurSelectionneePrecedente)) {
-        selectCourse.value = valeurSelectionneePrecedente;
-    } else {
-        selectCourse.value = prochainRoundValue;
-    }
-
-    gererAffichageSectionSprint();
-}
-
+// La liste des GP et sa sélection sont désormais gérées par RaceSelector.vue.
+// gererAffichageSectionSprint reste ici car pilotée par gridStore.selectedCourse.
 function gererAffichageSectionSprint(): void {
-    const courseId = selectCourse?.value || "2026/1";
+    const courseId = gridStore.selectedCourse;
     const aUnSprint = estWeekendSprint(courseId);
     gridStore.setSprintVisible(aUnSprint);
 }
@@ -135,8 +97,8 @@ function initialiserPolePosition(): void {
 }
 
 async function chargerPronosticsUtilisateur(): Promise<void> {
-    if (!utilisateurActuel || !selectCourse) return;
-    const courseId = selectCourse.value;
+    if (!utilisateurActuel) return;
+    const courseId = gridStore.selectedCourse;
     gererAffichageSectionSprint();
 
     const docSnap = await getDoc(doc(dbModerne, "pronostics", `${utilisateurActuel.uid}_${courseId.replace('/', '_')}`));
@@ -151,7 +113,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         if (s) { s.value = ""; mettreAJourDesignSlotSprint(i, ""); }
     }
 
-   gridStore.setEcuries({ top: ["", ""], flop: ["", ""] });
+    gridStore.setEcuries({ top: ["", ""], flop: ["", ""] });
 
     if (docSnap.exists()) {
         const data = docSnap.data();
@@ -180,8 +142,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
 // Validation du pronostic
 document.getElementById('btn-valider')?.addEventListener('click', async () => {
     if (!utilisateurActuel) return afficherNotification("Tu dois être connecté !", "erreur");
-    if (!selectCourse) return;
-    const courseId = selectCourse.value;
+    const courseId = gridStore.selectedCourse;
 
     if (courseEstVerrouillee(courseId)) {
         return afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
@@ -211,7 +172,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         classementSprint: aUnSprint ? top5SprintSelection : [],
         poleman: selectPole?.value || "",
         ecuriesTop: [gridStore.ecuries["ecurie-top-1"], gridStore.ecuries["ecurie-top-2"]],
-ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
+        ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
         predictionsBonus: { ...gridStore.bonusPredictions },
         dateEnregistrement: new Date()
     };
@@ -258,10 +219,10 @@ window.addEventListener('click', (e) => {
 // ==========================================
 // 5. GESTION DES LIGUES
 // ==========================================
+// La liste des ligues et sa sélection sont désormais gérées par RaceSelector.vue (via gridStore).
 function afficherEtatLigueDeconnecte(): void {
-    if (!selectLigue) return;
-    selectLigue.innerHTML = `<option value="${CODE_LIGUE_MONDIAL}">🌍 Mondial (connectez-vous pour vos ligues)</option>`;
-    selectLigue.value = CODE_LIGUE_MONDIAL;
+    gridStore.setLeaguesList([{ code: CODE_LIGUE_MONDIAL, nom: "🌍 Mondial (connectez-vous pour vos ligues)" }]);
+    gridStore.setActiveLeague(CODE_LIGUE_MONDIAL);
     ligueActiveActuelle = CODE_LIGUE_MONDIAL;
     membresLigueActive = null;
 }
@@ -271,40 +232,30 @@ async function chargerMembresLigueActive(codeLigue: string): Promise<void> {
         membresLigueActive = null;
         return;
     }
-    const doc = await db.collection("ligues").doc(codeLigue).get();
-    membresLigueActive = doc.exists ? new Set(doc.data().membres || []) : null;
+    const docSnap = await getDoc(doc(dbModerne, "ligues", codeLigue));
+    membresLigueActive = docSnap.exists() ? new Set(docSnap.data()?.membres || []) : null;
 }
 
 async function chargerLiguesUtilisateur(): Promise<void> {
     if (!utilisateurActuel) return;
     const { ligues, active } = await recupererLiguesUtilisateur(dbModerne, utilisateurActuel);
 
-    if (selectLigue) {
-        selectLigue.innerHTML = "";
-        ligues.forEach(ligue => {
-            const opt = document.createElement('option');
-            opt.value = ligue.code;
-            opt.innerText = ligue.code === CODE_LIGUE_MONDIAL ? ligue.nom : `🏆 ${ligue.nom} (${ligue.code})`;
-            selectLigue.appendChild(opt);
-        });
-        selectLigue.value = active;
-    }
+    gridStore.setLeaguesList(ligues.map((ligue: any) => ({ code: ligue.code, nom: ligue.nom })));
+    gridStore.setActiveLeague(active);
     ligueActiveActuelle = active;
     await chargerMembresLigueActive(active);
 }
 
-selectLigue?.addEventListener('change', async (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    const nouveauCode = target.value;
+// Réagit aux changements de ligue active déclenchés par RaceSelector.vue
+watch(() => gridStore.activeLeague, async (nouveauCode, ancienCode) => {
+    if (!nouveauCode || nouveauCode === ancienCode) return;
     ligueActiveActuelle = nouveauCode;
     await chargerMembresLigueActive(nouveauCode);
     if (utilisateurActuel) {
-        await db.collection("utilisateurs").doc(utilisateurActuel.uid).set({ ligueActive: nouveauCode }, { merge: true });
+        await setDoc(doc(dbModerne, "utilisateurs", utilisateurActuel.uid), { ligueActive: nouveauCode }, { merge: true });
     }
     chargerClassementGeneral();
 });
-
-
 
 // ==========================================
 // 6. ESPACE PROFIL & HISTORIQUE
@@ -312,29 +263,35 @@ selectLigue?.addEventListener('change', async (e: Event) => {
 // Entièrement géré désormais par WorkspaceProfile.vue et ProfileHistory.vue.
 
 // ==========================================
-// 7. INITIALISATION AU DÉMARRAGE
+// 7. VERROUILLAGE (piloté par RaceSelector.vue via gridStore.isLocked)
+// ==========================================
+// RaceSelector.vue calcule lui-même le verrouillage (date du GP) et émet
+// 'lock-change' -> gridStore.setLocked(). Ici on applique juste l'état
+// aux éléments encore en DOM natif (select-pole, btn-valider).
+watch(() => gridStore.isLocked, (verrouille) => {
+    if (selectPole) selectPole.disabled = verrouille;
+    const btnValider = document.getElementById('btn-valider') as HTMLButtonElement | null;
+    if (btnValider) {
+        btnValider.disabled = verrouille;
+        btnValider.style.opacity = verrouille ? '0.5' : '1';
+        btnValider.style.cursor = verrouille ? 'not-allowed' : 'pointer';
+    }
+}, { immediate: true });
+
+// ==========================================
+// 8. INITIALISATION AU DÉMARRAGE
 // ==========================================
 afficherEtatLigueDeconnecte();
-initialiserSelectCourse();
 initialiserPolePosition();
 creerLaGrilleSprintTV();
-verifierVerrouillageCourse(selectCourse, selectPole);
-setInterval(() => verifierVerrouillageCourse(selectCourse, selectPole), 60 * 1000);
-
-// Écoute des mises à jour dynamiques du calendrier
-onCalendrierChange(() => {
-    initialiserSelectCourse();
-    verifierVerrouillageCourse(selectCourse, selectPole);
-});
+gererAffichageSectionSprint();
 
 // Synchronisation asynchrone du calendrier (Firestore / API OpenF1)
 synchroniserCalendrierDynamique(dbModerne).catch(err => console.warn("Sync calendrier:", err));
 
-if (selectCourse) {
-    selectCourse.addEventListener('change', () => {
-        gererAffichageSectionSprint();
-        chargerPronosticsUtilisateur();
-        chargerClassementGeneral();
-        verifierVerrouillageCourse(selectCourse, selectPole);
-    });
-}
+// Réagit aux changements de Grand Prix sélectionné (déclenchés par RaceSelector.vue)
+watch(() => gridStore.selectedCourse, () => {
+    gererAffichageSectionSprint();
+    chargerPronosticsUtilisateur();
+    chargerClassementGeneral();
+});
