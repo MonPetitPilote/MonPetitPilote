@@ -181,8 +181,8 @@
             <div
               style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
             >
-              <div id="ecurie-top-1" class="carte-selection-team"></div>
-              <div id="ecurie-top-2" class="carte-selection-team"></div>
+              <TeamPicker slot-id="ecurie-top-1" :is-locked="gridStore.isLocked" />
+              <TeamPicker slot-id="ecurie-top-2" :is-locked="gridStore.isLocked" />
             </div>
           </div>
 
@@ -200,8 +200,8 @@
             <div
               style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
             >
-              <div id="ecurie-flop-1" class="carte-selection-team"></div>
-              <div id="ecurie-flop-2" class="carte-selection-team"></div>
+              <TeamPicker slot-id="ecurie-flop-1" :is-locked="gridStore.isLocked" />
+              <TeamPicker slot-id="ecurie-flop-2" :is-locked="gridStore.isLocked" />
             </div>
           </div>
         </div>
@@ -339,6 +339,7 @@
 import FriendsRanking from "./FriendsRanking.vue";
 import StartingGrid from "./StartingGrid.vue";
 import SprintGrid from "./SprintGrid.vue";
+import TeamPicker from "./TeamPicker.vue";
 import { ref } from "vue";
 import { useGridStore } from "../stores";
 

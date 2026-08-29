@@ -20,7 +20,6 @@ import {
     mettreAJourDesignSlotSprint,
     controlerDoublonsSprint,
     creerLaGrilleSprintTV,
-    appliquerSelectionEcurieVisuelle,
     initialiserEcuriesTopFlop,
     getCalendrierActuel,
     onCalendrierChange,
@@ -158,9 +157,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         if (s) { s.value = ""; mettreAJourDesignSlotSprint(i, ""); }
     }
 
-    ["ecurie-top-1", "ecurie-top-2", "ecurie-flop-1", "ecurie-flop-2"].forEach(id => {
-        appliquerSelectionEcurieVisuelle(id, "");
-    });
+   gridStore.setEcuries({ top: ["", ""], flop: ["", ""] });
 
     if (docSnap.exists()) {
         const data = docSnap.data();
@@ -178,10 +175,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
 
         const ecuriesTop = data.ecuriesTop || [];
         const ecuriesFlop = data.ecuriesFlop || [];
-        appliquerSelectionEcurieVisuelle("ecurie-top-1", ecuriesTop[0] || "");
-        appliquerSelectionEcurieVisuelle("ecurie-top-2", ecuriesTop[1] || "");
-        appliquerSelectionEcurieVisuelle("ecurie-flop-1", ecuriesFlop[0] || "");
-        appliquerSelectionEcurieVisuelle("ecurie-flop-2", ecuriesFlop[1] || "");
+        gridStore.setEcuries({ top: ecuriesTop, flop: ecuriesFlop });
         appliquerFormulaireBonus(data.predictionsBonus);
     } else {
         appliquerFormulaireBonus(null);
@@ -222,14 +216,8 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         classementPilotes: top10Selection,
         classementSprint: aUnSprint ? top5SprintSelection : [],
         poleman: selectPole?.value || "",
-        ecuriesTop: [
-            document.getElementById('ecurie-top-1')?.getAttribute('data-ecurie-value') || "",
-            document.getElementById('ecurie-top-2')?.getAttribute('data-ecurie-value') || ""
-        ],
-        ecuriesFlop: [
-            document.getElementById('ecurie-flop-1')?.getAttribute('data-ecurie-value') || "",
-            document.getElementById('ecurie-flop-2')?.getAttribute('data-ecurie-value') || ""
-        ],
+        ecuriesTop: [gridStore.ecuries["ecurie-top-1"], gridStore.ecuries["ecurie-top-2"]],
+ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
         predictionsBonus: lireFormulaireBonus(),
         dateEnregistrement: new Date()
     };
@@ -337,7 +325,6 @@ afficherEtatLigueDeconnecte();
 initialiserSelectCourse();
 initialiserPolePosition();
 creerLaGrilleSprintTV();
-initialiserEcuriesTopFlop();
 verifierVerrouillageCourse(selectCourse, selectPole);
 setInterval(() => verifierVerrouillageCourse(selectCourse, selectPole), 60 * 1000);
 
