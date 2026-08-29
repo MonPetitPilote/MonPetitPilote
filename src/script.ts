@@ -8,19 +8,13 @@ import {
 
 import {
     CODE_LIGUE_MONDIAL,
-    rejoindreLigueParCode,
-    creerNouvelleLigue,
     recupererLiguesUtilisateur,
-    initialiserBoutonsBonus,
-    lireFormulaireBonus,
-    appliquerFormulaireBonus,
     calculerStatistiquesEtClassement,
     courseEstVerrouillee,
     verifierVerrouillageCourse,
     mettreAJourDesignSlotSprint,
     controlerDoublonsSprint,
     creerLaGrilleSprintTV,
-    initialiserEcuriesTopFlop,
     getCalendrierActuel,
     onCalendrierChange,
     estWeekendSprint,
@@ -176,9 +170,9 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         const ecuriesTop = data.ecuriesTop || [];
         const ecuriesFlop = data.ecuriesFlop || [];
         gridStore.setEcuries({ top: ecuriesTop, flop: ecuriesFlop });
-        appliquerFormulaireBonus(data.predictionsBonus);
+        gridStore.setBonusPredictions(data.predictionsBonus);
     } else {
-        appliquerFormulaireBonus(null);
+        gridStore.setBonusPredictions(null);
     }
     controlerDoublonsSprint();
 }
@@ -218,7 +212,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         poleman: selectPole?.value || "",
         ecuriesTop: [gridStore.ecuries["ecurie-top-1"], gridStore.ecuries["ecurie-top-2"]],
 ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
-        predictionsBonus: lireFormulaireBonus(),
+        predictionsBonus: { ...gridStore.bonusPredictions },
         dateEnregistrement: new Date()
     };
 
@@ -320,7 +314,6 @@ selectLigue?.addEventListener('change', async (e: Event) => {
 // ==========================================
 // 7. INITIALISATION AU DÉMARRAGE
 // ==========================================
-initialiserBoutonsBonus();
 afficherEtatLigueDeconnecte();
 initialiserSelectCourse();
 initialiserPolePosition();

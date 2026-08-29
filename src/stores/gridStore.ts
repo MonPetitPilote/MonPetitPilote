@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 
 export const useGridStore = defineStore("grid", () => {
   const top10 = ref<string[]>(Array(10).fill(""));
@@ -7,12 +7,23 @@ export const useGridStore = defineStore("grid", () => {
   const sprintVisible = ref(false);
   const isLocked = ref(false);
 
-  // Écuries Top/Flop : clés fixes ecurie-top-1, ecurie-top-2, ecurie-flop-1, ecurie-flop-2
   const ecuries = ref<Record<string, string>>({
     "ecurie-top-1": "",
     "ecurie-top-2": "",
     "ecurie-flop-1": "",
     "ecurie-flop-2": ""
+  });
+
+  const bonusPredictions = reactive<{
+    safetyCar: boolean | null;
+    drapeauRouge: boolean | null;
+    nombreDNF: number | null;
+    polemanPodium: boolean | null;
+  }>({
+    safetyCar: null,
+    drapeauRouge: null,
+    nombreDNF: null,
+    polemanPodium: null
   });
 
   function setTop10(nouvelleSelection: string[]) {
@@ -42,11 +53,20 @@ export const useGridStore = defineStore("grid", () => {
     ecuries.value["ecurie-flop-2"] = nouvellesEcuries.flop?.[1] || "";
   }
 
+  function setBonusPredictions(donnees?: Partial<typeof bonusPredictions> | null) {
+    const d = donnees || {};
+    bonusPredictions.safetyCar = d.safetyCar !== undefined ? d.safetyCar : null;
+    bonusPredictions.drapeauRouge = d.drapeauRouge !== undefined ? d.drapeauRouge : null;
+    bonusPredictions.nombreDNF = (d.nombreDNF !== undefined && d.nombreDNF !== null) ? Number(d.nombreDNF) : null;
+    bonusPredictions.polemanPodium = d.polemanPodium !== undefined ? d.polemanPodium : null;
+  }
+
   return {
     top10, setTop10,
     top5Sprint, setTop5Sprint,
     sprintVisible, setSprintVisible,
     isLocked, setLocked,
-    ecuries, setEcurie, setEcuries
+    ecuries, setEcurie, setEcuries,
+    bonusPredictions, setBonusPredictions
   };
 });

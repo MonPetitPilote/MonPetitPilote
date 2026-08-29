@@ -131,7 +131,6 @@
             placeholder="Ex : 2"
             class="input-dnf"
             :disabled="isLocked"
-            @input="emitChange"
           />
         </div>
 
@@ -206,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from "vue";
+import { useGridStore } from "../stores";
 
 const props = defineProps({
   isLocked: {
@@ -227,50 +226,22 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["update:predictions"]);
+const gridStore = useGridStore();
+const predictions = gridStore.bonusPredictions; // même référence réactive que le store
 
-const predictions = reactive({
-  safetyCar: null,
-  drapeauRouge: null,
-  nombreDNF: null,
-  polemanPodium: null
-});
-
-function setBooleanPrediction(cle, valeur) {
+function setBooleanPrediction(cle: "safetyCar" | "drapeauRouge" | "polemanPodium", valeur: boolean) {
   if (props.isLocked) return;
   if (predictions[cle] === valeur) {
     predictions[cle] = null;
   } else {
     predictions[cle] = valeur;
   }
-  emitChange();
 }
 
-function emitChange() {
-  emit("update:predictions", {
-    safetyCar: predictions.safetyCar,
-    drapeauRouge: predictions.drapeauRouge,
-    nombreDNF: predictions.nombreDNF !== null && predictions.nombreDNF !== "" ? Number(predictions.nombreDNF) : null,
-    polemanPodium: predictions.polemanPodium
-  });
-}
-
-function getDetail(cle) {
+function getDetail(cle: string) {
   if (!props.detailBonus || props.detailBonus.length === 0) return null;
-  return props.detailBonus.find(d => d.cle === cle) || null;
+  return (props.detailBonus as any[]).find(d => d.cle === cle) || null;
 }
-
-defineExpose({
-  predictions,
-  setPredictions: (donnees) => {
-    const d = donnees || {};
-    predictions.safetyCar = d.safetyCar !== undefined ? d.safetyCar : null;
-    predictions.drapeauRouge = d.drapeauRouge !== undefined ? d.drapeauRouge : null;
-    predictions.nombreDNF = (d.nombreDNF !== undefined && d.nombreDNF !== null) ? Number(d.nombreDNF) : null;
-    predictions.polemanPodium = d.polemanPodium !== undefined ? d.polemanPodium : null;
-  },
-  getPredictions: () => ({ ...predictions })
-});
 </script>
 
 <style scoped>
@@ -459,4 +430,3 @@ defineExpose({
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 </style>
-
