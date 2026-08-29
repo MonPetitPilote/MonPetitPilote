@@ -103,88 +103,7 @@
         <select id="select-pole"></select>
       </div>
 
-      <!-- Section Week-end Sprint Top 5 -->
-      <div
-        id="section-sprint-container"
-        style="
-          display: none;
-          margin-top: 20px;
-          background: linear-gradient(135deg, #171f38 0%, #1f274a 100%);
-          border: 1px solid #3730a3;
-          border-radius: 10px;
-          padding: 16px;
-          box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 12px;
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span
-              style="
-                background: #6366f1;
-                color: white;
-                font-size: 0.7rem;
-                font-weight: 800;
-                padding: 3px 8px;
-                border-radius: 999px;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
-              "
-              >⚡ WEEK-END SPRINT</span
-            >
-            <h3
-              id="titre-grille-sprint"
-              style="margin: 0; font-size: 1.15rem; color: #a5b4fc; font-weight: 800;"
-            >
-              🏆 TA GRILLE DE DÉPART TOP 5 SPRINT :
-            </h3>
-          </div>
-          <button
-            id="btn-sprint-aleatoire"
-            type="button"
-            style="
-              background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-              color: white;
-              border: none;
-              padding: 6px 12px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 0.8rem;
-              font-weight: bold;
-              box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-            "
-          >
-            🎲 SPRINT ALÉATOIRE
-          </button>
-        </div>
-
-        <div
-          style="
-            background: rgba(99, 102, 241, 0.12);
-            border-left: 3px solid #818cf8;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 14px;
-            font-size: 0.8rem;
-            color: #c7d2fe;
-          "
-        >
-          ℹ️ <strong>Règles Sprint :</strong> Pronostiquez les 5 premiers de la course Sprint.
-          <span style="color: #93c5fd; margin-left: 4px;"
-            >(P1: <strong>+5 pts</strong> • P2: <strong>+4 pts</strong> • P3: <strong>+3 pts</strong> • P4: <strong>+2 pts</strong> • P5: <strong>+1 pt</strong> • Présence Top 5: <strong>+1 pt</strong>)</span
-          >
-        </div>
-
-        <div id="grille-sprint-slots" class="sprint-slots-grid"></div>
-      </div>
+      <SprintGrid v-if="gridStore.sprintVisible" />
 
       <StartingGrid ref="startingGridRef" />
 
@@ -419,6 +338,7 @@
 <script setup lang="ts">
 import FriendsRanking from "./FriendsRanking.vue";
 import StartingGrid from "./StartingGrid.vue";
+import SprintGrid from "./SprintGrid.vue";
 import { ref } from "vue";
 import { useGridStore } from "../stores";
 
