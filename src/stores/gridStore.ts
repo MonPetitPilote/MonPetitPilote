@@ -1,11 +1,22 @@
 import { defineStore } from "pinia";
 import { ref, reactive } from "vue";
+import { CODE_LIGUE_MONDIAL, getCalendrierActuel } from "../services";
+
+function calculerProchainGP(): string {
+  const aujourdhui = new Date();
+  const calendrier = getCalendrierActuel();
+  const prochain = calendrier.find(gp => new Date(gp.date) >= aujourdhui && gp.statut !== 'annule');
+  return prochain ? `2026/${prochain.round}` : "2026/1";
+}
 
 export const useGridStore = defineStore("grid", () => {
   const top10 = ref<string[]>(Array(10).fill(""));
   const top5Sprint = ref<string[]>(Array(5).fill(""));
   const sprintVisible = ref(false);
   const isLocked = ref(false);
+  const selectedCourse = ref(calculerProchainGP());
+  const activeLeague = ref(CODE_LIGUE_MONDIAL);
+  const leaguesList = ref<Array<{ code: string; nom: string }>>([{ code: CODE_LIGUE_MONDIAL, nom: "🌍 Mondial" }]);
 
   const ecuries = ref<Record<string, string>>({
     "ecurie-top-1": "",
@@ -42,6 +53,18 @@ export const useGridStore = defineStore("grid", () => {
     isLocked.value = valeur;
   }
 
+  function setSelectedCourse(courseId: string) {
+    selectedCourse.value = courseId;
+  }
+
+  function setActiveLeague(code: string) {
+    activeLeague.value = code;
+  }
+
+  function setLeaguesList(nouvelleListe: Array<{ code: string; nom: string }>) {
+    leaguesList.value = nouvelleListe;
+  }
+
   function setEcurie(slotId: string, nomEcurie: string) {
     ecuries.value[slotId] = nomEcurie;
   }
@@ -66,6 +89,9 @@ export const useGridStore = defineStore("grid", () => {
     top5Sprint, setTop5Sprint,
     sprintVisible, setSprintVisible,
     isLocked, setLocked,
+    selectedCourse, setSelectedCourse,
+    activeLeague, setActiveLeague,
+    leaguesList, setLeaguesList,
     ecuries, setEcurie, setEcuries,
     bonusPredictions, setBonusPredictions
   };
