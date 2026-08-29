@@ -100,7 +100,7 @@
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
               >
-                {{ p.nom }} ({{ p.ecurie }})
+                {{ p.nom }}
               </option>
             </select>
 
@@ -137,15 +137,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { pilotesData, type Pilote } from "../utils";
 import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP } from "../services/driversService";
+import { getFirestore } from "../utils/firebase";
+import { useGridStore } from "../stores";
+import { ref } from "vue";
 
 const props = defineProps({
-  modelValue: {
-    type: Array as () => string[],
-    default: () => ["", "", "", "", ""]
-  },
   isLocked: {
     type: Boolean,
     default: false
@@ -156,13 +155,10 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["update:modelValue", "update:selections", "close"]);
+defineEmits(["close"]);
 
-const selections = ref<string[]>(
-  props.modelValue && props.modelValue.length === 5
-    ? [...props.modelValue]
-    : Array(5).fill("")
-);
+const gridStore = useGridStore();
+const selections = gridStore.top5Sprint; // même référence réactive que le store
 
 const listePilotes = ref<Pilote[]>([...pilotesData]);
 
@@ -172,23 +168,13 @@ const listePilotesAffichee = computed(() => {
 
 onMounted(async () => {
   try {
-    const db = (window as any).db;
+    const db = getFirestore();
     const pilotesSync = await synchroniserPilotesGP(undefined, db);
     if (pilotesSync && pilotesSync.length > 0) {
       listePilotes.value = pilotesSync;
     }
   } catch (_) {}
 });
-
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    if (newVal && newVal.length === 5) {
-      selections.value = [...newVal];
-    }
-  },
-  { deep: true }
-);
 
 function getPiloteData(nom?: string | null): Pilote | null {
   if (!nom) return null;
@@ -232,13 +218,11 @@ function getPiloteLogoImg(nom?: string | null): string {
 }
 
 function isPiloteAlreadySelected(nom: string, currentPosIndex: number): boolean {
-  return selections.value.some((selectedNom, idx) => selectedNom === nom && idx !== currentPosIndex);
+  return selections.some((selectedNom, idx) => selectedNom === nom && idx !== currentPosIndex);
 }
 
 function onPiloteChange(index: number, nom: string): void {
-  selections.value[index] = nom;
-  emit("update:modelValue", [...selections.value]);
-  emit("update:selections", [...selections.value]);
+  selections[index] = nom;
 }
 
 function remplirSprintAleatoire(): void {
@@ -246,10 +230,8 @@ function remplirSprintAleatoire(): void {
   const source = listePilotesAffichee.value.length >= 5 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
   for (let i = 0; i < 5; i++) {
-    selections.value[i] = melange[i].nom;
+    selections[i] = melange[i].nom;
   }
-  emit("update:modelValue", [...selections.value]);
-  emit("update:selections", [...selections.value]);
 }
 </script>
 

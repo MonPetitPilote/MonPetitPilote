@@ -14,8 +14,8 @@ export const useGridStore = defineStore("grid", () => {
     top5Sprint.value.splice(0, top5Sprint.value.length, ...nouvelleSelection);
   }
 
-  function setSprintVisible(visible: boolean) {
-    sprintVisible.value = visible;
+  function setSprintVisible(valeur: boolean) {
+    sprintVisible.value = valeur;
   }
 
   return { top10, setTop10, top5Sprint, setTop5Sprint, sprintVisible, setSprintVisible };

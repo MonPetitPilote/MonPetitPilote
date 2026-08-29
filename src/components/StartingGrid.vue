@@ -1,101 +1,77 @@
 <template>
-  <div class="section-grille-sprint">
-    <div class="grille-sprint-entete">
-      <div class="titre-sprint-container">
-        <span class="badge-sprint-pill">⚡ SPRINT WEEK-END</span>
-        <h3 id="titre-grille-sprint" class="titre-grille-sprint">
-          ⚡ TA GRILLE DE DÉPART TOP 5 SPRINT :
-        </h3>
-      </div>
-      <div class="actions-sprint">
-        <button
-          id="btn-sprint-aleatoire"
-          type="button"
-          class="btn-sprint-aleatoire"
-          :disabled="isLocked"
-          @click="remplirSprintAleatoire"
-        >
-          🎲 SPRINT ALÉATOIRE
-        </button>
-        <button
-          v-if="asModal"
-          type="button"
-          class="btn-fermer-sprint"
-          @click="$emit('close')"
-        >
-          ✖
-        </button>
-      </div>
+  <div class="section-grille-depart">
+    <div class="grille-entete">
+      <h2 id="titre-grille" class="titre-grille">
+        🏆 TA GRILLE DE DÉPART TOP 10 :
+      </h2>
+      <button
+        id="btn-aleatoire"
+        type="button"
+        class="btn-aleatoire"
+        :disabled="isLocked"
+        @click="remplirGrilleAleatoire"
+      >
+        🎲 PRONO ALÉATOIRE
+      </button>
     </div>
 
-    <!-- Bannière explicative des points Sprint -->
-    <div class="banniere-points-sprint">
-      <span class="icone-info">ℹ️</span>
-      <span>
-        <strong>Règles Sprint :</strong> Pronostiquez l'ordre des 5 premiers de la course Sprint.
-        <span class="points-detail">(P1: <strong>+5 pts</strong> • P2: <strong>+4 pts</strong> • P3: <strong>+3 pts</strong> • P4: <strong>+2 pts</strong> • P5: <strong>+1 pt</strong> • Dans le Top 5 : <strong>+1 pt</strong>)</span>
-      </span>
-    </div>
-
-    <div id="grille-sprint-slots" class="sprint-slots-grid">
+    <div id="grille-pronos" class="f1-starting-grid">
       <div
-        v-for="pos in 5"
+        v-for="pos in 10"
         :key="pos"
-        class="sprint-slot"
+        class="grid-slot"
         :data-pos="pos"
       >
         <div
-          :id="`badge-sprint-p${pos}`"
-          class="sprint-pos-badge"
-          :style="{ background: getPiloteColor(selections[pos - 1]) || '#4f46e5' }"
+          :id="`badge-p${pos}`"
+          class="grid-pos-badge"
+          :style="{ background: getPiloteColor(selections[pos - 1]) || '#232e44' }"
         >
-          ⚡ S{{ pos }}
+          P{{ pos }}
         </div>
 
         <div
-          :id="`card-sprint-p${pos}`"
-          class="sprint-card-f1"
-          :style="{
-            borderLeft: getPiloteColor(selections[pos - 1]) ? `5px solid ${getPiloteColor(selections[pos - 1])}` : '1px solid #3b4263'
-          }"
+          :id="`card-f1-p${pos}`"
+          class="grid-card-f1"
+          :style="{ borderLeft: getPiloteColor(selections[pos - 1]) ? `5px solid ${getPiloteColor(selections[pos - 1])}` : '1px solid #2f3e56' }"
         >
           <img
-            v-if="getPiloteCarImg(selections[pos - 1])"
-            :id="`car-sprint-p${pos}`"
-            class="car-bg-image-sprint"
+            :id="`car-grid-p${pos}`"
+            class="car-bg-image"
             :src="getPiloteCarImg(selections[pos - 1])"
+            :style="{ display: getPiloteCarImg(selections[pos - 1]) ? 'block' : 'none' }"
             alt="Monoplace F1"
           />
 
-          <div class="driver-info-block-sprint">
-            <div class="driver-header-line-sprint">
+          <div class="driver-info-block">
+            <div class="driver-header-line">
               <span
-                :id="`num-sprint-p${pos}`"
-                class="driver-num-text-sprint"
-                :style="{ color: getPiloteColor(selections[pos - 1]) || 'rgba(255,255,255,0.2)' }"
+                :id="`num-f1-p${pos}`"
+                class="driver-num-text"
+                :style="{ color: getPiloteColor(selections[pos - 1]) || 'rgba(255,255,255,0.15)' }"
               >
                 {{ getPiloteNumero(selections[pos - 1]) || '--' }}
               </span>
               <img
                 v-if="getPilotePays(selections[pos - 1])"
-                :id="`flag-sprint-p${pos}`"
-                class="driver-flag-sprint"
+                :id="`flag-f1-p${pos}`"
+                class="driver-flag"
                 :src="`https://flagcdn.com/w20/${getPilotePays(selections[pos - 1])}.png`"
                 alt="Pays"
               />
             </div>
 
             <select
-              :id="`select-sprint-p${pos}`"
-              class="sprint-select-paddock"
+              :id="`select-grid-p${pos}`"
+              class="grid-select-paddock"
               :data-position="pos"
               :value="selections[pos - 1]"
               :disabled="isLocked"
               @change="onPiloteChange(pos - 1, ($event.target as HTMLSelectElement).value)"
             >
-              <option value="">👉 CHOISIS TON PILOTE SPRINT</option>
+              <option value="">👉 CHOISIS TON PILOTE</option>
               <option
-                v-for="p in pilotesData"
+                v-for="p in listePilotesAffichee"
                 :key="p.nom"
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
@@ -104,29 +80,29 @@
               </option>
             </select>
 
-            <div class="driver-team-line-sprint">
+            <div class="driver-team-line">
               <img
                 v-if="getPiloteLogoImg(selections[pos - 1])"
                 :src="getPiloteLogoImg(selections[pos - 1])"
-                class="driver-team-logo-sprint"
+                class="driver-team-logo"
                 alt="Logo Écurie"
               />
               <div
-                :id="`team-sprint-p${pos}`"
-                class="driver-team-text-sprint"
-                :style="{ color: getPiloteEcurie(selections[pos - 1]) ? '#00e6c3' : '#818cf8' }"
+                :id="`team-grid-p${pos}`"
+                class="driver-team-text"
+                :style="{ color: getPiloteEcurie(selections[pos - 1]) ? '#ff8000' : '#616e88' }"
               >
-                {{ getPiloteEcurie(selections[pos - 1]) || '⚡ PLACE SPRINT À PRENDRE' }}
+                {{ getPiloteEcurie(selections[pos - 1]) || '⚡ PLACE À PRENDRE' }}
               </div>
             </div>
           </div>
 
-          <div class="driver-portrait-container-sprint">
+          <div class="driver-portrait-container">
             <img
               v-if="getPiloteDriverImg(selections[pos - 1])"
-              :id="`img-sprint-p${pos}`"
+              :id="`img-grid-p${pos}`"
               :src="getPiloteDriverImg(selections[pos - 1])"
-              class="driver-portrait-sprint"
+              class="driver-portrait"
               alt="Pilote"
             />
           </div>
@@ -138,8 +114,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { pilotesData, type Pilote } from "../utils";
+import { pilotesData } from "../utils";
 import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP } from "../services/driversService";
+import { type Pilote } from "../utils/types";
 import { getFirestore } from "../utils/firebase";
 import { useGridStore } from "../stores";
 import { ref } from "vue";
@@ -148,17 +125,11 @@ const props = defineProps({
   isLocked: {
     type: Boolean,
     default: false
-  },
-  asModal: {
-    type: Boolean,
-    default: false
   }
 });
 
-defineEmits(["close"]);
-
 const gridStore = useGridStore();
-const selections = gridStore.top5Sprint; // même référence réactive que le store
+const selections = gridStore.top10; // même référence que le store : toute écriture ici met à jour le store directement
 
 const listePilotes = ref<Pilote[]>([...pilotesData]);
 
@@ -181,278 +152,98 @@ function getPiloteData(nom?: string | null): Pilote | null {
   return listePilotes.value.find(p => p.nom === nom) || pilotesData.find(p => p.nom === nom) || resoudrePilote(nom);
 }
 
-function getPiloteColor(nom?: string | null): string | null {
+function getPiloteColor(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.couleur : null;
 }
 
-function getPiloteNumero(nom?: string | null): string | null {
+function getPiloteNumero(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.numero : null;
 }
 
-function getPilotePays(nom?: string | null): string | null {
+function getPilotePays(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.pays : null;
 }
 
-function getPiloteEcurie(nom?: string | null): string | null {
+function getPiloteEcurie(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.ecurie : null;
 }
 
-function getPiloteDriverImg(nom?: string | null): string {
+function getPiloteDriverImg(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.driverImg : "";
 }
 
-function getPiloteCarImg(nom?: string | null): string {
+function getPiloteCarImg(nom?: string | null) {
   const p = getPiloteData(nom);
   return p ? p.carImg : "";
 }
 
-function getPiloteLogoImg(nom?: string | null): string {
+function getPiloteLogoImg(nom?: string | null) {
   const p = getPiloteData(nom);
   if (!p || !p.ecurie) return "";
   return TEAMS_CONFIG[p.ecurie]?.logoImg || "";
 }
 
-function isPiloteAlreadySelected(nom: string, currentPosIndex: number): boolean {
-  return selections.some((selectedNom, idx) => selectedNom === nom && idx !== currentPosIndex);
+function isPiloteAlreadySelected(nom: string, currentPosIndex: number) {
+  return selections.some((selectedName, idx) => idx !== currentPosIndex && selectedName === nom);
 }
 
-function onPiloteChange(index: number, nom: string): void {
-  selections[index] = nom;
+function onPiloteChange(posIndex: number, nomPilote: string) {
+  selections[posIndex] = nomPilote;
 }
 
-function remplirSprintAleatoire(): void {
+function remplirGrilleAleatoire() {
   if (props.isLocked) return;
-  const source = listePilotesAffichee.value.length >= 5 ? listePilotesAffichee.value : pilotesData;
+  const source = listePilotesAffichee.value.length >= 10 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     selections[i] = melange[i].nom;
   }
 }
 </script>
 
 <style scoped>
-.section-grille-sprint {
-  background: linear-gradient(135deg, #171f38 0%, #1f274a 100%);
-  border: 1px solid #3730a3;
-  border-radius: 10px;
-  padding: 16px;
-  margin: 18px 0;
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
-}
-
-.grille-sprint-entete {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.titre-sprint-container {
+.grid-slot {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
-}
-
-.badge-sprint-pill {
-  background: #6366f1;
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.titre-grille-sprint {
-  margin: 0;
-  font-size: 1.15rem;
-  color: #a5b4fc;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.actions-sprint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-sprint-aleatoire {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: bold;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-}
-
-.btn-sprint-aleatoire:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn-fermer-sprint {
-  background: #2a3454;
-  color: #94a3b8;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.banniere-points-sprint {
-  background: rgba(99, 102, 241, 0.12);
-  border-left: 3px solid #818cf8;
-  padding: 8px 12px;
-  border-radius: 6px;
   margin-bottom: 14px;
-  font-size: 0.8rem;
-  color: #c7d2fe;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.points-detail {
-  color: #93c5fd;
-  margin-left: 4px;
-}
-
-.sprint-slots-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sprint-slot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sprint-pos-badge {
-  min-width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  color: #fff;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: background 0.3s ease;
-}
-
-.sprint-card-f1 {
+.grid-card-f1 {
   position: relative;
-  background: #1e2640;
+  background: #1f293d;
+  border-radius: 8px;
+  padding: 6px 12px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   flex-grow: 1;
   min-width: 0;
-  border-radius: 8px;
-  padding: 6px 12px;
+  border: 1px solid #2f3e56;
   transition: all 0.3s ease;
-  overflow: hidden;
 }
 
-.car-bg-image-sprint {
+.car-bg-image {
   position: absolute;
   right: 0;
-  bottom: -8px;
+  bottom: -10px;
   height: 120%;
-  max-width: 55%;
-  opacity: 0.28;
+  max-width: 60%;
+  opacity: 0.35;
   object-fit: contain;
   pointer-events: none;
   z-index: 1;
 }
 
-.driver-info-block-sprint {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
+.driver-portrait-container {
   position: relative;
-  z-index: 2;
-}
-
-.driver-header-line-sprint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.driver-num-text-sprint {
-  font-size: 18px;
-  font-weight: 900;
-  font-style: italic;
-}
-
-.driver-flag-sprint {
-  width: 18px;
-  border-radius: 2px;
-}
-
-.sprint-select-paddock {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 2px 0;
-  outline: none;
-  text-overflow: ellipsis;
-}
-
-.driver-team-line-sprint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.driver-team-logo-sprint {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
-}
-
-.driver-team-text-sprint {
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.driver-portrait-container-sprint {
-  position: relative;
-  width: 55px;
-  height: 55px;
+  width: 65px;
+  height: 65px;
   display: flex;
   justify-content: center;
   overflow: hidden;
@@ -462,7 +253,98 @@ function remplirSprintAleatoire(): void {
   flex-shrink: 0;
 }
 
-.driver-portrait-sprint {
+.section-grille-depart {
+  margin-top: 15px;
+}
+
+.grille-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.titre-grille {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.btn-aleatoire {
+  background: #3b4b6b;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-aleatoire:hover:not(:disabled) {
+  background: #4a5c82;
+}
+
+.btn-aleatoire:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.driver-info-block {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.driver-header-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.grid-select-paddock {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+}
+
+.driver-team-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.driver-team-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.driver-flag {
+  width: 18px;
+  border-radius: 2px;
+}
+
+.driver-portrait {
   width: 100%;
   height: 100%;
   object-fit: cover;

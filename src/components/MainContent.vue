@@ -103,7 +103,7 @@
         <select id="select-pole"></select>
       </div>
 
-      <SprintGrid v-if="gridStore.sprintVisible" />
+      <SprintGrid v-show="gridStore.sprintVisible" />
 
       <StartingGrid ref="startingGridRef" />
 

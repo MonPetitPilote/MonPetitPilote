@@ -126,12 +126,8 @@ function initialiserSelectCourse(): void {
 
 function gererAffichageSectionSprint(): void {
     const courseId = selectCourse?.value || "2026/1";
-    const sectionSprint = document.getElementById('section-sprint-container');
     const aUnSprint = estWeekendSprint(courseId);
-
-    if (sectionSprint) {
-        sectionSprint.style.display = aUnSprint ? 'block' : 'none';
-    }
+    gridStore.setSprintVisible(aUnSprint);
 }
 
 function initialiserPolePosition(): void {
