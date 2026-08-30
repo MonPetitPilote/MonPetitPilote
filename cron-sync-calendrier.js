@@ -43,8 +43,7 @@ async function synchroniser() {
     let nouveauCalendrier = CALENDRIER_BASE_2026;
 
     try {
-        const response = await fetch("https://api.jolpica.com/ergast/f1/2026.json", {
-            headers: { Accept: "application/json" },
+const response = await fetch("https://api.jolpi.ca/ergast/f1/2026.json", {            headers: { Accept: "application/json" },
             signal: AbortSignal.timeout(8000),
         });
 
