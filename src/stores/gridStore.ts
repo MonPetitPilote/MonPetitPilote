@@ -1,6 +1,13 @@
 import { defineStore } from "pinia";
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import { CODE_LIGUE_MONDIAL, getCalendrierActuel } from "../services";
+
+const LABELS_ECURIES: Record<string, string> = {
+  "ecurie-top-1": "Écurie Top 1",
+  "ecurie-top-2": "Écurie Top 2",
+  "ecurie-flop-1": "Écurie Flop 1",
+  "ecurie-flop-2": "Écurie Flop 2"
+};
 
 function calculerProchainGP(): string {
   const aujourdhui = new Date();
@@ -76,6 +83,13 @@ export const useGridStore = defineStore("grid", () => {
     ecuries.value["ecurie-flop-2"] = nouvellesEcuries.flop?.[1] || "";
   }
 
+  const premiereEcurieManquante = computed<string | null>(() => {
+    for (const slotId of Object.keys(LABELS_ECURIES)) {
+      if (!ecuries.value[slotId]) return LABELS_ECURIES[slotId];
+    }
+    return null;
+  });
+
   function setBonusPredictions(donnees?: Partial<typeof bonusPredictions> | null) {
     const d = donnees || {};
     bonusPredictions.safetyCar = d.safetyCar !== undefined ? d.safetyCar : null;
@@ -92,7 +106,7 @@ export const useGridStore = defineStore("grid", () => {
     selectedCourse, setSelectedCourse,
     activeLeague, setActiveLeague,
     leaguesList, setLeaguesList,
-    ecuries, setEcurie, setEcuries,
+    ecuries, setEcurie, setEcuries, premiereEcurieManquante,
     bonusPredictions, setBonusPredictions
   };
 });

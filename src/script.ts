@@ -153,6 +153,10 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         if (!top10Selection[i]) return afficherNotification(`Il manque la position P${i + 1} du GP !`, "erreur");
     }
 
+    if (gridStore.premiereEcurieManquante) {
+        return afficherNotification(`Il manque le choix "${gridStore.premiereEcurieManquante}" !`, "erreur");
+    }
+
     // Récupération de la sélection Sprint si applicable
     const top5SprintSelection: string[] = [];
     const aUnSprint = estWeekendSprint(courseId);
