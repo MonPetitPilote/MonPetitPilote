@@ -268,8 +268,8 @@ export async function synchroniserPilotesGP(round?: number, db?: Firestore): Pro
     // 2. Tenter depuis l'API F1 Jolpica / Ergast
     try {
         const url = round 
-            ? `https://api.jolpica.com/ergast/f1/2026/${round}/drivers.json`
-            : `https://api.jolpica.com/ergast/f1/2026/drivers.json`;
+            ? `https://api.jolpi.ca/ergast/f1/2026/${round}/drivers.json`
+            : `https://api.jolpi.ca/ergast/f1/2026/drivers.json`;
         const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
         if (res.ok) {
             const data = await res.json();

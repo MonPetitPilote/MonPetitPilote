@@ -92,7 +92,7 @@ export async function synchroniserCalendrierDynamique(db?: Firestore): Promise<G
 
     // 2. Synchronisation en direct avec l'API publique F1 Jolpica
     try {
-        const response = await fetch("https://api.jolpica.com/ergast/f1/2026.json", {
+        const response = await fetch("https://api.jolpi.ca/ergast/f1/2026.json", {
             headers: { "Accept": "application/json" },
             signal: AbortSignal.timeout(3500)
         });

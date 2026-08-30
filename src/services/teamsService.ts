@@ -228,7 +228,7 @@ export function evaluerPronosticsEcuriesComplet(
 export async function chargerStatsConstructeursSaison(db?: any): Promise<EcurieSaisonStats[]> {
     // 1. Tenter l'API publique F1 Jolpica
     try {
-        const res = await fetch("https://api.jolpica.com/ergast/f1/2026/constructorStandings.json", {
+        const res = await fetch("https://api.jolpi.ca/ergast/f1/2026/constructorStandings.json", {
             signal: AbortSignal.timeout(3000)
         });
         if (res.ok) {
