@@ -1,0 +1,30 @@
+name: Synchronisation du Calendrier F1
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  synchroniser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Installer les dépendances (Firebase)
+        run: npm install firebase-admin
+
+      - name: Créer le fichier de clé Firebase Service Account
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-secret.json
+
+      - name: Lancer le script de synchro du calendrier
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: firebase-secret.json
+        run: node cron-sync-calendrier.js
