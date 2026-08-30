@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/MonPetitPilote/MonPetitPilote#readme",
   "devDependencies": {
+    "@vercel/node": "^10.0.0",
     "@vitejs/plugin-vue": "^6.0.8",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "firebase": "^12.17.1",
+    "firebase-admin": "^14.3.0",
     "pinia": "^4.0.3",
     "vue": "^3.5.41"
   }
