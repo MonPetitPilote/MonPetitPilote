@@ -116,7 +116,7 @@ export async function synchroniserCalendrierDynamique(db?: Firestore): Promise<G
                         pays: r.Circuit?.Location?.country || localRef?.pays || "",
                         date: r.date || localRef?.date || "2026-12-31",
                         hasSprint: (localRef?.hasSprint ?? false) || hasSprintApi,
-                        sprintDate: sprintDateApi || localRef?.sprintDate,
+                        sprintDate: sprintDateApi || localRef?.sprintDate || null,
                         statut: localRef?.statut || 'programme'
                     };
                 });
