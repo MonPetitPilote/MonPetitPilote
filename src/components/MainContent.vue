@@ -11,30 +11,7 @@
         @lock-change="gridStore.setLocked($event)"
       />
 
-      <div
-        class="section-pole"
-        style="
-          margin-top: 20px;
-          background: #222c43;
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid #00d2d3;
-        "
-      >
-        <label
-          for="select-pole"
-          style="
-            color: #00d2d3;
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-          "
-          >⚡ PRONO FLASH : QUI FERA LA POLE POSITION LE SAMEDI ?</label
-        >
-        <select id="select-pole"></select>
-      </div>
-
+      <PolePicker />
       <SprintGrid v-show="gridStore.sprintVisible" />
 
       <StartingGrid ref="startingGridRef" />
@@ -150,6 +127,7 @@ import SprintGrid from "./SprintGrid.vue";
 import TeamPicker from "./TeamPicker.vue";
 import BonusPredictions from "./BonusPredictions.vue";
 import RaceSelector from "./RaceSelector.vue";
+import PolePicker from "./PolePicker.vue";
 import { ref } from "vue";
 import { useGridStore } from "../stores";
 

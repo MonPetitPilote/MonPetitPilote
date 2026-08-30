@@ -23,6 +23,7 @@ export const useGridStore = defineStore("grid", () => {
   const isLocked = ref(false);
   const selectedCourse = ref(calculerProchainGP());
   const activeLeague = ref(CODE_LIGUE_MONDIAL);
+  const poleman = ref("");
   const leaguesList = ref<Array<{ code: string; nom: string }>>([{ code: CODE_LIGUE_MONDIAL, nom: "🌍 Mondial" }]);
 
   const ecuries = ref<Record<string, string>>({
@@ -68,6 +69,10 @@ export const useGridStore = defineStore("grid", () => {
     activeLeague.value = code;
   }
 
+  function setPoleman(nom: string) {
+    poleman.value = nom;
+  }
+
   function setLeaguesList(nouvelleListe: Array<{ code: string; nom: string }>) {
     leaguesList.value = nouvelleListe;
   }
@@ -104,6 +109,7 @@ export const useGridStore = defineStore("grid", () => {
     sprintVisible, setSprintVisible,
     isLocked, setLocked,
     selectedCourse, setSelectedCourse,
+    poleman, setPoleman,
     activeLeague, setActiveLeague,
     leaguesList, setLeaguesList,
     ecuries, setEcurie, setEcuries, premiereEcurieManquante,

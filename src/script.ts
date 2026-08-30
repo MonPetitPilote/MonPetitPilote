@@ -51,10 +51,6 @@ let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
 let membresLigueActive: Set<string> | null = null;
 let derniereStatsSaison: StatistiquesSaison | null = null;
 
-// #select-course et #select-ligue sont désormais gérés par RaceSelector.vue (via gridStore).
-// #select-pole reste en DOM natif pour l'instant.
-const selectPole = document.getElementById('select-pole') as HTMLSelectElement | null;
-
 // ==========================================
 // 2. GESTION AUTHENTIFICATION & PROFIL
 // ==========================================
@@ -85,17 +81,6 @@ function gererAffichageSectionSprint(): void {
     gridStore.setSprintVisible(aUnSprint);
 }
 
-function initialiserPolePosition(): void {
-    if (!selectPole) return;
-    selectPole.innerHTML = '<option value="">-- Sélectionne ton poleman --</option>';
-    pilotesData.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.nom;
-        opt.innerText = p.nom;
-        selectPole.appendChild(opt);
-    });
-}
-
 async function chargerPronosticsUtilisateur(): Promise<void> {
     if (!utilisateurActuel) return;
     const courseId = gridStore.selectedCourse;
@@ -105,8 +90,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
 
     // Réinitialisation de la grille Top 10 (gérée par StartingGrid.vue via gridStore)
     gridStore.setTop10(Array(10).fill(""));
-    if (selectPole) selectPole.value = "";
-
+    gridStore.setPoleman("");
     // Réinitialisation de la grille Sprint Top 5
     for (let i = 1; i <= 5; i++) {
         const s = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
@@ -127,8 +111,7 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
             if (s) { s.value = nom; mettreAJourDesignSlotSprint(idx + 1, nom); }
         });
 
-        if (selectPole && data.poleman) selectPole.value = data.poleman;
-
+        if (data.poleman) gridStore.setPoleman(data.poleman);
         const ecuriesTop = data.ecuriesTop || [];
         const ecuriesFlop = data.ecuriesFlop || [];
         gridStore.setEcuries({ top: ecuriesTop, flop: ecuriesFlop });
@@ -174,7 +157,7 @@ document.getElementById('btn-valider')?.addEventListener('click', async () => {
         course: courseId,
         classementPilotes: top10Selection,
         classementSprint: aUnSprint ? top5SprintSelection : [],
-        poleman: selectPole?.value || "",
+        poleman: gridStore.poleman || "",
         ecuriesTop: [gridStore.ecuries["ecurie-top-1"], gridStore.ecuries["ecurie-top-2"]],
         ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
         predictionsBonus: { ...gridStore.bonusPredictions },
@@ -273,7 +256,6 @@ watch(() => gridStore.activeLeague, async (nouveauCode, ancienCode) => {
 // 'lock-change' -> gridStore.setLocked(). Ici on applique juste l'état
 // aux éléments encore en DOM natif (select-pole, btn-valider).
 watch(() => gridStore.isLocked, (verrouille) => {
-    if (selectPole) selectPole.disabled = verrouille;
     const btnValider = document.getElementById('btn-valider') as HTMLButtonElement | null;
     if (btnValider) {
         btnValider.disabled = verrouille;
@@ -286,7 +268,6 @@ watch(() => gridStore.isLocked, (verrouille) => {
 // 8. INITIALISATION AU DÉMARRAGE
 // ==========================================
 afficherEtatLigueDeconnecte();
-initialiserPolePosition();
 creerLaGrilleSprintTV();
 gererAffichageSectionSprint();
 
