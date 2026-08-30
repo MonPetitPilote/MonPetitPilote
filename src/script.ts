@@ -193,15 +193,6 @@ async function chargerClassementGeneral(): Promise<void> {
     }
 }
 
-// Modal Voir le prono d'un ami
-document.getElementById('btn-fermer-prono-ami')?.addEventListener('click', () => {
-    const modale = document.getElementById('modale-prono-ami');
-    if (modale) modale.style.display = 'none';
-});
-window.addEventListener('click', (e) => {
-    const modale = document.getElementById('modale-prono-ami');
-    if (e.target === modale) modale.style.display = 'none';
-});
 
 // ==========================================
 // 5. GESTION DES LIGUES

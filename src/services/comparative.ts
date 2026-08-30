@@ -1,6 +1,7 @@
 import { doc, getDoc, type Firestore } from "firebase/firestore";
 import { calendrier2026, trouverPiloteLocalParNom, nomsCorrespondentLocal, type PronosticDoc, type BonusReelData } from "../utils";
 import { construireComparatifBonusHtml } from "./bonus";
+import { useGridStore } from "../stores";
 
 // Construit le HTML du comparatif "prono vs résultat réel" pour un pronostic donné.
 export async function construireComparatifHtml(db: Firestore, data: Partial<PronosticDoc> & Record<string, any>): Promise<string> {
@@ -202,11 +203,10 @@ export async function construireComparatifHtml(db: Firestore, data: Partial<Pron
 
 // Affiche dans une modale le prono d'un ami
 export async function voirPronoJoueur(db: Firestore, uid: string, pseudo: string, courseId: string, verrouille: boolean): Promise<void> {
-    const modale = document.getElementById('modale-prono-ami');
     const zone = document.getElementById('zone-prono-ami');
-    if (!modale || !zone) return;
+    if (!zone) return;
 
-    modale.style.display = 'flex';
+    useGridStore().setFriendModalVisible(true);
     const round = parseInt((courseId || "").split('/')[1], 10);
     const gpInfo = calendrier2026.find(g => g.round === round);
     const nomGP = gpInfo ? gpInfo.nom : courseId;
