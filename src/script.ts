@@ -15,7 +15,8 @@ import {
     controlerDoublonsSprint,
     creerLaGrilleSprintTV,
     estWeekendSprint,
-    synchroniserCalendrierDynamique
+    synchroniserCalendrierDynamique,
+    getCalendrierActuel
 } from "./services";
 
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -50,6 +51,7 @@ let utilisateurActuel: any = null;
 let ligueActiveActuelle: string = CODE_LIGUE_MONDIAL;
 let membresLigueActive: Set<string> | null = null;
 let derniereStatsSaison: StatistiquesSaison | null = null;
+let selectionCourseModifieeParUtilisateur = false;
 
 // ==========================================
 // 2. GESTION AUTHENTIFICATION & PROFIL
@@ -79,6 +81,15 @@ function gererAffichageSectionSprint(): void {
     const courseId = gridStore.selectedCourse;
     const aUnSprint = estWeekendSprint(courseId);
     gridStore.setSprintVisible(aUnSprint);
+}
+
+// Recalcule le "prochain GP à venir" à partir du calendrier actuellement connu
+// (statique au tout premier rendu, puis réel une fois synchroniserCalendrierDynamique terminé).
+function calculerProchainGP(): string {
+    const aujourdhui = new Date();
+    const calendrier = getCalendrierActuel();
+    const prochain = calendrier.find(gp => new Date(gp.date) >= aujourdhui && gp.statut !== 'annule');
+    return prochain ? `2026/${prochain.round}` : "2026/1";
 }
 
 async function chargerPronosticsUtilisateur(): Promise<void> {
@@ -262,12 +273,31 @@ afficherEtatLigueDeconnecte();
 creerLaGrilleSprintTV();
 gererAffichageSectionSprint();
 
-// Synchronisation asynchrone du calendrier (Firestore / API OpenF1)
-synchroniserCalendrierDynamique(dbModerne).catch(err => console.warn("Sync calendrier:", err));
-
-// Réagit aux changements de Grand Prix sélectionné (déclenchés par RaceSelector.vue)
+// Détecte si l'utilisateur change lui-même de GP, pour ne plus jamais
+// écraser son choix après une synchro (voir plus bas).
+let premierChangementIgnore = false;
 watch(() => gridStore.selectedCourse, () => {
+    if (!premierChangementIgnore) {
+        // Le tout premier "changement" correspond à l'initialisation du store, pas un vrai choix utilisateur.
+        premierChangementIgnore = true;
+    } else {
+        selectionCourseModifieeParUtilisateur = true;
+    }
     gererAffichageSectionSprint();
     chargerPronosticsUtilisateur();
     chargerClassementGeneral();
 });
+
+// Synchronisation asynchrone du calendrier (Firestore / API F1)
+synchroniserCalendrierDynamique(dbModerne)
+    .then(() => {
+        // Une fois le vrai calendrier connu, on recalcule le "prochain GP" par défaut,
+        // sauf si l'utilisateur a déjà changé la sélection lui-même entre-temps.
+        if (!selectionCourseModifieeParUtilisateur) {
+            const prochainGpReel = calculerProchainGP();
+            if (prochainGpReel !== gridStore.selectedCourse) {
+                gridStore.setSelectedCourse(prochainGpReel);
+            }
+        }
+    })
+    .catch(err => console.warn("Sync calendrier:", err));
