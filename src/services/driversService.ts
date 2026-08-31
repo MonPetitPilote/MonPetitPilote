@@ -275,12 +275,24 @@ export async function synchroniserPilotesGP(round?: number, db?: Firestore): Pro
             const data = await res.json();
             const drivers = data?.MRData?.DriverTable?.Drivers;
             if (Array.isArray(drivers) && drivers.length >= 10) {
-                const list = drivers.map((d: any) => {
+                // On ne garde que les pilotes titulaires connus (présents dans PILOTES_METADATA),
+                // ce qui exclut automatiquement les pilotes de réserve/essais que l'API peut inclure.
+                const driversConnus = drivers.filter((d: any) => {
                     const nomComplet = `${d.givenName} ${d.familyName}`;
-                    return resoudrePilote(nomComplet);
+                    return Boolean(PILOTES_METADATA[clean(nomComplet)]);
                 });
-                pilotesActifs = list;
-                return pilotesActifs;
+
+                // Filet de sécurité : si trop peu de correspondances (ex: saison pas encore répertoriée
+                // dans PILOTES_METADATA, ou souci de format côté API), on garde la liste actuelle plutôt
+                // que d'afficher une grille incomplète ou faussée.
+                if (driversConnus.length >= 18) {
+                    const list = driversConnus.map((d: any) => {
+                        const nomComplet = `${d.givenName} ${d.familyName}`;
+                        return resoudrePilote(nomComplet);
+                    });
+                    pilotesActifs = list;
+                    return pilotesActifs;
+                }
             }
         }
     } catch (_) {}
