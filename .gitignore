@@ -1,2 +1,7 @@
 node_modules
+distnode_modules
 dist
+.env
+
+.vercel
+.env*

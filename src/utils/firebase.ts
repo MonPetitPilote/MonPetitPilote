@@ -1,46 +1,32 @@
-import { type FirebaseApp, initializeApp } from "firebase/app";
-import { getAuth as firebaseGetAuth } from "firebase/auth";
-import {
-  doc,
-  getDoc as getFirestoreDoc,
-  getFirestore,
-} from "firebase/firestore";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth as firebaseGetAuth, type Auth } from "firebase/auth";
+import { getFirestore as firebaseGetFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDw4nHhz1JI9NsVipX4Dw3hu_AY_WyBDj4",
-  authDomain: "monpetitpilote.firebaseapp.com",
-  projectId: "monpetitpilote",
-  storageBucket: "monpetitpilote.firebasestorage.app",
-  messagingSenderId: "267371118460",
-  appId: "1:267371118460:web:af95dad6fa4368fdffaef9",
-  measurementId: "G-TY047XHDXW",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-let firebase: FirebaseApp;
+let firebaseApp: FirebaseApp | undefined;
 
-function initFirebaseIfNeeded() {
-  if (!firebase) {
-    firebase = initializeApp(firebaseConfig);
+function initFirebaseIfNeeded(): FirebaseApp {
+  if (!firebaseApp) {
+    firebaseApp = initializeApp(firebaseConfig);
   }
+  return firebaseApp;
 }
 
-function getDb() {
-  initFirebaseIfNeeded();
-  return getFirestore(firebase);
+export function getAuth(): Auth {
+  const app = initFirebaseIfNeeded();
+  return firebaseGetAuth(app);
 }
 
-export function getAuth() {
-  initFirebaseIfNeeded();
-  return firebaseGetAuth(firebase);
-}
-
-export async function getDoc(path: string, pathSegment: string) {
-  const docRef = doc(getDb(), path, pathSegment);
-  const xx = await getFirestoreDoc(docRef);
-  if (xx.exists()) {
-    return xx.data();
-  }
-  const error = `Doc doesnt exist for ${path} ${pathSegment}`;
-  console.error(error);
-  throw new Error(error);
+export function getFirestore(): Firestore {
+  const app = initFirebaseIfNeeded();
+  return firebaseGetFirestore(app);
 }

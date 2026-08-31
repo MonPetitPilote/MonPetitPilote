@@ -477,3 +477,64 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     border-bottom: 1px dashed #2d3954;
     font-size: 0.9rem;
 }
+
+/* Grille TV Responsive */
+.grid-slot {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+}
+
+@media (max-width: 576px) {
+    #grille-pronos {
+        display: block !important;
+        width: 100% !important;
+    }
+    .grid-slot {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0px !important;
+        margin-bottom: 18px !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .grid-pos-badge {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 28px !important;
+        font-size: 13px !important;
+        border-radius: 8px 8px 0 0 !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        text-align: center !important;
+    }
+    .grid-card-f1 {
+        width: 100% !important;
+        border-radius: 0 0 8px 8px !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+    }
+    .grid-select-paddock {
+        font-size: 14px !important;
+    }
+    .driver-team-text {
+        font-size: 10px !important;
+    }
+    .driver-num-text {
+        font-size: 18px !important;
+    }
+    .driver-portrait-container {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    .car-bg-image {
+        max-width: 65% !important;
+        height: 120% !important;
+    }
+}
+

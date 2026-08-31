@@ -1,23 +1,35 @@
 <template>
   <NotificationsComponent />
   <div class="container">
-    <Logo />
-    <TopHeader @open-connection-modal="isConnectionModalOpen = true" />
-    <WorkspaceProfile />
-    <MainContent />
+    <Logo @vers-pronos="workspaceProfileRef?.basculerVersPronos()" />
+    <TopHeader
+      @open-connection-modal="isConnectionModalOpen = true"
+      @open-rules-modal="isRulesModalOpen = true"
+      @vers-profil="workspaceProfileRef?.basculerVersProfil()"
+    />
+    <WorkspaceProfile ref="workspaceProfileRef" />
+    <MainContent v-show="!workspaceProfileRef?.profilVisible" @open-league-modal="isLeagueModalOpen = true" />
     <ConnectionModal
       v-show="isConnectionModalOpen"
       @close-connection-modal="isConnectionModalOpen = false"
     />
     <FriendModal />
-    <LeagueModal />
-    <RulesModal />
+    <LeagueModal
+      v-show="isLeagueModalOpen"
+      @close="isLeagueModalOpen = false"
+    />
+    <RulesModal
+      v-show="isRulesModalOpen"
+      @close="isRulesModalOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "./utils/firebase";
+import { useUserStore } from "./stores";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
@@ -27,17 +39,23 @@ import NotificationsComponent from "./components/NotificationsComponent.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
-import { getAuth } from "./utils/firebase.ts";
-import { loadForecast } from "./services/users.ts";
-import { useUserStore } from "./stores/userStore.ts";
 
 const isConnectionModalOpen = ref(false);
-const store = useUserStore()
+const isLeagueModalOpen = ref(false);
+const isRulesModalOpen = ref(false);
+const workspaceProfileRef = ref<InstanceType<typeof WorkspaceProfile> | null>(null);
 
-onAuthStateChanged(getAuth(), (user) => {
-  if (user) {
-    store.setUser(user)
-    loadForecast(user)
-  }
+const userStore = useUserStore();
+let unsubscribeAuth: (() => void) | null = null;
+
+onMounted(() => {
+  const auth = getAuth();
+  unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    userStore.setUser(firebaseUser);
+  });
+});
+
+onUnmounted(() => {
+  if (unsubscribeAuth) unsubscribeAuth();
 });
 </script>

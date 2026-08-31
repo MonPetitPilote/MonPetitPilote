@@ -1,18 +1,8 @@
 <template>
   <div
     id="modale-reglement"
-    style="
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    "
+    class="modal-back"
+    @click.self="$emit('close')"
   >
     <div
       style="
@@ -43,6 +33,7 @@
           font-size: 1.2rem;
           cursor: pointer;
         "
+        @click="$emit('close')"
       >
         ❌
       </button>
@@ -126,33 +117,32 @@
 
       <div style="margin-bottom: 15px">
         <h4 style="color: #ff8000; margin: 0 0 5px 0; font-size: 1.05rem">
-          3. Écuries (Top / Flop)
+          3. Pronostics Écuries (Top / Flop) 🏎️
         </h4>
         <p style="margin: 0 0 5px 0; font-size: 0.9rem">
-          Les bonus/malus dépendent exclusivement du constructeur/écurie du
-          pilote qui remporte la course (P1) :
+          Les écuries sont réparties dynamiquement selon le <strong>classement constructeurs officiel</strong> avant chaque GP :
         </p>
-        <ul
-          style="
-            margin: 0;
-            padding-left: 20px;
-            font-size: 0.85rem;
-            color: #e2e8f0;
-          "
-        >
-          <li style="margin-bottom: 3px">
-            Si votre choix <strong>Écurie Top 1</strong> gagne la course :
-            <strong style="color: #22c55e">+5 points</strong>.
-          </li>
-          <li style="margin-bottom: 3px">
-            Si votre choix <strong>Écurie Top 2</strong> gagne la course :
-            <strong style="color: #22c55e">+2 points</strong>.
-          </li>
-          <li>
-            Si l'une de vos écuries en <strong>Flop</strong> gagne finalement la
-            course : <strong style="color: #ef4444">-5 points</strong> (mauvaise
-            pioche).
-          </li>
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.82rem; border-left: 3px solid #ff8000;">
+          <strong>🏆 Cadors :</strong> Top 4 du championnat | 
+          <strong>🛡️ Milieu :</strong> 5e à 7e place | 
+          <strong>⚡ Outsiders :</strong> 8e à 11e place
+        </div>
+        <p style="margin: 0 0 4px 0; font-size: 0.85rem; color: #38bdf8; font-weight: bold;">
+          🚀 Écuries Top (Top 1 & Top 2) — Par ordre de priorité :
+        </p>
+        <ul style="margin: 0 0 10px 0; padding-left: 20px; font-size: 0.82rem; color: #e2e8f0; list-style-type: square;">
+          <li><strong style="color: #22c55e">Prio 1 (Outsiders) :</strong> <strong>+6 pts</strong> si 2 pilotes dans le Top 10 | <strong>+4 pts</strong> si au moins 1 pilote dans le Top 10.</li>
+          <li><strong style="color: #22c55e">Prio 2 (Milieu) :</strong> <strong>+5 pts</strong> si 2 pilotes dans le Top 10 | <strong>+3 pts</strong> si au moins 1 pilote dans le Top 6 / Podium.</li>
+          <li><strong style="color: #22c55e">Prio 3 (Cadors) :</strong> <strong>+5 pts</strong> si victoire P1 (+3 pts pour Top 2) | <strong>+3 pts</strong> si 2 voitures dans le Top 5 du GP.</li>
+        </ul>
+        <p style="margin: 0 0 4px 0; font-size: 0.85rem; color: #f87171; font-weight: bold;">
+          ⚠️ Écuries Flop (Flop 1 & Flop 2) — Par ordre de priorité :
+        </p>
+        <ul style="margin: 0; padding-left: 20px; font-size: 0.82rem; color: #e2e8f0; list-style-type: square;">
+          <li><strong style="color: #22c55e">Prio 1 (Cadors) :</strong> <strong>+5 pts</strong> si 0 point ou double DNF | <strong>+4 pts</strong> si 1 DNF et meilleur pilote P7 ou pire | <strong>+3 pts</strong> si 0 pilote dans le Top 5.</li>
+          <li><strong style="color: #22c55e">Prio 2 (Milieu) :</strong> <strong>+3 pts</strong> si 0 point marqué sur le GP.</li>
+          <li><strong style="color: #22c55e">Prio 3 (Outsiders) :</strong> <strong>+2 pts</strong> si 0 point marqué sur le GP.</li>
+          <li><strong style="color: #ef4444">Pénalité Ultime :</strong> <strong>-4 pts</strong> si l'écurie en Flop gagne la course (P1) ou monte sur le podium.</li>
         </ul>
       </div>
 
@@ -264,3 +254,7 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+defineEmits(["close"]);
+</script>
