@@ -64,7 +64,7 @@ const response = await fetch("https://api.jolpi.ca/ergast/f1/2026.json", {      
                         circuit: r.Circuit?.circuitName || localRef?.circuit || "Circuit Officiel",
                         pays: r.Circuit?.Location?.country || localRef?.pays || "",
                         date: r.date || localRef?.date || "2026-12-31",
-                        hasSprint: (localRef?.hasSprint ?? false) || hasSprintApi,
+                        hasSprint: hasSprintApi,
                         sprintDate: sprintDateApi || localRef?.sprintDate || null,
                         statut: localRef?.statut || "programme",
                     };
