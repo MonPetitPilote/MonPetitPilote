@@ -24,6 +24,7 @@ export const useGridStore = defineStore("grid", () => {
   const selectedCourse = ref(calculerProchainGP());
   const activeLeague = ref(CODE_LIGUE_MONDIAL);
   const poleman = ref("");
+  const joker = ref(false);
   const friendModalVisible = ref(false);
   const leaguesList = ref<Array<{ code: string; nom: string }>>([{ code: CODE_LIGUE_MONDIAL, nom: "🌍 Mondial" }]);
 
@@ -74,6 +75,10 @@ export const useGridStore = defineStore("grid", () => {
     poleman.value = nom;
   }
 
+  function setJoker(valeur: boolean) {
+    joker.value = valeur;
+  }
+
   function setFriendModalVisible(valeur: boolean) {
     friendModalVisible.value = valeur;
   }
@@ -104,21 +109,62 @@ export const useGridStore = defineStore("grid", () => {
     const d = donnees || {};
     bonusPredictions.safetyCar = d.safetyCar !== undefined ? d.safetyCar : null;
     bonusPredictions.drapeauRouge = d.drapeauRouge !== undefined ? d.drapeauRouge : null;
-    bonusPredictions.nombreDNF = (d.nombreDNF !== undefined && d.nombreDNF !== null) ? Number(d.nombreDNF) : null;
+    bonusPredictions.nombreDNF = (d.nombreDNF !== undefined && d.nombreDNF !== null && (d.nombreDNF as any) !== '') ? Number(d.nombreDNF) : null;
     bonusPredictions.polemanPodium = d.polemanPodium !== undefined ? d.polemanPodium : null;
   }
 
+  // --- Propriétés calculées pour la complétude du pronostic ---
+  const isPoleComplete = computed(() => !!poleman.value && poleman.value.trim() !== "");
+  const nbTop10Remplis = computed(() => top10.value.filter(p => !!p && p.trim() !== "").length);
+  const isTop10Complete = computed(() => nbTop10Remplis.value === 10);
+  
+  const nbSprintRemplis = computed(() => top5Sprint.value.filter(p => !!p && p.trim() !== "").length);
+  const isSprintComplete = computed(() => !sprintVisible.value || nbSprintRemplis.value === 5);
+
+  const nbEcuriesRemplies = computed(() => Object.values(ecuries.value).filter(e => !!e && e.trim() !== "").length);
+  const isEcuriesComplete = computed(() => nbEcuriesRemplies.value === 4);
+
+  const nbBonusRemplis = computed(() => {
+    let count = 0;
+    if (bonusPredictions.safetyCar !== null) count++;
+    if (bonusPredictions.drapeauRouge !== null) count++;
+    if (bonusPredictions.nombreDNF !== null && bonusPredictions.nombreDNF !== undefined && (bonusPredictions.nombreDNF as any) !== '' && Number(bonusPredictions.nombreDNF) >= 0) count++;
+    if (bonusPredictions.polemanPodium !== null) count++;
+    return count;
+  });
+  const isBonusComplete = computed(() => nbBonusRemplis.value === 4);
+
+  const estPronoComplet = computed(() => {
+    return isPoleComplete.value &&
+      isTop10Complete.value &&
+      isSprintComplete.value &&
+      isEcuriesComplete.value &&
+      isBonusComplete.value;
+  });
+
+  const elementsManquants = computed<string[]>(() => {
+    const manquants: string[] = [];
+    if (!isPoleComplete.value) manquants.push("Pole position");
+    if (!isTop10Complete.value) manquants.push(`Grille Top 10 GP (${nbTop10Remplis.value}/10)`);
+    if (sprintVisible.value && !isSprintComplete.value) manquants.push(`Grille Top 5 Sprint (${nbSprintRemplis.value}/5)`);
+    if (!isEcuriesComplete.value) manquants.push(`Écuries Top / Flop (${nbEcuriesRemplies.value}/4)`);
+    if (!isBonusComplete.value) manquants.push(`Prédictions bonus (${nbBonusRemplis.value}/4)`);
+    return manquants;
+  });
+
   return {
-    top10, setTop10,
-    top5Sprint, setTop5Sprint,
+    top10, setTop10, nbTop10Remplis, isTop10Complete,
+    top5Sprint, setTop5Sprint, nbSprintRemplis, isSprintComplete,
     sprintVisible, setSprintVisible,
     isLocked, setLocked,
     selectedCourse, setSelectedCourse,
-    poleman, setPoleman,
+    poleman, setPoleman, isPoleComplete,
+    joker, setJoker,
     friendModalVisible, setFriendModalVisible,
     activeLeague, setActiveLeague,
     leaguesList, setLeaguesList,
-    ecuries, setEcurie, setEcuries, premiereEcurieManquante,
-    bonusPredictions, setBonusPredictions
+    ecuries, setEcurie, setEcuries, premiereEcurieManquante, nbEcuriesRemplies, isEcuriesComplete,
+    bonusPredictions, setBonusPredictions, nbBonusRemplis, isBonusComplete,
+    estPronoComplet, elementsManquants
   };
 });

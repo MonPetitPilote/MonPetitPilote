@@ -13,41 +13,14 @@
 
       <PolePicker />
       <SprintGrid v-show="gridStore.sprintVisible" />
-
       <StartingGrid ref="startingGridRef" />
-
-      <div
-        style="
-          margin: 20px 0;
-          background: #1b2436;
-          padding: 12px;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          border: 1px dashed #ff8000;
-        "
-      >
-        <input
-          type="checkbox"
-          id="check-joker"
-          style="transform: scale(1.4); cursor: pointer; flex-shrink: 0"
-        />
-        <span
-          id="joker-status-text"
-          style="color: #ff8000; font-weight: bold; font-size: 0.9rem"
-          >🚀 Activer mon unique Joker (+300% de points !)</span
-        >
-      </div>
-
-      <button id="btn-valider">🏁 VALIDER MES PRONOSTICS</button>
     </div>
 
     <div
       class="colonne-droite"
       style="display: flex; flex-direction: column; gap: 30px"
     >
-      <FriendsRanking class="ranking-desktop-only" />
+      <FriendsRanking />
       <div
         class="section-top-flop"
         style="
@@ -117,6 +90,11 @@
       </div>
       <BonusPredictions :is-locked="gridStore.isLocked" />
     </div>
+
+    <!-- Section Validation : Positionnée après tous les blocs de pronos (sur PC comme sur Mobile) -->
+    <div class="section-validation-complete">
+      <ValidationButton :is-locked="gridStore.isLocked" />
+    </div>
   </div>
 </template>
 
@@ -128,6 +106,7 @@ import TeamPicker from "./TeamPicker.vue";
 import BonusPredictions from "./BonusPredictions.vue";
 import RaceSelector from "./RaceSelector.vue";
 import PolePicker from "./PolePicker.vue";
+import ValidationButton from "./ValidationButton.vue";
 import { ref } from "vue";
 import { useGridStore } from "../stores";
 
@@ -138,3 +117,10 @@ defineExpose({ startingGridRef });
 
 defineEmits(["open-league-modal"]);
 </script>
+
+<style scoped>
+.section-validation-complete {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+</style>

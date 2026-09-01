@@ -101,7 +101,9 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
 
     // Réinitialisation de la grille Top 10 (gérée par StartingGrid.vue via gridStore)
     gridStore.setTop10(Array(10).fill(""));
+    gridStore.setTop5Sprint(Array(5).fill(""));
     gridStore.setPoleman("");
+    gridStore.setJoker(false);
     // Réinitialisation de la grille Sprint Top 5
     for (let i = 1; i <= 5; i++) {
         const s = document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null;
@@ -117,68 +119,26 @@ async function chargerPronosticsUtilisateur(): Promise<void> {
         }
 
         // Chargement du prono Sprint s'il existe
+        if (data.classementSprint && data.classementSprint.length > 0) {
+            gridStore.setTop5Sprint(data.classementSprint);
+        }
         (data.classementSprint || []).forEach((nom: string, idx: number) => {
             const s = document.getElementById(`select-sprint-p${idx + 1}`) as HTMLSelectElement | null;
             if (s) { s.value = nom; mettreAJourDesignSlotSprint(idx + 1, nom); }
         });
 
         if (data.poleman) gridStore.setPoleman(data.poleman);
+        gridStore.setJoker(!!data.joker);
         const ecuriesTop = data.ecuriesTop || [];
         const ecuriesFlop = data.ecuriesFlop || [];
         gridStore.setEcuries({ top: ecuriesTop, flop: ecuriesFlop });
         gridStore.setBonusPredictions(data.predictionsBonus);
     } else {
         gridStore.setBonusPredictions(null);
+        gridStore.setJoker(false);
     }
     controlerDoublonsSprint();
 }
-
-// Validation du pronostic
-document.getElementById('btn-valider')?.addEventListener('click', async () => {
-    if (!utilisateurActuel) return afficherNotification("Tu dois être connecté !", "erreur");
-    const courseId = gridStore.selectedCourse;
-
-    if (courseEstVerrouillee(courseId)) {
-        return afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
-    }
-
-    const top10Selection = gridStore.top10;
-    for (let i = 0; i < 10; i++) {
-        if (!top10Selection[i]) return afficherNotification(`Il manque la position P${i + 1} du GP !`, "erreur");
-    }
-
-    if (gridStore.premiereEcurieManquante) {
-        return afficherNotification(`Il manque le choix "${gridStore.premiereEcurieManquante}" !`, "erreur");
-    }
-
-    // Récupération de la sélection Sprint si applicable
-    const top5SprintSelection: string[] = [];
-    const aUnSprint = estWeekendSprint(courseId);
-    if (aUnSprint) {
-        for (let i = 1; i <= 5; i++) {
-            const val = (document.getElementById(`select-sprint-p${i}`) as HTMLSelectElement | null)?.value;
-            if (!val) return afficherNotification(`Il manque la position S${i} de la Course Sprint !`, "erreur");
-            top5SprintSelection.push(val);
-        }
-    }
-
-    const pronoData: Record<string, any> = {
-        uidJoueur: utilisateurActuel.uid,
-        pseudo: utilisateurActuel.displayName || utilisateurActuel.email,
-        course: courseId,
-        classementPilotes: top10Selection,
-        classementSprint: aUnSprint ? top5SprintSelection : [],
-        poleman: gridStore.poleman || "",
-        ecuriesTop: [gridStore.ecuries["ecurie-top-1"], gridStore.ecuries["ecurie-top-2"]],
-        ecuriesFlop: [gridStore.ecuries["ecurie-flop-1"], gridStore.ecuries["ecurie-flop-2"]],
-        predictionsBonus: { ...gridStore.bonusPredictions },
-        dateEnregistrement: new Date()
-    };
-
-    await setDoc(doc(dbModerne, "pronostics", `${utilisateurActuel.uid}_${courseId.replace('/', '_')}`), pronoData, { merge: true });
-    afficherNotification(aUnSprint ? "🏁 Grille GP, Course Sprint et Écuries enregistrées avec succès !" : "🏁 Grille et Écuries enregistrées avec succès !", "succes");
-    chargerClassementGeneral();
-});
 
 // Bouton Grille Aléatoire Sprint Top 5
 document.getElementById('btn-sprint-aleatoire')?.addEventListener('click', () => {
@@ -254,17 +214,8 @@ watch(() => gridStore.activeLeague, async (nouveauCode, ancienCode) => {
 // ==========================================
 // 7. VERROUILLAGE (piloté par RaceSelector.vue via gridStore.isLocked)
 // ==========================================
-// RaceSelector.vue calcule lui-même le verrouillage (date du GP) et émet
-// 'lock-change' -> gridStore.setLocked(). Ici on applique juste l'état
-// aux éléments encore en DOM natif (select-pole, btn-valider).
-watch(() => gridStore.isLocked, (verrouille) => {
-    const btnValider = document.getElementById('btn-valider') as HTMLButtonElement | null;
-    if (btnValider) {
-        btnValider.disabled = verrouille;
-        btnValider.style.opacity = verrouille ? '0.5' : '1';
-        btnValider.style.cursor = verrouille ? 'not-allowed' : 'pointer';
-    }
-}, { immediate: true });
+// RaceSelector.vue calcule lui-même le verrouillage (date du GP) et met à jour
+// gridStore.isLocked. Les composants Vue réagissent automatiquement.
 
 // ==========================================
 // 8. INITIALISATION AU DÉMARRAGE
