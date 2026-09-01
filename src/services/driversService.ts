@@ -282,10 +282,8 @@ export async function synchroniserPilotesGP(round?: number, db?: Firestore): Pro
                     return Boolean(PILOTES_METADATA[clean(nomComplet)]);
                 });
 
-                // Filet de sécurité : si trop peu de correspondances (ex: saison pas encore répertoriée
-                // dans PILOTES_METADATA, ou souci de format côté API), on garde la liste actuelle plutôt
-                // que d'afficher une grille incomplète ou faussée.
-                if (driversConnus.length >= 18) {
+                // Filet de sécurité : il faut impérativement au moins les 22 pilotes titulaires des 11 écuries officielles 2026
+                if (driversConnus.length >= 22) {
                     const list = driversConnus.map((d: any) => {
                         const nomComplet = `${d.givenName} ${d.familyName}`;
                         return resoudrePilote(nomComplet);
@@ -297,5 +295,8 @@ export async function synchroniserPilotesGP(round?: number, db?: Firestore): Pro
         }
     } catch (_) {}
 
+    if (!pilotesActifs || pilotesActifs.length < 22) {
+        pilotesActifs = genererPilotesInitiaux();
+    }
     return pilotesActifs;
 }

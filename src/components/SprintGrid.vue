@@ -95,12 +95,12 @@
             >
               <option value="">👉 CHOISIS TON PILOTE SPRINT</option>
               <option
-                v-for="p in pilotesData"
+                v-for="p in listePilotesAffichee"
                 :key="p.nom"
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
               >
-                {{ p.nom }}
+                {{ p.nom }} ({{ p.ecurie }})
               </option>
             </select>
 
@@ -121,11 +121,9 @@
             </div>
           </div>
 
-          <div
-            v-if="getPiloteDriverImg(selections[pos - 1])"
-            class="driver-portrait-container-sprint"
-          >
+          <div class="driver-portrait-container-sprint">
             <img
+              v-if="getPiloteDriverImg(selections[pos - 1])"
               :id="`img-sprint-p${pos}`"
               :src="getPiloteDriverImg(selections[pos - 1])"
               class="driver-portrait-sprint"
@@ -165,14 +163,14 @@ const selections = gridStore.top5Sprint; // même référence réactive que le s
 const listePilotes = ref<Pilote[]>([...pilotesData]);
 
 const listePilotesAffichee = computed(() => {
-  return listePilotes.value.length > 0 ? listePilotes.value : pilotesData;
+  return listePilotes.value.length >= 22 ? listePilotes.value : pilotesData;
 });
 
 onMounted(async () => {
   try {
     const db = getFirestore();
     const pilotesSync = await synchroniserPilotesGP(undefined, db);
-    if (pilotesSync && pilotesSync.length > 0) {
+    if (pilotesSync && pilotesSync.length >= 22) {
       listePilotes.value = pilotesSync;
     }
   } catch (_) {}

@@ -27,7 +27,7 @@
       @change="gridStore.setPoleman(($event.target as HTMLSelectElement).value)"
     >
       <option value="">-- Sélectionne ton poleman --</option>
-      <option v-for="p in pilotesData" :key="p.nom" :value="p.nom">{{ p.nom }}</option>
+      <option v-for="p in pilotesData" :key="p.nom" :value="p.nom">{{ p.nom }} ({{ p.ecurie }})</option>
     </select>
   </div>
 </template>

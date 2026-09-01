@@ -1,20 +1,26 @@
 <template>
   <div class="section-grille-depart">
     <div class="grille-entete">
-      <h2 id="titre-grille" class="titre-grille">
-        🏆 TA GRILLE DE DÉPART TOP 10 :
-      </h2>
-      <button
-        id="btn-aleatoire"
-        type="button"
-        class="btn-aleatoire"
-        :disabled="isLocked"
-        @click="remplirGrilleAleatoire"
-      >
-        🎲 PRONO ALÉATOIRE
-      </button>
+      <div class="titre-grille-container">
+        <span class="badge-gp-pill">🏁 GRAND PRIX</span>
+        <h3 id="titre-grille" class="titre-grille">
+          🏆 TA GRILLE DE DÉPART TOP 10 :
+        </h3>
+      </div>
+      <div class="actions-grille">
+        <button
+          id="btn-aleatoire"
+          type="button"
+          class="btn-aleatoire"
+          :disabled="isLocked"
+          @click="remplirGrilleAleatoire"
+        >
+          🎲 PRONO ALÉATOIRE
+        </button>
+      </div>
     </div>
 
+    <!-- Grille des 10 positions -->
     <div id="grille-pronos" class="f1-starting-grid">
       <div
         v-for="pos in 10"
@@ -33,13 +39,15 @@
         <div
           :id="`card-f1-p${pos}`"
           class="grid-card-f1"
-          :style="{ borderLeft: getPiloteColor(selections[pos - 1]) ? `5px solid ${getPiloteColor(selections[pos - 1])}` : '1px solid #2f3e56' }"
+          :style="{
+            borderLeft: getPiloteColor(selections[pos - 1]) ? `5px solid ${getPiloteColor(selections[pos - 1])}` : '1px solid #2f3e56'
+          }"
         >
           <img
+            v-if="getPiloteCarImg(selections[pos - 1])"
             :id="`car-grid-p${pos}`"
             class="car-bg-image"
             :src="getPiloteCarImg(selections[pos - 1])"
-            :style="{ display: getPiloteCarImg(selections[pos - 1]) ? 'block' : 'none' }"
             alt="Monoplace F1"
           />
 
@@ -48,7 +56,7 @@
               <span
                 :id="`num-f1-p${pos}`"
                 class="driver-num-text"
-                :style="{ color: getPiloteColor(selections[pos - 1]) || 'rgba(255,255,255,0.15)' }"
+                :style="{ color: getPiloteColor(selections[pos - 1]) || 'rgba(255,255,255,0.2)' }"
               >
                 {{ getPiloteNumero(selections[pos - 1]) || '--' }}
               </span>
@@ -76,7 +84,7 @@
                 :value="p.nom"
                 :disabled="isPiloteAlreadySelected(p.nom, pos - 1)"
               >
-                {{ p.nom }}
+                {{ p.nom }} ({{ p.ecurie }})
               </option>
             </select>
 
@@ -97,11 +105,9 @@
             </div>
           </div>
 
-          <div
-            v-if="getPiloteDriverImg(selections[pos - 1])"
-            class="driver-portrait-container"
-          >
+          <div class="driver-portrait-container">
             <img
+              v-if="getPiloteDriverImg(selections[pos - 1])"
               :id="`img-grid-p${pos}`"
               :src="getPiloteDriverImg(selections[pos - 1])"
               class="driver-portrait"
@@ -115,13 +121,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
-import { pilotesData } from "../utils";
+import { computed, ref, onMounted } from "vue";
+import { pilotesData, type Pilote } from "../utils";
 import { resoudrePilote, TEAMS_CONFIG, synchroniserPilotesGP } from "../services/driversService";
-import { type Pilote } from "../utils/types";
 import { getFirestore } from "../utils/firebase";
 import { useGridStore } from "../stores";
-import { ref } from "vue";
 
 const props = defineProps({
   isLocked: {
@@ -131,19 +135,20 @@ const props = defineProps({
 });
 
 const gridStore = useGridStore();
-const selections = gridStore.top10; // même référence que le store : toute écriture ici met à jour le store directement
+const selections = gridStore.top10; // même référence réactive que le store
 
+// Toujours initialisé avec les 22 pilotes officiels
 const listePilotes = ref<Pilote[]>([...pilotesData]);
 
 const listePilotesAffichee = computed(() => {
-  return listePilotes.value.length > 0 ? listePilotes.value : pilotesData;
+  return listePilotes.value.length >= 22 ? listePilotes.value : pilotesData;
 });
 
 onMounted(async () => {
   try {
     const db = getFirestore();
     const pilotesSync = await synchroniserPilotesGP(undefined, db);
-    if (pilotesSync && pilotesSync.length > 0) {
+    if (pilotesSync && pilotesSync.length >= 22) {
       listePilotes.value = pilotesSync;
     }
   } catch (_) {}
@@ -154,51 +159,51 @@ function getPiloteData(nom?: string | null): Pilote | null {
   return listePilotes.value.find(p => p.nom === nom) || pilotesData.find(p => p.nom === nom) || resoudrePilote(nom);
 }
 
-function getPiloteColor(nom?: string | null) {
+function getPiloteColor(nom?: string | null): string | null {
   const p = getPiloteData(nom);
   return p ? p.couleur : null;
 }
 
-function getPiloteNumero(nom?: string | null) {
+function getPiloteNumero(nom?: string | null): string | null {
   const p = getPiloteData(nom);
   return p ? p.numero : null;
 }
 
-function getPilotePays(nom?: string | null) {
+function getPilotePays(nom?: string | null): string | null {
   const p = getPiloteData(nom);
   return p ? p.pays : null;
 }
 
-function getPiloteEcurie(nom?: string | null) {
+function getPiloteEcurie(nom?: string | null): string | null {
   const p = getPiloteData(nom);
   return p ? p.ecurie : null;
 }
 
-function getPiloteDriverImg(nom?: string | null) {
+function getPiloteDriverImg(nom?: string | null): string {
   const p = getPiloteData(nom);
   return p ? p.driverImg : "";
 }
 
-function getPiloteCarImg(nom?: string | null) {
+function getPiloteCarImg(nom?: string | null): string {
   const p = getPiloteData(nom);
   return p ? p.carImg : "";
 }
 
-function getPiloteLogoImg(nom?: string | null) {
+function getPiloteLogoImg(nom?: string | null): string {
   const p = getPiloteData(nom);
   if (!p || !p.ecurie) return "";
   return TEAMS_CONFIG[p.ecurie]?.logoImg || "";
 }
 
-function isPiloteAlreadySelected(nom: string, currentPosIndex: number) {
+function isPiloteAlreadySelected(nom: string, currentPosIndex: number): boolean {
   return selections.some((selectedName, idx) => idx !== currentPosIndex && selectedName === nom);
 }
 
-function onPiloteChange(posIndex: number, nomPilote: string) {
+function onPiloteChange(posIndex: number, nomPilote: string): void {
   selections[posIndex] = nomPilote;
 }
 
-function remplirGrilleAleatoire() {
+function remplirGrilleAleatoire(): void {
   if (props.isLocked) return;
   const source = listePilotesAffichee.value.length >= 10 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
@@ -209,27 +214,99 @@ function remplirGrilleAleatoire() {
 </script>
 
 <style scoped>
+.section-grille-depart {
+  background: linear-gradient(135deg, #131927 0%, #1a2236 100%);
+  border: 1px solid #28354f;
+  border-radius: 10px;
+  padding: 16px;
+  margin: 18px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.grille-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.titre-grille-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-gp-pill {
+  background: #e10600;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.titre-grille {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #f1f5f9;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.actions-grille {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-aleatoire {
+  background: linear-gradient(135deg, #2b3853 0%, #3a4b6f 100%);
+  color: white;
+  border: 1px solid #485c86;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-aleatoire:hover:not(:disabled) {
+  background: linear-gradient(135deg, #374667 0%, #4a5e8c 100%);
+  transform: translateY(-1px);
+}
+
+.btn-aleatoire:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.f1-starting-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .grid-slot {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  height: auto !important;
 }
 
 .grid-pos-badge {
-  min-width: 42px;
-  width: 42px;
-  height: 42px;
+  min-width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   border-radius: 8px;
   color: #fff;
   flex-shrink: 0;
@@ -239,84 +316,27 @@ function remplirGrilleAleatoire() {
 
 .grid-card-f1 {
   position: relative;
-  background: #1f293d;
-  border-radius: 8px;
-  padding: 8px 12px;
-  overflow: hidden;
+  background: #1e2640;
   display: flex;
   align-items: center;
   flex-grow: 1;
   min-width: 0;
-  min-height: 58px;
-  border: 1px solid #2f3e56;
+  border-radius: 8px;
+  padding: 6px 12px;
   transition: all 0.3s ease;
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .car-bg-image {
   position: absolute;
   right: 0;
-  bottom: -10px;
+  bottom: -8px;
   height: 120%;
-  max-width: 60%;
-  opacity: 0.35;
+  max-width: 55%;
+  opacity: 0.28;
   object-fit: contain;
   pointer-events: none;
   z-index: 1;
-}
-
-.driver-portrait-container {
-  position: relative;
-  width: 58px;
-  height: 58px;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  margin-left: 8px;
-  border-radius: 4px;
-  z-index: 2;
-  flex-shrink: 0;
-}
-
-.section-grille-depart {
-  margin-top: 15px;
-}
-
-.grille-entete {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.titre-grille {
-  margin: 0;
-  font-size: 1.3rem;
-  color: #fff;
-}
-
-.btn-aleatoire {
-  background: #3b4b6b;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-
-.btn-aleatoire:hover:not(:disabled) {
-  background: #4a5c82;
-}
-
-.btn-aleatoire:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .driver-info-block {
@@ -336,26 +356,28 @@ function remplirGrilleAleatoire() {
   margin-bottom: 2px;
 }
 
+.driver-num-text {
+  font-size: 18px;
+  font-weight: 900;
+  font-style: italic;
+}
+
+.driver-flag {
+  width: 18px;
+  border-radius: 2px;
+}
+
 .grid-select-paddock {
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent !important;
-  border: none !important;
-  outline: none;
+  width: 100%;
+  background: transparent;
+  border: none;
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   padding: 2px 0;
-  width: 100%;
-  box-sizing: border-box;
+  outline: none;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.grid-select-paddock option {
-  background: #111622;
-  color: #fff;
 }
 
 .driver-team-line {
@@ -366,15 +388,33 @@ function remplirGrilleAleatoire() {
 }
 
 .driver-team-logo {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
-.driver-flag {
-  width: 18px;
-  border-radius: 2px;
+.driver-team-text {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driver-portrait-container {
+  position: relative;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  margin-left: 10px;
+  border-radius: 4px;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .driver-portrait {
