@@ -8,6 +8,13 @@
       >
         📜 RÈGLEMENT
       </button>
+      <button
+        id="btn-classement-modal"
+        class="btn-brand-action btn-brand-blue btn-classement-mobile"
+        @click="$emit('open-ranking-modal')"
+      >
+        📊 CLASSEMENT
+      </button>
     </div>
 
     <div id="bloc-auth-header" class="bloc-auth-header">
@@ -38,7 +45,7 @@ import { signOut } from "firebase/auth";
 import { useUserStore } from "../stores";
 import { getAuth } from "../utils/firebase";
 
-defineEmits(["open-rules-modal", "open-connection-modal", "vers-profil"]);
+defineEmits(["open-rules-modal", "open-ranking-modal", "open-connection-modal", "vers-profil"]);
 
 const userStore = useUserStore();
 

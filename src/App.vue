@@ -5,6 +5,7 @@
     <TopHeader
       @open-connection-modal="isConnectionModalOpen = true"
       @open-rules-modal="isRulesModalOpen = true"
+      @open-ranking-modal="isRankingModalOpen = true"
       @vers-profil="workspaceProfileRef?.basculerVersProfil()"
     />
     <WorkspaceProfile ref="workspaceProfileRef" />
@@ -22,6 +23,10 @@
       v-show="isRulesModalOpen"
       @close="isRulesModalOpen = false"
     />
+    <RankingModal
+      v-show="isRankingModalOpen"
+      @close="isRankingModalOpen = false"
+    />
   </div>
 </template>
 
@@ -36,6 +41,7 @@ import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
 import MainContent from "./components/MainContent.vue";
 import NotificationsComponent from "./components/NotificationsComponent.vue";
+import RankingModal from "./components/RankingModal.vue";
 import RulesModal from "./components/RulesModal.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
@@ -43,6 +49,7 @@ import WorkspaceProfile from "./components/WorkspaceProfile.vue";
 const isConnectionModalOpen = ref(false);
 const isLeagueModalOpen = ref(false);
 const isRulesModalOpen = ref(false);
+const isRankingModalOpen = ref(false);
 const workspaceProfileRef = ref<InstanceType<typeof WorkspaceProfile> | null>(null);
 
 const userStore = useUserStore();

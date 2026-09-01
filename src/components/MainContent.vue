@@ -47,7 +47,7 @@
       class="colonne-droite"
       style="display: flex; flex-direction: column; gap: 30px"
     >
-      <FriendsRanking />
+      <FriendsRanking class="ranking-desktop-only" />
       <div
         class="section-top-flop"
         style="
