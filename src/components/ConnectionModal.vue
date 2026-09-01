@@ -8,23 +8,25 @@
       <div class="auth-tabs">
         <button
           type="button"
-          class="auth-tab actif"
+          class="auth-tab"
+          :class="{ actif: activeTab === 'connexion' }"
           id="tab-connexion"
-          data-panel="panneau-connexion"
+          @click="activeTab = 'connexion'"
         >
           Connexion
         </button>
         <button
           type="button"
           class="auth-tab"
+          :class="{ actif: activeTab === 'inscription' }"
           id="tab-inscription"
-          data-panel="panneau-inscription"
+          @click="activeTab = 'inscription'"
         >
           Inscription
         </button>
       </div>
 
-      <div id="panneau-connexion" class="auth-panel">
+      <div id="panneau-connexion" class="auth-panel" v-show="activeTab === 'connexion'">
         <div class="auth-field">
           <label for="login-email">Email</label>
           <input
@@ -59,7 +61,7 @@
         >
       </div>
 
-      <div id="panneau-inscription" class="auth-panel" style="display: none">
+      <div id="panneau-inscription" class="auth-panel" v-show="activeTab === 'inscription'">
         <div class="auth-field">
           <label for="inscription-pseudo"
             >Pseudo (affiché aux autres joueurs)</label
@@ -117,6 +119,8 @@ import {
 import { translateFirebaseError } from "../utils";
 
 const emit = defineEmits(["close-connection-modal"]);
+
+const activeTab = ref<"connexion" | "inscription">("connexion");
 
 const nickname = ref("");
 const email = ref("");
@@ -185,8 +189,8 @@ async function handleForgotPassword() {
   try {
     await resetPassword(email.value);
     errorString.value = `📨 Email de réinitialisation envoyé à ${email.value} (pense à vérifier tes spams).`;
-  } catch {
-    errorString.value = traduireErreurFirebase(error);
+  } catch (error) {
+    errorString.value = translateFirebaseError(error);
   }
 }
 </script>
