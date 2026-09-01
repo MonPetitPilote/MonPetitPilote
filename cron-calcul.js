@@ -29,7 +29,16 @@ function nomsCorrespondent(nomA, nomB) {
     return a === b || a.includes(b) || b.includes(a);
 }
 
-const calendrier2026ParLieu = {
+// ==========================================================
+// CALENDRIER DYNAMIQUE — lu depuis Firestore configuration_saison/calendrier_2026
+// ==========================================================
+// Le tableau ci-dessous ne sert PLUS de source principale : il n'est utilisé
+// qu'en dernier recours si Firestore est injoignable ou si aucun GP ne
+// correspond dans le calendrier officiel synchronisé (configuration_saison).
+// C'est cette dérive (mapping en dur désynchronisé du vrai calendrier,
+// par ex. après l'ajout du GP de Madrid) qui causait des rounds erronés
+// et donc des comparatifs "prono vs résultat" complètement faux.
+const calendrier2026ParLieuSecours = {
     "melbourne": 1, "australia": 1,
     "shanghai": 2, "china": 2,
     "suzuka": 3, "japan": 3,
@@ -54,19 +63,85 @@ const calendrier2026ParLieu = {
     "yas marina": 22, "abu dhabi": 22, "united arab emirates": 22
 };
 
-function deduireRound(session) {
+// Charge le calendrier officiel depuis Firestore et construit une table de
+// correspondance { valeur-normalisée -> round } à partir de nom/circuit/pays.
+// Retourne null si le document est absent ou vide (le code appelant se
+// rabat alors sur calendrier2026ParLieuSecours).
+async function chargerCalendrierDynamique() {
+    try {
+        const docSnap = await db.collection("configuration_saison").doc("calendrier_2026").get();
+        if (!docSnap.exists) {
+            console.log("⚠️ configuration_saison/calendrier_2026 introuvable — repli sur le calendrier codé en dur.");
+            return null;
+        }
+
+        const data = docSnap.data();
+        const grandsPrix = data.grandsPrix || [];
+        if (grandsPrix.length === 0) {
+            console.log("⚠️ configuration_saison/calendrier_2026 est vide — repli sur le calendrier codé en dur.");
+            return null;
+        }
+
+        const table = {};
+        // Compte les occurrences de chaque valeur normalisée (nom/circuit/pays) sur
+        // l'ensemble de la saison, pour détecter les valeurs ambiguës (ex : "Spain"
+        // ou "United States" apparaissent sur PLUSIEURS GP la même saison) et les
+        // exclure de la table — sinon le dernier GP traité écrase le round du premier.
+        const occurrences = {};
+        grandsPrix.forEach(gp => {
+            [gp.nom, gp.circuit, gp.pays].forEach(valeur => {
+                const cle = normaliserNom(valeur);
+                if (!cle) return;
+                occurrences[cle] = (occurrences[cle] || 0) + 1;
+            });
+        });
+
+        grandsPrix.forEach(gp => {
+            if (!gp.round) return;
+            [gp.nom, gp.circuit, gp.pays].forEach(valeur => {
+                const cle = normaliserNom(valeur);
+                if (cle && occurrences[cle] === 1) table[cle] = gp.round;
+            });
+        });
+
+        console.log(`✅ Calendrier dynamique chargé depuis Firestore : ${grandsPrix.length} GP, ${Object.keys(table).length} clés de correspondance.`);
+        return table;
+    } catch (err) {
+        console.log(`⚠️ Impossible de charger configuration_saison/calendrier_2026 : ${err.message} — repli sur le calendrier codé en dur.`);
+        return null;
+    }
+}
+
+// Déduit le round d'une session OpenF1 en interrogeant D'ABORD le calendrier
+// dynamique (Firestore), puis en dernier recours le tableau codé en dur.
+function deduireRound(session, calendrierDynamique) {
     if (!session) return null;
     const location = normaliserNom(session.location);
     const country = normaliserNom(session.country_name);
     const circuit = normaliserNom(session.circuit_short_name);
 
-    if (calendrier2026ParLieu[location]) return calendrier2026ParLieu[location];
-    if (calendrier2026ParLieu[circuit]) return calendrier2026ParLieu[circuit];
-    if (calendrier2026ParLieu[country]) return calendrier2026ParLieu[country];
+    // 1. Calendrier dynamique (source de vérité)
+    if (calendrierDynamique) {
+        if (calendrierDynamique[location]) return calendrierDynamique[location];
+        if (calendrierDynamique[circuit]) return calendrierDynamique[circuit];
+        if (calendrierDynamique[country]) return calendrierDynamique[country];
 
-    // Recherche partielle
-    for (const [cle, r] of Object.entries(calendrier2026ParLieu)) {
+        for (const [cle, r] of Object.entries(calendrierDynamique)) {
+            if (location.includes(cle) || circuit.includes(cle) || country.includes(cle) ||
+                cle.includes(location) || cle.includes(circuit)) {
+                return r;
+            }
+        }
+    }
+
+    // 2. Repli : tableau codé en dur (uniquement si Firestore indisponible/pas de match)
+    if (calendrier2026ParLieuSecours[location]) return calendrier2026ParLieuSecours[location];
+    if (calendrier2026ParLieuSecours[circuit]) return calendrier2026ParLieuSecours[circuit];
+    if (calendrier2026ParLieuSecours[country]) return calendrier2026ParLieuSecours[country];
+
+    for (const [cle, r] of Object.entries(calendrier2026ParLieuSecours)) {
         if (location.includes(cle) || circuit.includes(cle) || country.includes(cle)) {
+            console.log(`⚠️ Round pour "${session.location}" trouvé uniquement via le calendrier de secours (round ${r}). Vérifie que configuration_saison/calendrier_2026 est à jour.`);
             return r;
         }
     }
@@ -309,7 +384,10 @@ async function calculerNombreDNF(sessionKey, nombrePilotesAuDepart, abandonsRace
 
 async function demarrer() {
     console.log("🤖 Lancement du cron de calcul automatique OpenF1 2026 (Mode Linéaire)...");
-    
+
+    // Charge le calendrier officiel une seule fois, avant de traiter les sessions.
+    const calendrierDynamique = await chargerCalendrierDynamique();
+
     try {
         console.log("📡 Récupération du calendrier des sessions 2026 depuis OpenF1...");
         const resSessions = await axios.get("https://api.openf1.org/v1/sessions?year=2026&session_name=Race", { timeout: 10000 });
@@ -325,7 +403,7 @@ async function demarrer() {
         for (let index = 0; index < sessionsChronologiques.length; index++) {
             const session = sessionsChronologiques[index];
             const sessionKey = session.session_key;
-            const round = deduireRound(session);
+            const round = deduireRound(session, calendrierDynamique);
             
             if (!round) {
                 console.log(`\nℹ️ Circuit "${session.location || session.circuit_short_name}" non configuré ou non requis. Passage.`);
@@ -744,4 +822,3 @@ async function demarrer() {
 }
 
 demarrer();
-
