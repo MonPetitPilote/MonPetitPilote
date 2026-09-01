@@ -97,9 +97,11 @@
             </div>
           </div>
 
-          <div class="driver-portrait-container">
+          <div
+            v-if="getPiloteDriverImg(selections[pos - 1])"
+            class="driver-portrait-container"
+          >
             <img
-              v-if="getPiloteDriverImg(selections[pos - 1])"
               :id="`img-grid-p${pos}`"
               :src="getPiloteDriverImg(selections[pos - 1])"
               class="driver-portrait"
@@ -211,21 +213,44 @@ function remplirGrilleAleatoire() {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+}
+
+.grid-pos-badge {
+  min-width: 42px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
 }
 
 .grid-card-f1 {
   position: relative;
   background: #1f293d;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
   flex-grow: 1;
   min-width: 0;
+  min-height: 58px;
   border: 1px solid #2f3e56;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .car-bg-image {
@@ -242,12 +267,12 @@ function remplirGrilleAleatoire() {
 
 .driver-portrait-container {
   position: relative;
-  width: 65px;
-  height: 65px;
+  width: 58px;
+  height: 58px;
   display: flex;
   justify-content: center;
   overflow: hidden;
-  margin-left: 10px;
+  margin-left: 8px;
   border-radius: 4px;
   z-index: 2;
   flex-shrink: 0;
@@ -314,15 +339,23 @@ function remplirGrilleAleatoire() {
 .grid-select-paddock {
   appearance: none;
   -webkit-appearance: none;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
   outline: none;
   color: #fff;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: bold;
   cursor: pointer;
-  padding: 0;
+  padding: 2px 0;
   width: 100%;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grid-select-paddock option {
+  background: #111622;
+  color: #fff;
 }
 
 .driver-team-line {

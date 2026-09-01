@@ -121,9 +121,11 @@
             </div>
           </div>
 
-          <div class="driver-portrait-container-sprint">
+          <div
+            v-if="getPiloteDriverImg(selections[pos - 1])"
+            class="driver-portrait-container-sprint"
+          >
             <img
-              v-if="getPiloteDriverImg(selections[pos - 1])"
               :id="`img-sprint-p${pos}`"
               :src="getPiloteDriverImg(selections[pos - 1])"
               class="driver-portrait-sprint"

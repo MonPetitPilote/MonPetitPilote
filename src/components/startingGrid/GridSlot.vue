@@ -90,22 +90,22 @@
         </div>
       </div>
       <div
+        v-if="driverImg"
         class="driver-portrait-container"
         style="
           position: relative;
-          width: 65px;
-          height: 65px;
+          width: 58px;
+          height: 58px;
           display: flex;
           justify-content: center;
           overflow: hidden;
-          margin-left: 10px;
+          margin-left: 8px;
           border-radius: 4px;
           z-index: 2;
           flex-shrink: 0;
         "
       >
         <img
-          v-if="driverImg"
           :id="`img-grid-p${position}`"
           :src="driverImg"
           style="
