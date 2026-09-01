@@ -483,7 +483,6 @@ async function demarrer() {
 
                             let pointsDuTop10 = 0;
                             let bonusPole = 0;
-                            let pointsDesEcuries = 0;
                             const detailPilotes = [];
 
                             grilleJoueur.forEach((piloteChoisi, indexJoueur) => {
