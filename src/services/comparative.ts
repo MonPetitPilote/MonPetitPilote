@@ -1,5 +1,6 @@
 import { doc, getDoc, type Firestore } from "firebase/firestore";
-import { calendrier2026, trouverPiloteLocalParNom, nomsCorrespondentLocal, type PronosticDoc, type BonusReelData } from "../utils";
+import { trouverPiloteLocalParNom, nomsCorrespondentLocal, type PronosticDoc, type BonusReelData } from "../utils";
+import { recupererGpParRound } from "./calendarService";
 import { construireComparatifBonusHtml } from "./bonus";
 import { useGridStore } from "../stores";
 
@@ -9,10 +10,10 @@ export async function construireComparatifHtml(db: Firestore, data: Partial<Pron
     const detailPilotes = bilan.detailPilotes || [];
     const dejaCalcule = bilan.pointsTotaux !== undefined;
 
-    const courseIdString = data.course || "2026/12";
+    const courseIdString = data.course || "2026/1";
     const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
 
-    const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+    const gpInfo = recupererGpParRound(courseIdString);
     const nomCompletGP = gpInfo ? `${gpInfo.nom} (${gpInfo.circuit})` : `ROUND ${roundNumero}`;
 
     const listePilotesPronostiques: string[] = data.classementPilotes || [];
@@ -207,8 +208,7 @@ export async function voirPronoJoueur(db: Firestore, uid: string, pseudo: string
     if (!zone) return;
 
     useGridStore().setFriendModalVisible(true);
-    const round = parseInt((courseId || "").split('/')[1], 10);
-    const gpInfo = calendrier2026.find(g => g.round === round);
+    const gpInfo = recupererGpParRound(courseId);
     const nomGP = gpInfo ? gpInfo.nom : courseId;
 
     if (!verrouille) {

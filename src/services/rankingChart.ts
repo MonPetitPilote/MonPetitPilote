@@ -1,4 +1,5 @@
-import { calendrier2026, type StatistiquesSaison, type JoueurClassement } from "../utils";
+import { type StatistiquesSaison, type JoueurClassement } from "../utils";
+import { recupererGpParRound } from "./calendarService";
 
 declare const Chart: any;
 
@@ -79,7 +80,7 @@ export function afficherGraphiqueEvolution(joueurs?: JoueurClassement[] | null, 
     const joueursCibles = joueurs.slice(startIndex, endIndex);
 
     const labels = roundsCalcules.map(r => {
-        const gp = calendrier2026.find(g => g.round === r);
+        const gp = recupererGpParRound(r);
         return gp ? (gp.circuit || gp.nom) : `R${r}`;
     });
 

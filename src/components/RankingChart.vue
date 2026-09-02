@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { calendrier2026 } from "../utils";
+import { recupererGpParRound } from "../services";
 
 const props = defineProps({
   currentUser: {
@@ -128,7 +128,7 @@ function mettreAJourGraphique(joueurs, donnees, utilisateurActuel) {
   const joueursCibles = joueurs.slice(startIndex, endIndex);
 
   const labels = roundsCalcules.map(r => {
-    const gp = calendrier2026.find(g => g.round === r);
+    const gp = recupererGpParRound(r);
     return gp ? (gp.circuit || gp.nom) : `R${r}`;
   });
 

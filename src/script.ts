@@ -1,6 +1,5 @@
 import {
     pilotesData,
-    calendrier2026,
     afficherNotification,
     type StatistiquesSaison,
     type GrandPrix

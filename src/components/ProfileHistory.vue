@@ -46,8 +46,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { collection, query, where, getDocs, type Firestore } from "firebase/firestore";
-import { calendrier2026 } from "../utils";
-import { construireComparatifHtml } from "../services";
+import { construireComparatifHtml, recupererGpParRound } from "../services";
 
 const props = defineProps<{
   db?: Firestore | null;
@@ -68,7 +67,7 @@ async function chargerHistorique(dbInstance: Firestore, uid: string) {
       const data = docSnap.data();
       const courseIdString = data.course || "Inconnu";
       const roundNumero = courseIdString.includes('/') ? courseIdString.split('/')[1] : courseIdString;
-      const gpInfo = calendrier2026.find(gp => gp.round === Number(roundNumero));
+      const gpInfo = recupererGpParRound(courseIdString);
       const nomAffichage = gpInfo ? gpInfo.nom.toUpperCase() : `ROUND ${roundNumero}`;
       const points = (data.bilanCalcul && data.bilanCalcul.pointsTotaux) || 0;
 
