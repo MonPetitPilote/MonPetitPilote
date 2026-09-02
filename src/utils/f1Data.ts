@@ -70,7 +70,9 @@ export function trouverPiloteLocalParNom(nomOfficiel?: string | null): Pilote | 
 }
 
 export function nomsCorrespondentLocal(nomA?: string | null, nomB?: string | null): boolean {
-    const a = normaliserNom(nomA);
-    const b = normaliserNom(nomB);
+    const a = normaliserNom(nomA).trim();
+    const b = normaliserNom(nomB).trim();
+    if (!a || !b) return false;
+    if (a === "inconnu" || b === "inconnu") return false;
     return a.includes(b) || b.includes(a);
 }

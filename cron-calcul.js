@@ -241,21 +241,57 @@ async function detecterEvenementsRaceControl(sessionKey) {
 async function trouverPolemanOfficiel(session, round, trouverNomPiloteFn) {
     let poleman = "Inconnu";
 
-    // Source 1 : OpenF1 via Qualifying Session (Analyse des meilleurs tours ou position)
+    // Source 1 : Jolpica / Ergast F1 API (Résultats officiels FIA de qualifications Q1/Q2/Q3 validés)
+    if (round) {
+        try {
+            console.log(`🌐 Interrogation Jolpica F1 API pour la Pole (Round ${round})...`);
+            const resJolpica = await axios.get(`https://api.jolpi.ca/ergast/f1/2026/${round}/qualifying.json`, { timeout: 8000 });
+            const raceData = resJolpica.data?.MRData?.RaceTable?.Races?.[0];
+            const p1Result = raceData?.QualifyingResults?.[0];
+            if (p1Result && p1Result.Driver) {
+                const driver = p1Result.Driver;
+                const nomComplet = `${driver.givenName || ''} ${driver.familyName || ''}`.trim();
+                const matchLocal = pilotesData.find(p => 
+                    (p1Result.number && String(p.numero) === String(p1Result.number)) ||
+                    nomsCorrespondent(p.nom, nomComplet) || 
+                    (driver.code && nomsCorrespondent(p.nom, driver.code))
+                );
+                poleman = matchLocal ? matchLocal.nom : nomComplet;
+                console.log(`🌐 Poleman extrait avec succès depuis Jolpica API : ${poleman} (${p1Result.number ? '#' + p1Result.number : ''})`);
+                return poleman;
+            }
+        } catch (jolpicaErr) {
+            console.log(`ℹ️ Jolpica qualif non disponible pour Round ${round} : ${jolpicaErr.message}`);
+        }
+    }
+
+    // Source 2 : OpenF1 via Qualifying Session (Analyse des positions ou meilleurs tours)
     try {
         let qSessionKey = null;
 
-        // 1.1 Recherche par meeting_key
+        // 2.1 Recherche par meeting_key : cibler strictement la session de qualification principale du Grand Prix
         if (session.meeting_key) {
             const resMeeting = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&meeting_key=${session.meeting_key}`, { timeout: 10000 });
-            const qualifSession = (resMeeting.data || []).find(s => 
-                (s.session_name && s.session_name.toLowerCase().includes("qualifying")) ||
-                (s.session_type && s.session_type.toLowerCase().includes("qualifying"))
+            const sessionsDispo = resMeeting.data || [];
+            let qualifSession = sessionsDispo.find(s => 
+                (s.session_name && s.session_name.toLowerCase() === "qualifying") ||
+                (s.session_type && s.session_type.toLowerCase() === "qualifying" && !s.session_name.toLowerCase().includes("sprint"))
             );
+            if (!qualifSession) {
+                qualifSession = sessionsDispo.find(s => 
+                    s.session_name && s.session_name.toLowerCase().includes("qualifying") && !s.session_name.toLowerCase().includes("sprint")
+                );
+            }
+            if (!qualifSession) {
+                qualifSession = sessionsDispo.find(s => 
+                    (s.session_name && s.session_name.toLowerCase().includes("qualifying")) ||
+                    (s.session_type && s.session_type.toLowerCase().includes("qualifying"))
+                );
+            }
             if (qualifSession) qSessionKey = qualifSession.session_key;
         }
 
-        // 1.2 Recherche de secours par location/circuit
+        // 2.2 Recherche de secours par location/circuit
         if (!qSessionKey) {
             const resLoc = await axios.get(`https://api.openf1.org/v1/sessions?year=2026&session_name=Qualifying&location=${encodeURIComponent(session.location || '')}`, { timeout: 10000 });
             if (resLoc.data && resLoc.data.length > 0) {
@@ -264,54 +300,39 @@ async function trouverPolemanOfficiel(session, round, trouverNomPiloteFn) {
         }
 
         if (qSessionKey) {
-            // Tentative via les tours les plus rapides en qualifs (très fiable)
+            // Tentative 1 : position=1 en fin de séance de qualification
             try {
-                const resLapsQ = await axios.get(`https://api.openf1.org/v1/laps?session_key=${qSessionKey}`, { timeout: 10000 });
-                const laps = (resLapsQ.data || []).filter(l => l.lap_duration && l.lap_duration > 50 && !l.is_pit_out_lap);
-                if (laps.length > 0) {
-                    laps.sort((a, b) => a.lap_duration - b.lap_duration);
-                    const meilleurPiloteNum = laps[0].driver_number;
-                    if (meilleurPiloteNum) {
-                        poleman = trouverNomPiloteFn(meilleurPiloteNum);
-                        console.log(`⏱️ Poleman détecté via meilleur tour Qualif OpenF1 : ${poleman} (#${meilleurPiloteNum})`);
-                    }
-                }
-            } catch (lapsErr) {
-                console.log(`ℹ️ Laps qualif non disponibles, repli sur positions : ${lapsErr.message}`);
-            }
-
-            // Si pas encore trouvé, tentative via position=1
-            if (poleman === "Inconnu") {
                 const resPositionsQ = await axios.get(`https://api.openf1.org/v1/position?session_key=${qSessionKey}&position=1`, { timeout: 10000 });
                 if (resPositionsQ.data && resPositionsQ.data.length > 0) {
                     const requetesTriees = resPositionsQ.data.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    poleman = trouverNomPiloteFn(requetesTriees[0].driver_number);
-                    console.log(`⏱️ Poleman détecté via position=1 OpenF1 : ${poleman}`);
+                    const numDriver = requetesTriees[0].driver_number;
+                    poleman = trouverNomPiloteFn(numDriver);
+                    console.log(`⏱️ Poleman détecté via position=1 OpenF1 : ${poleman} (#${numDriver})`);
+                }
+            } catch (posErr) {
+                console.log(`ℹ️ Positions qualif non disponibles : ${posErr.message}`);
+            }
+
+            // Tentative 2 : tour le plus rapide en qualification
+            if (!poleman || poleman === "Inconnu") {
+                try {
+                    const resLapsQ = await axios.get(`https://api.openf1.org/v1/laps?session_key=${qSessionKey}`, { timeout: 10000 });
+                    const laps = (resLapsQ.data || []).filter(l => l.lap_duration && l.lap_duration > 50 && !l.is_pit_out_lap);
+                    if (laps.length > 0) {
+                        laps.sort((a, b) => a.lap_duration - b.lap_duration);
+                        const meilleurPiloteNum = laps[0].driver_number;
+                        if (meilleurPiloteNum) {
+                            poleman = trouverNomPiloteFn(meilleurPiloteNum);
+                            console.log(`⏱️ Poleman détecté via meilleur tour Qualif OpenF1 : ${poleman} (#${meilleurPiloteNum})`);
+                        }
+                    }
+                } catch (lapsErr) {
+                    console.log(`ℹ️ Laps qualif non disponibles : ${lapsErr.message}`);
                 }
             }
         }
     } catch (openf1Err) {
         console.log(`ℹ️ OpenF1 qualif non disponible : ${openf1Err.message}`);
-    }
-
-    // Source 2 : Jolpica / Ergast F1 API (Secours officiel FIA en cas de session OpenF1 manquante ou décalée)
-    if (!poleman || poleman === "Inconnu") {
-        try {
-            console.log(`🌐 Tentative de secours Jolpica F1 API pour la Pole (Round ${round})...`);
-            const resJolpica = await axios.get(`https://api.jolpica.com/ergast/f1/2026/${round}/qualifying.json`, { timeout: 8000 });
-            const raceData = resJolpica.data?.MRData?.RaceTable?.Races?.[0];
-            const p1Result = raceData?.QualifyingResults?.[0];
-            if (p1Result && p1Result.Driver) {
-                const driver = p1Result.Driver;
-                const nomComplet = `${driver.givenName || ''} ${driver.familyName || ''}`.trim();
-                // Retrouver dans pilotesData
-                const matchLocal = pilotesData.find(p => nomsCorrespondent(p.nom, nomComplet) || (driver.code && nomsCorrespondent(p.nom, driver.code)));
-                poleman = matchLocal ? matchLocal.nom : nomComplet;
-                console.log(`🌐 Poleman extrait avec succès depuis Jolpica API : ${poleman}`);
-            }
-        } catch (jolpicaErr) {
-            console.log(`ℹ️ Secours Jolpica qualif non disponible : ${jolpicaErr.message}`);
-        }
     }
 
     return poleman;
@@ -364,7 +385,7 @@ async function calculerNombreDNF(sessionKey, nombrePilotesAuDepart, abandonsRace
     // Repli de secours 2 : Jolpica F1 Results API
     if (round) {
         try {
-            const resJolpicaRes = await axios.get(`https://api.jolpica.com/ergast/f1/2026/${round}/results.json`, { timeout: 8000 });
+            const resJolpicaRes = await axios.get(`https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`, { timeout: 8000 });
             const results = resJolpicaRes.data?.MRData?.RaceTable?.Races?.[0]?.Results || [];
             if (results.length > 0) {
                 const dnfs = results.filter(r => {
@@ -417,8 +438,9 @@ async function demarrer() {
 
             const histoRef = db.collection("historique_courses").doc(`2026_${round}`);
             const histoDoc = await histoRef.get();
-            if (histoDoc.exists && histoDoc.data().bonusReel !== undefined) {
-                console.log(`ℹ️ Le GP ${round} (${session.location}) a déjà été calculé avec les bonus. Passage.`);
+            const polemanDejaValide = histoDoc.exists && histoDoc.data().poleman && histoDoc.data().poleman !== "Inconnu";
+            if (histoDoc.exists && histoDoc.data().bonusReel !== undefined && polemanDejaValide) {
+                console.log(`ℹ️ Le GP ${round} (${session.location}) a déjà été calculé avec les bonus et le poleman officiel (${histoDoc.data().poleman}). Passage.`);
                 continue;
             }
 
@@ -433,10 +455,11 @@ async function demarrer() {
             }
 
             const trouverNomPilote = (driverNumber) => {
+                const localMatch = pilotesData.find(p => String(p.numero) === String(driverNumber));
+                if (localMatch) return localMatch.nom;
                 const match = pilotesSession.find(p => String(p.driver_number) === String(driverNumber));
                 if (match) return match.full_name || match.broadcast_name || `${match.first_name} ${match.last_name}`;
-                const localMatch = pilotesData.find(p => String(p.numero) === String(driverNumber));
-                return localMatch ? localMatch.nom : `Numéro ${driverNumber}`;
+                return `Numéro ${driverNumber}`;
             };
 
             const trouverEcuriePilote = (driverNumber) => {

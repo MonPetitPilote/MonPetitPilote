@@ -1,8 +1,34 @@
-import { doc, getDoc, type Firestore } from "firebase/firestore";
+import { doc, getDoc, setDoc, type Firestore } from "firebase/firestore";
 import { trouverPiloteLocalParNom, nomsCorrespondentLocal, type PronosticDoc, type BonusReelData } from "../utils";
 import { recupererGpParRound } from "./calendarService";
 import { construireComparatifBonusHtml } from "./bonus";
 import { useGridStore } from "../stores";
+
+// Cache mémoire des polemen officiels par round pour éviter les requêtes réseau répétées
+const polemanCache: Record<string, string> = {};
+
+export async function recupererPolemanOfficiel(roundNumero: string | number): Promise<string | null> {
+    const cle = String(roundNumero);
+    if (polemanCache[cle]) return polemanCache[cle];
+
+    try {
+        const res = await fetch(`https://api.jolpi.ca/ergast/f1/2026/${cle}/qualifying.json`);
+        if (res.ok) {
+            const data = await res.json();
+            const p1 = data?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults?.[0];
+            if (p1 && p1.Driver) {
+                const nomComplet = `${p1.Driver.givenName || ''} ${p1.Driver.familyName || ''}`.trim();
+                const local = trouverPiloteLocalParNom(nomComplet) || (p1.Driver.code ? trouverPiloteLocalParNom(p1.Driver.code) : undefined);
+                const nomFinal = local ? local.nom : nomComplet;
+                polemanCache[cle] = nomFinal;
+                return nomFinal;
+            }
+        }
+    } catch (e) {
+        console.warn(`Impossible de récupérer le poleman en direct pour le round ${cle} :`, e);
+    }
+    return null;
+}
 
 // Construit le HTML du comparatif "prono vs résultat réel" pour un pronostic donné.
 export async function construireComparatifHtml(db: Firestore, data: Partial<PronosticDoc> & Record<string, any>): Promise<string> {
@@ -38,6 +64,20 @@ export async function construireComparatifHtml(db: Firestore, data: Partial<Pron
         }
     } catch (error) {
         console.error("Erreur chargement résultat officiel pour comparatif :", error);
+    }
+
+    // Si le poleman est manquant ou 'Inconnu', récupération directe en secours via Jolpica F1 API
+    if (!officialPoleman || officialPoleman === "Inconnu") {
+        const polemanDirect = await recupererPolemanOfficiel(roundNumero);
+        if (polemanDirect) {
+            officialPoleman = polemanDirect;
+            try {
+                const histoRef = doc(db, "historique_courses", `2026_${roundNumero}`);
+                setDoc(histoRef, { poleman: polemanDirect }, { merge: true }).catch(() => {});
+            } catch {
+                // Pas bloquant si l'utilisateur n'a pas les droits d'écriture sur historique_courses
+            }
+        }
     }
 
     let top10Html = "";
@@ -123,12 +163,21 @@ export async function construireComparatifHtml(db: Firestore, data: Partial<Pron
         `;
     }
 
+    const jokerApplique = bilan.jokerApplique || data.joker || false;
+    const multiplicateur = jokerApplique ? 2 : 1;
+
+    const poleValide = !!(officialPoleman && officialPoleman !== 'Inconnu');
+    const poleCorrecte = Boolean(dejaCalcule && data.poleman && poleValide && nomsCorrespondentLocal(officialPoleman, data.poleman));
+    const ptsPoleEffectifs = ptsPole > 0 ? ptsPole : (poleCorrecte ? 5 * multiplicateur : 0);
+    const ptsTotauxEffectifs = ptsTotaux + (ptsPoleEffectifs - ptsPole);
+
     let ligneComparatifPole = `<div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>⚡ Poleman :</span> <strong>${data.poleman || 'Aucun'}</strong></div>`;
     if (dejaCalcule) {
-        const poleCorrecte = data.poleman && officialPoleman && nomsCorrespondentLocal(officialPoleman, data.poleman);
+        const nomReelAffichage = poleValide ? officialPoleman : '—';
         ligneComparatifPole = `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
             <span>${poleCorrecte ? '✅' : '❌'} Poleman : <strong>${data.poleman || 'Aucun'}</strong></span>
-            <span style="color: #616e88;">Réel : ${officialPoleman || '—'}</span>
+            <span style="color: #616e88;">Réel : ${nomReelAffichage}</span>
+            ${poleCorrecte ? `<span style="color: #4cd137; font-weight: bold; margin-left: 8px;">+${ptsPoleEffectifs} pts</span>` : ''}
         </div>`;
     }
 
@@ -165,14 +214,14 @@ export async function construireComparatifHtml(db: Firestore, data: Partial<Pron
 
         <div style="background: rgba(255,255,255,0.02); border: 1px solid #2f3e56; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
             <div style="font-size: 0.85rem; color: #616e88; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Score obtenu</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${ptsTotaux} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
+            <div style="font-size: 2rem; font-weight: 900; color: #4cd137; margin: 5px 0;">${ptsTotauxEffectifs} <span style="font-size: 1rem; font-weight: bold;">pts</span></div>
         </div>
 
         <h5 style="margin: 0 0 10px 0; color: #00d2d3; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">📊 Répartition des Points</h5>
         <div style="font-size: 0.9rem; color: #e2e8f0; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏎️ Prono Grille Top 10 :</span> <strong style="color: #fff;">+${ptsGrille} pts</strong></div>
             ${ptsSprint > 0 || listeSprint.length > 0 ? `<div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Prono Course Sprint :</span> <strong style="color: #a5b4fc;">+${ptsSprint} pts</strong></div>` : ''}
-            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${ptsPole} pts</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>⚡ Bonus Pole Position :</span> <strong style="color: #fff;">+${ptsPoleEffectifs} pts</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🏁 Bonus Écuries (Top/Flop) :</span> <strong style="color: #fff;">+${ptsEcuries} pts</strong></div>
             <div style="display: flex; justify-content: space-between; padding: 5px 0;"><span>🎲 Prédictions Bonus :</span> <strong style="color: #fff;">+${ptsBonus} pts</strong></div>
         </div>
