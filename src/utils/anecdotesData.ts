@@ -18,52 +18,88 @@ export const ANECDOTES_F1: AnecdoteF1[] = [
   // --- LOW (Score <= 15 pts) ---
   // ==========================================
   {
+    id: 'strategy',
+    titre: "La réunion stratégie",
+    sousTitre: "Quand le plan de course ressemble plus à un spectacle de cirque qu'à de la Formule 1...",
+    categorie: 'low',
+    image: '/images/anecdote/low/strategy.png',
+    radioCitation: "« On passe au Plan B... Non, au Plan C ! On reste dehors ! Attends, rentre aux stands ! »",
+    auteurCitation: "L'ingénieur de piste à la radio",
+    tagline: "Masterclass Inversée",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • STRATÉGIE AUX FRAISES"
+  },
+  {
+    id: 'toto-angry',
+    titre: "La fureur de Toto Wolff",
+    sousTitre: "Le casque de radio explose sur le bureau après un désastre en piste !",
+    categorie: 'low',
+    image: '/images/anecdote/low/toto-angry.png',
+    radioCitation: "« Non Michael, non ! Ce n'était tellement pas bien ! »",
+    auteurCitation: "Toto Wolff à la radio de direction de course",
+    tagline: "Colère Noire",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • CASQUE VOLANT"
+  },
+  {
     id: 'alonso-lose',
     titre: "Le regard d'Alonso",
-    sousTitre: "Le regard dans le vide qui en dit long sur le week-end...",
+    sousTitre: "Le regard dans le vide qui en dit long sur le scénario catastrophe du week-end...",
     categorie: 'low',
     image: '/images/anecdote/low/alonso-lose.png',
-    radioCitation: "« ... » — Le silence assourdissant après la désillusion.",
+    radioCitation: "« ... » — Le silence assourdissant après la désillusion totale.",
     auteurCitation: "Fernando Alonso, Parc Fermé",
     tagline: "Désillusion",
     badgeCouleur: "#e10600",
     badgeTexte: "0 - 15 PTS • CATASTROPHE"
   },
   {
+    id: 'charles-banana',
+    titre: "Charles Leclerc en Banane",
+    sousTitre: "Quand le week-end part en vrille, autant enfiler le costume de clown !",
+    categorie: 'low',
+    image: '/images/anecdote/low/charles-banana.png',
+    radioCitation: "« NONNNN ! NONNNN ! Je suis stupide... Je suis stupide ! »",
+    auteurCitation: "Charles Leclerc à la radio de l'écurie",
+    tagline: "Auto-dérision",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • DÉLIRIUM"
+  },
+  {
+    id: 'fernando-engine',
+    titre: "« Moteur de GP2 ! »",
+    sousTitre: "Un déficit de puissance colossal sur les lignes droites et zéro point au compteur.",
+    categorie: 'low',
+    image: '/images/anecdote/low/fernando-engine.png',
+    radioCitation: "« Moteur de GP2 ! Moteur de GP2 ! Argh ! C'est embarrassant... très embarrassant ! »",
+    auteurCitation: "Fernando Alonso à Suzuka",
+    tagline: "Zéro Puissance",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • MOTEUR DE GP2"
+  },
+  {
+    id: 'kimiboat',
+    titre: "Kimi va direct sur son yacht",
+    sousTitre: "Abandon précoce ? Pas le temps de débriefer, direction le jacuzzi et une glace !",
+    categorie: 'low',
+    image: '/images/anecdote/low/kimiboat.png',
+    radioCitation: "« La voiture ne marche plus. Je rentre directement au port. Ne m'attendez pas pour le débrief. »",
+    auteurCitation: "Kimi Räikkönen à Monaco",
+    tagline: "Mode Océan",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • ABANDON & YACHT"
+  },
+  {
     id: 'singapore-crash',
     titre: "Le crash au premier virage",
-    sousTitre: "Tout perdre avant même d'avoir bouclé le premier virage !",
+    sousTitre: "Tout perdre avant même d'avoir bouclé le premier virage de la course !",
     categorie: 'low',
     image: '/images/anecdote/low/singapore-crash.png',
-    radioCitation: "« Non ! Mais qu'est-ce qu'il a fait ?! »",
+    radioCitation: "« Non ! Mais qu'est-ce qu'il a fait ?! Tout le monde au tas ! »",
     auteurCitation: "Sebastian Vettel à la radio",
     tagline: "Carambolage",
     badgeCouleur: "#e10600",
     badgeTexte: "0 - 15 PTS • CARAMBOLAGE"
-  },
-  {
-    id: 'fiti-wall',
-    titre: "Droit dans le mur !",
-    sousTitre: "Quand le scénario du week-end finit directement dans les barrières...",
-    categorie: 'low',
-    image: '/images/anecdote/low/fiti-wall.png',
-    radioCitation: "« Je suis dans le mur les gars... Je suis désolé. »",
-    auteurCitation: "Communication radio avec le stand",
-    tagline: "Dans le mur",
-    badgeCouleur: "#e10600",
-    badgeTexte: "0 - 15 PTS • DANS LE MUR"
-  },
-  {
-    id: 'max-baku',
-    titre: "Le coup de pied de dépit",
-    sousTitre: "La victoire s'envole en pleine ligne droite à plus de 300 km/h !",
-    categorie: 'low',
-    image: '/images/anecdote/low/max-baku.png',
-    radioCitation: "« Le pneu a explosé ! *bip* *bip* ! »",
-    auteurCitation: "Max Verstappen à la radio",
-    tagline: "Coup du sort",
-    badgeCouleur: "#e10600",
-    badgeTexte: "0 - 15 PTS • CREVAISON"
   },
 
   // ==========================================
@@ -82,16 +118,64 @@ export const ANECDOTES_F1: AnecdoteF1[] = [
     badgeTexte: "16 - 30 PTS • EN EMBUSCADE"
   },
   {
-    id: 'max-baku-moyen',
-    titre: "Rythme solide, fin cruelle",
-    sousTitre: "La vitesse était là, il ne manquait qu'un brin de réussite !",
+    id: 'alonso-cool',
+    titre: "Fernando en mode transat",
+    sousTitre: "Quand la course t'échappe mais que tu gardes un flegme légendaire au bord de la piste.",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/alonso-cool.png',
+    radioCitation: "« C'est bon, installez-moi un transat... J'attends la fin de la séance au soleil. »",
+    auteurCitation: "Fernando Alonso, Interlagos",
+    tagline: "Détente Totale",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • TRANQUILLE AU SOLEIL"
+  },
+  {
+    id: 'battleofchamp',
+    titre: "Le duel des champions",
+    sousTitre: "Roue contre roue, étincelles et monoplace empilée à la chicane !",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/battleofchamp.png',
+    radioCitation: "« C'est ce qui arrive quand on ne laisse aucun espace en piste ! »",
+    auteurCitation: "Max Verstappen à Monza",
+    tagline: "Duel Musclé",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • CONTACT RUGUEUX"
+  },
+  {
+    id: 'givemywheels',
+    titre: "« Rendez-moi mon volant ! »",
+    sousTitre: "Quand les mécanos oublient l'élément principal avant de repartir !",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/givemywheels.png',
+    radioCitation: "« Le volant ! Hé ! Volant ! Donnez-moi mon volant ! Quelqu'un pour lui dire de me le donner ?! »",
+    auteurCitation: "Kimi Räikkönen à Bakou",
+    tagline: "Panique aux Stands",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • OUBLI DU VOLANT"
+  },
+  {
+    id: 'max-baku',
+    titre: "Le coup de pied de dépit",
+    sousTitre: "La victoire s'envole en pleine ligne droite alors que le rythme était pourtant parfait !",
     categorie: 'mid',
     image: '/images/anecdote/mid/max-baku.png',
-    radioCitation: "« On a tout bien fait, mais la course en a décidé autrement. »",
-    auteurCitation: "Débriefing radio d'après-course",
-    tagline: "Bien tenté",
+    radioCitation: "« Le pneu a explosé ! On avait course gagnée les gars... »",
+    auteurCitation: "Max Verstappen à Bakou",
+    tagline: "Coup du Sort",
     badgeCouleur: "#f39c12",
-    badgeTexte: "16 - 30 PTS • BIEN TENTÉ"
+    badgeTexte: "16 - 30 PTS • COUP DE DÉPIT"
+  },
+  {
+    id: 'seb-canada',
+    titre: "Le panneau numéro 1 inversé",
+    sousTitre: "Privé de la première place sur une pénalité contestée, Seb remet les pendules à l'heure !",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/seb-canada.png',
+    radioCitation: "« Non, non, non ! Vous devez être aveugles pour nous coller une pénalité pour ça ! On méritait la gagne ! »",
+    auteurCitation: "Sebastian Vettel au Canada",
+    tagline: "Le Vrai Vainqueur",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • PANNEAU DU CHEF"
   },
 
   // ==========================================
