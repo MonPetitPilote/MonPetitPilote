@@ -8,6 +8,7 @@
       @open-ranking-modal="isRankingModalOpen = true"
       @vers-profil="workspaceProfileRef?.basculerVersProfil()"
     />
+    <AnecdoteDuJour v-if="userStore.currentUser" />
     <WorkspaceProfile ref="workspaceProfileRef" />
     <MainContent v-show="!workspaceProfileRef?.profilVisible" @open-league-modal="isLeagueModalOpen = true" />
     <ConnectionModal
@@ -35,6 +36,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { onAuthStateChanged } from "firebase/auth";
 import { getAuth } from "./utils/firebase";
 import { useUserStore } from "./stores";
+import AnecdoteDuJour from "./components/AnecdoteDuJour.vue";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
