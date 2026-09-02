@@ -285,16 +285,19 @@ onMounted(() => {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.theme-low,
 .theme-peu-de-points {
   border-color: rgba(225, 6, 0, 0.35);
   box-shadow: 0 8px 24px rgba(225, 6, 0, 0.12);
 }
 
+.theme-mid,
 .theme-un-peu-de-points {
   border-color: rgba(243, 156, 18, 0.35);
   box-shadow: 0 8px 24px rgba(243, 156, 18, 0.12);
 }
 
+.theme-high,
 .theme-beaucoup-de-points {
   border-color: rgba(46, 213, 115, 0.4);
   box-shadow: 0 8px 24px rgba(46, 213, 115, 0.15);
