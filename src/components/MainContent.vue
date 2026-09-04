@@ -209,6 +209,7 @@ import PolePicker from "./PolePicker.vue";
 import ValidationButton from "./ValidationButton.vue";
 import { ref } from "vue";
 import { useGridStore } from "../stores";
+import { Analytics } from "@vercel/analytics/vue"
 
 const gridStore = useGridStore();
 const startingGridRef = ref<InstanceType<typeof StartingGrid> | null>(null);
