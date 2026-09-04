@@ -1,6 +1,6 @@
 {
   "name": "Mon Petit Pilote",
-  "description": "Un site de pronostics des résultats de F1 par GP de la saison 2026 entre amis.",
+  "description": "Le jeu de pronostics de Formule 1 entre potes pour la saison 2026 ! Pronostiquez la grille de départ Top 10, le Sprint, les écuries et les bonus. Créez votre ligue gratuite et défiez vos amis.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

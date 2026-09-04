@@ -1,0 +1,21 @@
+{
+  "short_name": "MonPetitPilote",
+  "name": "Mon Petit Pilote - Pronostics F1 2026",
+  "icons": [
+    {
+      "src": "/images/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/logo_mpp.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0d111a",
+  "theme_color": "#ff8000",
+  "display": "standalone",
+  "orientation": "portrait"
+}
