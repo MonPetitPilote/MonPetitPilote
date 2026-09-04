@@ -296,47 +296,62 @@ function remplirGrilleAleatoire(): void {
 .grid-slot {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
 }
 
 .grid-pos-badge {
-  min-width: 44px;
-  height: 44px;
+  min-width: 48px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 0.85rem;
+  font-style: italic;
+  font-size: 1.15rem;
+  letter-spacing: -0.5px;
   border-radius: 8px;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: background 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s ease;
+  user-select: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .grid-card-f1 {
   position: relative;
-  background: #1e2640;
+  background: linear-gradient(135deg, #182236 0%, #121828 100%);
   display: flex;
   align-items: center;
   flex-grow: 1;
   min-width: 0;
+  height: 52px;
   border-radius: 8px;
-  padding: 6px 12px;
-  transition: all 0.3s ease;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
   overflow: hidden;
+}
+
+.grid-card-f1:hover {
+  background: linear-gradient(135deg, #1f2b45 0%, #161e32 100%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .car-bg-image {
   position: absolute;
-  right: 0;
-  bottom: -8px;
-  height: 120%;
-  max-width: 55%;
-  opacity: 0.28;
+  right: 48px;
+  bottom: -6px;
+  height: 115%;
+  max-width: 50%;
+  opacity: 0.25;
   object-fit: contain;
   pointer-events: none;
   z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .driver-info-block {
@@ -352,19 +367,24 @@ function remplirGrilleAleatoire(): void {
 .driver-header-line {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 0px;
+  line-height: 1;
 }
 
 .driver-num-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   font-style: italic;
+  letter-spacing: -0.5px;
 }
 
 .driver-flag {
-  width: 18px;
+  width: 16px;
+  height: 11px;
   border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .grid-select-paddock {
@@ -373,32 +393,41 @@ function remplirGrilleAleatoire(): void {
   border: none;
   color: #fff;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  padding: 2px 0;
+  padding: 1px 0;
   outline: none;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.grid-select-paddock option {
+  background-color: #161e30;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .driver-team-line {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 5px;
+  margin-top: 1px;
+  line-height: 1;
 }
 
 .driver-team-logo {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .driver-team-text {
   font-size: 11px;
-  font-weight: bold;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -406,12 +435,13 @@ function remplirGrilleAleatoire(): void {
 
 .driver-portrait-container {
   position: relative;
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
   display: flex;
   justify-content: center;
+  align-items: flex-end;
   overflow: hidden;
-  margin-left: 10px;
+  margin-left: 6px;
   border-radius: 4px;
   z-index: 2;
   flex-shrink: 0;
@@ -422,5 +452,53 @@ function remplirGrilleAleatoire(): void {
   height: 100%;
   object-fit: cover;
   object-position: top;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* =======================================================
+   MODE ORDINATEUR (Desktop >= 992px) : Grille F1 Staggered
+   ======================================================= */
+@media (min-width: 992px) {
+  .section-grille-depart {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #111726 0%, #172036 100%);
+    border: 1px solid #283752;
+    border-radius: 12px;
+  }
+
+  .f1-starting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+    row-gap: 18px;
+    padding-bottom: 46px; /* Compense le décalage vers le bas de P10 */
+    align-items: start;
+    position: relative;
+  }
+
+  .grid-slot {
+    width: 100%;
+    transition: transform 0.2s ease;
+  }
+
+  /* Colonne 1 (Gauche) : Positions impaires P1, P3, P5, P7, P9 */
+  .grid-slot:nth-child(odd) {
+    grid-column: 1;
+  }
+
+  /* Colonne 2 (Droite) : Positions paires P2, P4, P6, P8, P10
+     Décalées vers le bas à mi-hauteur (échelonnage typique de la grille F1) */
+  .grid-slot:nth-child(even) {
+    grid-column: 2;
+    transform: translateY(36px);
+  }
+
+  .grid-slot:nth-child(odd):hover {
+    transform: translateY(-2px);
+  }
+
+  .grid-slot:nth-child(even):hover {
+    transform: translateY(34px);
+  }
 }
 </style>

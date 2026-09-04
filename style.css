@@ -235,12 +235,6 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     #btn-ouvrir-connexion, .btn-header-auth, .btn-logout { width: 100%; text-align: center; }
     .user-profile-badge { justify-content: center; width: 100%; box-sizing: border-box; }
 
-    .f1-starting-grid { grid-template-columns: 1fr !important; gap: 12px !important; padding: 12px !important; }
-    .grid-slot, .grid-slot:nth-child(odd), .grid-slot:nth-child(even) {
-        grid-column: auto !important; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important;
-        height: auto !important; min-height: 75px; flex-wrap: wrap; padding: 10px;
-    }
-    .grid-media-zone { width: 120px; }
     .ecuries-block { grid-template-columns: 1fr !important; }
 
     .section-ligue label {
@@ -375,15 +369,6 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
     font-size: 0.9rem;
 }
 
-/* Grille TV Responsive */
-.grid-slot {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-    margin-bottom: 12px !important;
-}
 
 @media (max-width: 576px) {
     #grille-pronos {
