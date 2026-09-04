@@ -1,5 +1,5 @@
 <template>
-  <div class="section-grille-sprint">
+  <div class="section-grille-sprint" :class="{ 'is-locked-grid': isSprintLocked }">
     <div class="grille-sprint-entete">
       <div class="titre-sprint-container">
         <span class="badge-sprint-pill">⚡ SPRINT WEEK-END</span>
@@ -12,7 +12,7 @@
           id="btn-sprint-aleatoire"
           type="button"
           class="btn-sprint-aleatoire"
-          :disabled="isLocked"
+          :disabled="isSprintLocked"
           @click="remplirSprintAleatoire"
         >
           🎲 SPRINT ALÉATOIRE
@@ -90,7 +90,7 @@
               class="sprint-select-paddock"
               :data-position="pos"
               :value="selections[pos - 1]"
-              :disabled="isLocked"
+              :disabled="isSprintLocked"
               @change="onPiloteChange(pos - 1, ($event.target as HTMLSelectElement).value)"
             >
               <option value="">👉 CHOISIS TON PILOTE SPRINT</option>
@@ -158,6 +158,7 @@ const props = defineProps({
 defineEmits(["close"]);
 
 const gridStore = useGridStore();
+const isSprintLocked = computed(() => props.isLocked || gridStore.isLocked);
 const selections = gridStore.top5Sprint; // même référence réactive que le store
 
 const listePilotes = ref<Pilote[]>([...pilotesData]);
@@ -222,11 +223,12 @@ function isPiloteAlreadySelected(nom: string, currentPosIndex: number): boolean 
 }
 
 function onPiloteChange(index: number, nom: string): void {
+  if (isSprintLocked.value) return;
   selections[index] = nom;
 }
 
 function remplirSprintAleatoire(): void {
-  if (props.isLocked) return;
+  if (isSprintLocked.value) return;
   const source = listePilotesAffichee.value.length >= 5 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
   for (let i = 0; i < 5; i++) {
@@ -467,5 +469,20 @@ function remplirSprintAleatoire(): void {
   height: 100%;
   object-fit: cover;
   object-position: top;
+}
+
+.is-locked-grid .grid-sprint-card {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.is-locked-grid .sprint-select-paddock {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.btn-sprint-aleatoire:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

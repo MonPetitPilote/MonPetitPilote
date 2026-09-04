@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
-import { CODE_LIGUE_MONDIAL, getCalendrierActuel } from "../services";
+import { CODE_LIGUE_MONDIAL, getCalendrierActuel, courseEstVerrouillee } from "../services";
 
 const LABELS_ECURIES: Record<string, string> = {
   "ecurie-top-1": "Écurie Top 1",
@@ -17,11 +17,11 @@ function calculerProchainGP(): string {
 }
 
 export const useGridStore = defineStore("grid", () => {
+  const selectedCourse = ref(calculerProchainGP());
+  const isLocked = ref(courseEstVerrouillee(selectedCourse.value));
   const top10 = ref<string[]>(Array(10).fill(""));
   const top5Sprint = ref<string[]>(Array(5).fill(""));
   const sprintVisible = ref(false);
-  const isLocked = ref(false);
-  const selectedCourse = ref(calculerProchainGP());
   const activeLeague = ref(CODE_LIGUE_MONDIAL);
   const poleman = ref("");
   const joker = ref(false);
@@ -65,6 +65,7 @@ export const useGridStore = defineStore("grid", () => {
 
   function setSelectedCourse(courseId: string) {
     selectedCourse.value = courseId;
+    isLocked.value = courseEstVerrouillee(courseId);
   }
 
   function setActiveLeague(code: string) {

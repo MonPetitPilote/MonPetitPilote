@@ -1,5 +1,5 @@
 <template>
-  <div class="section-grille-depart">
+  <div class="section-grille-depart" :class="{ 'is-locked-grid': isGridLocked }">
     <div class="grille-entete">
       <div class="titre-grille-container">
         <span class="badge-gp-pill">🏁 GRAND PRIX</span>
@@ -12,7 +12,7 @@
           id="btn-aleatoire"
           type="button"
           class="btn-aleatoire"
-          :disabled="isLocked"
+          :disabled="isGridLocked"
           @click="remplirGrilleAleatoire"
         >
           🎲 PRONO ALÉATOIRE
@@ -74,7 +74,7 @@
               class="grid-select-paddock"
               :data-position="pos"
               :value="selections[pos - 1]"
-              :disabled="isLocked"
+              :disabled="isGridLocked"
               @change="onPiloteChange(pos - 1, ($event.target as HTMLSelectElement).value)"
             >
               <option value="">👉 CHOISIS TON PILOTE</option>
@@ -135,6 +135,7 @@ const props = defineProps({
 });
 
 const gridStore = useGridStore();
+const isGridLocked = computed(() => props.isLocked || gridStore.isLocked);
 const selections = gridStore.top10; // même référence réactive que le store
 
 // Toujours initialisé avec les 22 pilotes officiels
@@ -200,11 +201,12 @@ function isPiloteAlreadySelected(nom: string, currentPosIndex: number): boolean 
 }
 
 function onPiloteChange(posIndex: number, nomPilote: string): void {
+  if (isGridLocked.value) return;
   selections[posIndex] = nomPilote;
 }
 
 function remplirGrilleAleatoire(): void {
-  if (props.isLocked) return;
+  if (isGridLocked.value) return;
   const source = listePilotesAffichee.value.length >= 10 ? listePilotesAffichee.value : pilotesData;
   const melange = [...source].sort(() => 0.5 - Math.random());
   for (let i = 0; i < 10; i++) {
@@ -500,5 +502,21 @@ function remplirGrilleAleatoire(): void {
   .grid-slot:nth-child(even):hover {
     transform: translateY(36px);
   }
+}
+
+.is-locked-grid .grid-card-f1 {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.is-locked-grid .grid-card-f1:hover {
+  background: linear-gradient(135deg, #182236 0%, #121828 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.is-locked-grid .grid-select-paddock {
+  cursor: not-allowed;
+  opacity: 0.85;
 }
 </style>

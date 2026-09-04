@@ -12,8 +12,8 @@
       />
 
       <PolePicker />
-      <SprintGrid v-show="gridStore.sprintVisible" />
-      <StartingGrid ref="startingGridRef" />
+      <SprintGrid v-show="gridStore.sprintVisible" :is-locked="gridStore.isLocked" />
+      <StartingGrid ref="startingGridRef" :is-locked="gridStore.isLocked" />
 
       <!-- Section Écuries Top / Flop déplacée sous la grille Top 10 -->
       <div
