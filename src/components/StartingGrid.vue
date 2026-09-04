@@ -290,30 +290,30 @@ function remplirGrilleAleatoire(): void {
 .f1-starting-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .grid-slot {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
 }
 
 .grid-pos-badge {
-  min-width: 48px;
-  height: 52px;
+  min-width: 56px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
   font-style: italic;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   letter-spacing: -0.5px;
-  border-radius: 8px;
+  border-radius: 9px;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.25s ease;
   user-select: none;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -326,32 +326,32 @@ function remplirGrilleAleatoire(): void {
   align-items: center;
   flex-grow: 1;
   min-width: 0;
-  height: 52px;
-  border-radius: 8px;
-  padding: 4px 10px;
+  height: 68px;
+  border-radius: 9px;
+  padding: 6px 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.25s ease;
   overflow: hidden;
 }
 
 .grid-card-f1:hover {
   background: linear-gradient(135deg, #1f2b45 0%, #161e32 100%);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 .car-bg-image {
   position: absolute;
-  right: 48px;
-  bottom: -6px;
-  height: 115%;
-  max-width: 50%;
-  opacity: 0.25;
+  right: 76px;
+  bottom: -4px;
+  height: 135%;
+  max-width: 58%;
+  opacity: 0.32;
   object-fit: contain;
   pointer-events: none;
   z-index: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
 }
 
 .driver-info-block {
@@ -367,21 +367,21 @@ function remplirGrilleAleatoire(): void {
 .driver-header-line {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 0px;
+  gap: 8px;
+  margin-bottom: 2px;
   line-height: 1;
 }
 
 .driver-num-text {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   font-style: italic;
   letter-spacing: -0.5px;
 }
 
 .driver-flag {
-  width: 16px;
-  height: 11px;
+  width: 18px;
+  height: 12px;
   border-radius: 2px;
   object-fit: cover;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -392,10 +392,10 @@ function remplirGrilleAleatoire(): void {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  padding: 1px 0;
+  padding: 2px 0;
   outline: none;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -411,23 +411,23 @@ function remplirGrilleAleatoire(): void {
 .driver-team-line {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-top: 1px;
+  gap: 6px;
+  margin-top: 3px;
   line-height: 1;
 }
 
 .driver-team-logo {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .driver-team-text {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -435,14 +435,14 @@ function remplirGrilleAleatoire(): void {
 
 .driver-portrait-container {
   position: relative;
-  width: 50px;
-  height: 50px;
+  width: 70px;
+  height: 68px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   overflow: hidden;
-  margin-left: 6px;
-  border-radius: 4px;
+  margin-left: 8px;
+  border-radius: 6px;
   z-index: 2;
   flex-shrink: 0;
 }
@@ -452,7 +452,7 @@ function remplirGrilleAleatoire(): void {
   height: 100%;
   object-fit: cover;
   object-position: top;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 }
 
 /* =======================================================
@@ -460,18 +460,18 @@ function remplirGrilleAleatoire(): void {
    ======================================================= */
 @media (min-width: 992px) {
   .section-grille-depart {
-    padding: 20px 24px;
+    padding: 20px 24px 18px 24px;
     background: linear-gradient(135deg, #111726 0%, #172036 100%);
     border: 1px solid #283752;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   .f1-starting-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 28px;
-    row-gap: 18px;
-    padding-bottom: 46px; /* Compense le décalage vers le bas de P10 */
+    column-gap: 32px;
+    row-gap: 38px;
+    padding-bottom: 38px; /* Compense exactement le décalage en quinconce de P10 */
     align-items: start;
     position: relative;
   }
@@ -487,10 +487,10 @@ function remplirGrilleAleatoire(): void {
   }
 
   /* Colonne 2 (Droite) : Positions paires P2, P4, P6, P8, P10
-     Décalées vers le bas à mi-hauteur (échelonnage typique de la grille F1) */
+     Décalées vers le bas (échelonnage typique de la grille F1) */
   .grid-slot:nth-child(even) {
     grid-column: 2;
-    transform: translateY(36px);
+    transform: translateY(38px);
   }
 
   .grid-slot:nth-child(odd):hover {
@@ -498,7 +498,7 @@ function remplirGrilleAleatoire(): void {
   }
 
   .grid-slot:nth-child(even):hover {
-    transform: translateY(34px);
+    transform: translateY(36px);
   }
 }
 </style>

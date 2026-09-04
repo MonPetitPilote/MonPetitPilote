@@ -1,5 +1,5 @@
 <template>
-  <div class="bloc-sub-droite">
+  <div class="bloc-sub-droite bloc-classement-amis">
     <h2>📊 CLASSEMENT GÉNÉRAL DES AMIS :</h2>
     <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa; font-style:italic;">
       💡 Cliquez sur un joueur pour voir son pronostic sur le GP sélectionné ci-contre (visible une fois le week-end terminé).
@@ -49,3 +49,11 @@ function voirProno(u: { uid: string; pseudo: string }) {
   voirPronoJoueur(db, u.uid, u.pseudo, courseId, courseEstVerrouillee(courseId));
 }
 </script>
+
+<style scoped>
+@media (max-width: 1024px) {
+  .bloc-classement-amis {
+    display: none !important;
+  }
+}
+</style>

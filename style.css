@@ -131,7 +131,7 @@ body {
 /* Structure Page (PC / Tablette par défaut) */
 .main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
 
-.colonne-gauche, .bloc-sub-droite, .section-top-flop {
+.colonne-gauche, .bloc-sub-droite {
     background: #161c2a; border-radius: 14px; padding: 25px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid #242f46;
     box-sizing: border-box;
 }
@@ -216,6 +216,7 @@ select, input[type="text"] { background-color: #0f131c; color: #ffffff; border: 
    ========================================== */
 @media (max-width: 1024px) {
     .main-layout { grid-template-columns: 1fr; }
+    .bloc-classement-amis { display: none !important; }
     .profil-layout { 
         display: flex;
         flex-direction: column;
