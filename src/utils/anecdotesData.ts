@@ -18,6 +18,30 @@ export const ANECDOTES_F1: AnecdoteF1[] = [
   // --- LOW (Score <= 15 pts) ---
   // ==========================================
   {
+    id: 'flavio',
+    titre: "« The car is not competitive... »",
+    sousTitre: "Quand Flavio Briatore flingue publiquement son écurie et ses pilotes au micro en plein direct !",
+    categorie: 'low',
+    image: '/images/anecdote/low/flavio.png',
+    radioCitation: "« The car is not competitive, the drivers are not competitive... what can I do? »",
+    auteurCitation: "Flavio Briatore, interview d'anthologie",
+    tagline: "Zéro Compétitivité",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • CAR NOT COMPETITIVE"
+  },
+  {
+    id: 'hakischumi',
+    titre: "Häkkinen mystifie Schumacher à Spa",
+    sousTitre: "Le 27 août 2000, Mika Häkkinen signait un dépassement d'anthologie sur Schumacher dans les Combes en prenant Ricardo Zonta en sandwich.",
+    categorie: 'low',
+    image: '/images/anecdote/low/hakischumi.png',
+    radioCitation: "« Il y avait juste la place pour passer. Je savais que Michael ne s'attendait pas à ce que je plonge à l'intérieur de Zonta. »",
+    auteurCitation: "Mika Häkkinen, GP de Belgique 2000",
+    tagline: "Sandwich à 300 km/h",
+    badgeCouleur: "#e10600",
+    badgeTexte: "0 - 15 PTS • DÉPASSEMENT DU SIÈCLE"
+  },
+  {
     id: 'strategy',
     titre: "La réunion stratégie",
     sousTitre: "Quand le plan de course ressemble plus à un spectacle de cirque qu'à de la Formule 1...",
@@ -106,6 +130,30 @@ export const ANECDOTES_F1: AnecdoteF1[] = [
   // --- MID (Score 16 - 30 pts) ---
   // ==========================================
   {
+    id: 'enzo',
+    titre: "Le regard d'Enzo Ferrari",
+    sousTitre: "Le célèbre mème d'Enzo Ferrari qui baisse son journal et ses lunettes de soleil pour scruter la concurrence... (popularisé par Sylvain Lyve !)",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/enzo.png',
+    radioCitation: "« L'aérodynamique, c'est pour les gens qui ne savent pas construire de moteurs. »",
+    auteurCitation: "Enzo Ferrari, Il Commendatore",
+    tagline: "Il Commendatore",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • ENZO VOUS REGARDE"
+  },
+  {
+    id: 'hulkpodium',
+    titre: "Enfin le podium pour Hülkenberg !",
+    sousTitre: "Après plus de 200 départs sans monter sur la boîte, Nico Hülkenberg décroche enfin son trophée et apporte de précieux points !",
+    categorie: 'mid',
+    image: '/images/anecdote/mid/hulk-podium.png',
+    radioCitation: "« Yes boys! Finally! On l'a enfin notre podium les gars, quelle délivrance ! »",
+    auteurCitation: "Nico Hülkenberg à la radio",
+    tagline: "Délivrance",
+    badgeCouleur: "#f39c12",
+    badgeTexte: "16 - 30 PTS • MISSION PODIUM"
+  },
+  {
     id: 'strolled',
     titre: "You got Strolled !",
     sousTitre: "Un bon rythme en piste, mais coupé en plein élan !",
@@ -181,6 +229,42 @@ export const ANECDOTES_F1: AnecdoteF1[] = [
   // ==========================================
   // --- HIGH (Score > 30 pts) ---
   // ==========================================
+  {
+    id: 'pierre-p1',
+    titre: "« ELLE EST LÀ ! ELLE EST LÀ ! »",
+    sousTitre: "Monza 2020 : première victoire héroïque de Pierre Gasly en F1 avec AlphaTauri, mettant fin à 24 ans de disette française !",
+    categorie: 'high',
+    image: '/images/anecdote/high/pierre-p1.png',
+    radioCitation: "« ACCÉLÈRE, ACCÉLÈRE ! OUI ! ELLE EST LÀ ! ELLE EST LÀ LA VICTOIRE DE PIERRE GASLY ! »",
+    auteurCitation: "Julien Fébreau au commentaire, GP d'Italie 2020",
+    tagline: "ELLE EST LÀ !",
+    badgeCouleur: "#2ed573",
+    badgeTexte: "31+ PTS • ELLE EST LÀ !"
+  },
+  {
+    id: 'sennanopower',
+    titre: "La victoire héroïque de Senna à Interlagos",
+    sousTitre: "Boîte bloquée en 6ème vitesse sous la pluie en 1991, Ayrton Senna puise au bout de ses forces et termine en larmes, perclus de crampes, pour soulever son trophée devant son public.",
+    categorie: 'high',
+    image: '/images/anecdote/high/sennanopower.png',
+    radioCitation: "« Je n'avais plus que la 6ème vitesse... J'ai prié Dieu de me laisser terminer. La douleur était atroce mais je devais gagner chez moi. »",
+    auteurCitation: "Ayrton Senna, Grand Prix du Brésil 1991",
+    tagline: "Héros National",
+    badgeCouleur: "#2ed573",
+    badgeTexte: "31+ PTS • COURAGE & LÉGENDE"
+  },
+  {
+    id: 'letpassthechamp',
+    titre: "Place au Champion !",
+    sousTitre: "Lorsque Michael Schumacher s'avance pour se placer en pole position et que tout le monde dans la pitlane s'écarte avec respect pour laisser passer le Kaiser.",
+    categorie: 'high',
+    image: '/images/anecdote/high/letpassthechamp.png',
+    radioCitation: "« Écartez-vous, faites place nette ! Quand le Kaiser arrive sur la grille, tout le paddock s'incline. »",
+    auteurCitation: "Ambiance de grille • Michael Schumacher",
+    tagline: "Le Kaiser",
+    badgeCouleur: "#2ed573",
+    badgeTexte: "31+ PTS • PLACE AU CHAMPION"
+  },
   {
     id: 'rosberg-champ',
     titre: "Nico Rosberg Champion du Monde",
