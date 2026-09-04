@@ -28,6 +28,7 @@
       v-show="isRankingModalOpen"
       @close="isRankingModalOpen = false"
     />
+    <DevelopmentBanner />
   </div>
 </template>
 
@@ -38,6 +39,7 @@ import { getAuth } from "./utils/firebase";
 import { useUserStore } from "./stores";
 import AnecdoteDuJour from "./components/AnecdoteDuJour.vue";
 import ConnectionModal from "./components/ConnectionModal.vue";
+import DevelopmentBanner from "./components/DevelopmentBanner.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
