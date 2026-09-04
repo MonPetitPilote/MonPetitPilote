@@ -16,12 +16,6 @@ export {
   construireComparatifBonusHtml
 } from "./bonus";
 export {
-  getModeGraphiqueActuel,
-  setModeGraphiqueActuel,
-  afficherGraphiqueEvolution,
-  initialiserEcouteursGraphique
-} from "./rankingChart";
-export {
   BADGES_STAT_KEY,
   calculerStatistiquesEtClassement,
   badgesHtmlPourJoueur
@@ -31,19 +25,8 @@ export {
   voirPronoJoueur
 } from "./comparative";
 export {
-  courseEstVerrouillee,
-  appliquerVerrouillage,
-  mettreAJourCountdown,
-  verifierVerrouillageCourse
+  courseEstVerrouillee
 } from "./gpLock";
-export {
-  mettreAJourDesignSlotSprint,
-  controlerDoublonsSprint,
-  creerLaGrilleSprintTV,
-  appliquerSelectionEcurieVisuelle,
-  ouvrirSelecteurVisuelEcurie,
-  initialiserEcuriesTopFlop
-} from "./grid";
 export {
   getCalendrierActuel,
   getDateLimiteProno,
