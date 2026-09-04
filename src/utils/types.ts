@@ -14,6 +14,7 @@ export interface GrandPrix {
   circuit: string;
   pays: string;
   date: string;
+  dateQualifications?: string;
   hasSprint?: boolean;
   sprintDate?: string;
   statut?: 'programme' | 'annule' | 'reporte' | 'remplace';

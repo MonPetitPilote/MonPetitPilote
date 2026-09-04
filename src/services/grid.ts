@@ -204,7 +204,7 @@ export function ouvrirSelecteurVisuelEcurie(slotId: string): void {
         tuile.onmouseenter = () => tuile.style.borderColor = "#ff8000";
         tuile.onmouseleave = () => tuile.style.borderColor = "#2d3954";
         tuile.onclick = function() {
-            const choix = this.getAttribute('data-name') || "";
+            const choix = tuile.getAttribute('data-name') || "";
             appliquerSelectionEcurieVisuelle(slotId, choix);
             if (modale) modale.style.display = "none";
         };

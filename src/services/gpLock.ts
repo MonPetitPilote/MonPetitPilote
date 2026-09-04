@@ -1,13 +1,13 @@
-import { getCalendrierActuel } from "./calendarService";
+import { getCalendrierActuel, getDateLimiteProno } from "./calendarService";
 
-// Un Grand Prix est considéré "clôturé" dès que sa date est passée ou si le statut est annulé
+// Un Grand Prix est considéré "clôturé" dès que la séance de qualifications a débuté ou si le statut est annulé
 export function courseEstVerrouillee(courseIdString?: string | null): boolean {
     const round = parseInt((courseIdString || "").split('/')[1], 10);
     const calendrier = getCalendrierActuel();
     const gp = calendrier.find(g => g.round === round);
     if (!gp) return false;
     if (gp.statut === 'annule') return true;
-    return new Date(gp.date) <= new Date();
+    return getDateLimiteProno(gp) <= new Date();
 }
 
 export function appliquerVerrouillage(verrouille: boolean, selectPole?: HTMLSelectElement | null): void {
@@ -68,7 +68,7 @@ export function mettreAJourCountdown(selectCourse?: HTMLSelectElement | null): v
     const gp = calendrier.find(g => g.round === round);
     if (!gp) { zone.style.display = 'none'; return; }
 
-    const echeance = new Date(gp.date).getTime();
+    const echeance = getDateLimiteProno(gp).getTime();
     const maintenant = new Date().getTime();
     const diffMs = echeance - maintenant;
 
@@ -93,7 +93,7 @@ export function mettreAJourCountdown(selectCourse?: HTMLSelectElement | null): v
     const urgent = diffMs < 1000 * 60 * 60 * 24;
     zone.classList.toggle('urgent', urgent);
     zone.style.display = 'flex';
-    zone.innerHTML = `⏳ Il reste <span style="margin: 0 4px;">${texteRestant}</span> pour valider ce pronostic`;
+    zone.innerHTML = `⏳ Il reste <span style="margin: 0 4px;">${texteRestant}</span> pour valider ce pronostic (avant les qualifications)`;
 }
 
 export function verifierVerrouillageCourse(selectCourse?: HTMLSelectElement | null, selectPole?: HTMLSelectElement | null): boolean {

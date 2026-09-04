@@ -157,7 +157,7 @@ async function validerPronostics(): Promise<void> {
   const courseId = gridStore.selectedCourse;
 
   if (courseEstVerrouillee(courseId)) {
-    afficherNotification("🔒 Ce Grand Prix est déjà passé, les pronostics sont clôturés.", "erreur");
+    afficherNotification("🔒 Les qualifications ont débuté ou ce Grand Prix est terminé, les pronostics sont clôturés.", "erreur");
     return;
   }
 

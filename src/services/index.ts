@@ -46,6 +46,7 @@ export {
 } from "./grid";
 export {
   getCalendrierActuel,
+  getDateLimiteProno,
   onCalendrierChange,
   estWeekendSprint,
   recupererGpParRound,

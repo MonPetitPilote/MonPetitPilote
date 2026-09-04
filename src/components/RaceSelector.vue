@@ -17,7 +17,7 @@
         id="select-ligue"
         :value="activeLeague"
         class="select-f1"
-        @change="$emit('update:activeLeague', $event.target.value)"
+        @change="onLeagueChange"
       >
         <option
           v-for="ligue in leaguesList"
@@ -38,7 +38,7 @@
         id="select-course"
         :value="selectedCourse"
         class="select-f1"
-        @change="$emit('update:selectedCourse', $event.target.value)"
+        @change="onCourseChange"
       >
         <option
           v-for="gp in listeCalendrier"
@@ -66,25 +66,30 @@
       id="banniere-verrouillage"
       class="banniere-verrouillage"
     >
-      🔒 Les pronostics pour ce Grand Prix sont clôturés (le week-end a déjà eu lieu).
+      🔒 Les pronostics pour ce Grand Prix sont clôturés (les qualifications ont débuté ou la course a déjà eu lieu).
     </div>
 
-    <!-- Compte à rebours avant la clôture -->
+    <!-- Compte à rebours avant la clôture des qualifications -->
     <div
       v-if="!isLocked && countdownText"
       id="countdown-pronos"
       class="countdown-pronos"
       :class="{ urgent: isCountdownUrgent }"
     >
-      ⏳ Il reste <span class="countdown-highlight">{{ countdownText }}</span> pour valider ce pronostic
+      ⏳ Clôture des pronostics dans <span class="countdown-highlight">{{ countdownText }}</span> (au début des qualifications{{ currentGp?.dateQualifications ? ` • ${formatQualifDate(currentGp.dateQualifications)}` : '' }})
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount, type PropType } from "vue";
 import { type GrandPrix } from "../utils";
-import { CODE_LIGUE_MONDIAL, getCalendrierActuel, onCalendrierChange } from "../services";
+import { CODE_LIGUE_MONDIAL, getCalendrierActuel, getDateLimiteProno, onCalendrierChange } from "../services";
+
+interface LeagueItem {
+  code: string;
+  nom: string;
+}
 
 const props = defineProps({
   selectedCourse: {
@@ -96,12 +101,26 @@ const props = defineProps({
     default: CODE_LIGUE_MONDIAL
   },
   leaguesList: {
-    type: Array,
+    type: Array as PropType<LeagueItem[]>,
     default: () => [{ code: CODE_LIGUE_MONDIAL, nom: "🌍 Mondial" }]
   }
 });
 
 const emit = defineEmits(["update:selectedCourse", "update:activeLeague", "open-league-modal", "lock-change"]);
+
+function onLeagueChange(event: Event) {
+  const target = event.target as HTMLSelectElement | null;
+  if (target) {
+    emit("update:activeLeague", target.value);
+  }
+}
+
+function onCourseChange(event: Event) {
+  const target = event.target as HTMLSelectElement | null;
+  if (target) {
+    emit("update:selectedCourse", target.value);
+  }
+}
 
 const listeCalendrier = ref<GrandPrix[]>(getCalendrierActuel());
 const countdownText = ref("");
@@ -116,7 +135,7 @@ const currentGp = computed(() => {
 
 const isLocked = computed(() => {
   if (!currentGp.value) return false;
-  return new Date(currentGp.value.date) <= new Date();
+  return getDateLimiteProno(currentGp.value) <= new Date();
 });
 
 watch(isLocked, (nouveauVerrouille) => {
@@ -128,13 +147,19 @@ function formatDate(dateStr: string) {
   return dateObj.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function formatQualifDate(dateStr?: string) {
+  if (!dateStr) return "";
+  const dateObj = new Date(dateStr);
+  return dateObj.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
 function calculerCountdown() {
   if (!currentGp.value || isLocked.value) {
     countdownText.value = "";
     return;
   }
 
-  const echeance = new Date(currentGp.value.date);
+  const echeance = getDateLimiteProno(currentGp.value);
   const maintenant = new Date();
   const diffMs = echeance.getTime() - maintenant.getTime();
 

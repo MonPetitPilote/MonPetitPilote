@@ -46,6 +46,9 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { recupererGpParRound } from "../services";
 
+// Chart.js est injecté globalement via le CDN dans index.html
+declare const Chart: any;
+
 const props = defineProps({
   currentUser: {
     type: Object,
@@ -53,23 +56,23 @@ const props = defineProps({
   }
 });
 
-const canvasRef = ref(null);
-const modeActuel = ref("points");
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+const modeActuel = ref<"points" | "rang">("points");
 const hasData = ref(false);
-let chartInstance = null;
+let chartInstance: any = null;
 
 const PALETTE = ["#00d2d3", "#4cd137", "#3b82f6", "#a855f7", "#f1c40f", "#e84118"];
 
-function setMode(mode) {
+function setMode(mode: "points" | "rang") {
   modeActuel.value = mode;
   if (dernierDonneesCache.joueurs && dernierDonneesCache.donnees) {
     mettreAJourGraphique(dernierDonneesCache.joueurs, dernierDonneesCache.donnees, props.currentUser);
   }
 }
 
-let dernierDonneesCache = { joueurs: null, donnees: null };
+let dernierDonneesCache: { joueurs: any; donnees: any } = { joueurs: null, donnees: null };
 
-function mettreAJourGraphique(joueurs, donnees, utilisateurActuel) {
+function mettreAJourGraphique(joueurs: any, donnees: any, utilisateurActuel?: any) {
   dernierDonneesCache = { joueurs, donnees };
 
   if (typeof Chart === "undefined" || !canvasRef.value) {
