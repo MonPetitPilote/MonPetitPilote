@@ -170,7 +170,7 @@ const emit = defineEmits(["close"]);
 const userStore = useUserStore();
 
 const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/gsQ5mgukFN";
-const discordWebhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL || "";
+const discordWebhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1545789687724245085/kZ6PascELB3Kd6ybwIgGdXGwP31P8Kq0rwQMFb7KB6zXikJgr1nIfKH9ROm0-jnoMN8X";
 
 const categories = [
   { id: "bug", icon: "🐛", label: "Signaler un bug", placeholder: "Explique ce qui s'est produit (sur quel Grand Prix, bouton, etc.)..." },
