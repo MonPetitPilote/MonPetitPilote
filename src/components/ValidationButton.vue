@@ -107,6 +107,18 @@
         </span>
         <span v-else>🏁 VALIDER MES PRONOSTICS</span>
       </button>
+
+      <!-- Bouton Partager les pronos -->
+      <button
+        v-if="gridStore.nbTop10Remplis > 0"
+        id="btn-partager-prono"
+        type="button"
+        class="btn-action-partager"
+        title="Partager mon pronostic à mes amis (WhatsApp, Discord...)"
+        @click="partagerPronostics"
+      >
+        <span>📤 Partager mes pronostics</span>
+      </button>
     </div>
   </div>
 </template>
@@ -233,6 +245,40 @@ async function validerPronostics(): Promise<void> {
     afficherNotification("Erreur lors de l'enregistrement de tes pronostics.", "erreur");
   } finally {
     isSaving.value = false;
+  }
+}
+
+function partagerPronostics(): void {
+  const round = (gridStore.selectedCourse || "").split('/')[1] || "1";
+  const p1 = gridStore.top10[0] || "—";
+  const p2 = gridStore.top10[1] || "—";
+  const p3 = gridStore.top10[2] || "—";
+  const pole = gridStore.poleman || "—";
+  const top1 = gridStore.ecuries["ecurie-top-1"] || "";
+
+  const lignes = [
+    `🏎️ Mon prono F1 pour le GP #${round} sur Mon Petit Pilote !`,
+    `⏱️ Pole Position : ${pole}`,
+    `🥇 P1 : ${p1}`,
+    `🥈 P2 : ${p2}`,
+    `🥉 P3 : ${p3}`,
+    top1 ? `🚀 Écurie Top : ${top1}` : '',
+    gridStore.joker ? `🔥 Joker activé (points x3 !)` : '',
+    `👉 Viens me défier : https://monpetitpilote.vercel.app`
+  ].filter(Boolean).join('\n');
+
+  if (typeof navigator !== "undefined" && navigator.share) {
+    navigator.share({
+      title: 'Mon Petit Pilote - Pronostics F1',
+      text: lignes,
+      url: 'https://monpetitpilote.vercel.app'
+    }).catch(() => {});
+  } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+    navigator.clipboard.writeText(lignes).then(() => {
+      afficherNotification('📋 Pronostic copié dans le presse-papier ! Prêt à coller sur WhatsApp ou Discord.', 'succes');
+    }).catch(() => {
+      afficherNotification('Impossible de copier dans le presse-papier.', 'info');
+    });
   }
 }
 </script>
@@ -433,6 +479,37 @@ async function validerPronostics(): Promise<void> {
 /* 3. Bouton principal de validation */
 .actions-validation {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-action-partager {
+  width: 100%;
+  padding: 13px 20px;
+  background: #192336;
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-action-partager:hover {
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #60a5fa;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-action-validation {

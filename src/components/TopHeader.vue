@@ -15,6 +15,24 @@
       >
         📊 CLASSEMENT
       </button>
+      <button
+        id="btn-radio-header"
+        class="btn-brand-action btn-brand-radio"
+        title="Contacter le stand / Boîte à idées"
+        @click="$emit('open-feedback-modal')"
+      >
+        📻 RADIO STAND
+      </button>
+      <a
+        id="btn-discord-header"
+        :href="discordInviteUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-brand-action btn-brand-discord"
+        title="Rejoindre le serveur Discord officiel"
+      >
+        💬 DISCORD
+      </a>
     </div>
 
     <div id="bloc-auth-header" class="bloc-auth-header">
@@ -45,9 +63,17 @@ import { signOut } from "firebase/auth";
 import { useUserStore } from "../stores";
 import { getAuth } from "../utils/firebase";
 
-defineEmits(["open-rules-modal", "open-ranking-modal", "open-connection-modal", "vers-profil"]);
+defineEmits([
+  "open-rules-modal",
+  "open-ranking-modal",
+  "open-connection-modal",
+  "vers-profil",
+  "open-feedback-modal"
+]);
 
 const userStore = useUserStore();
+
+const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/monpetitpilote";
 
 const pseudoAffiche = computed(() => {
   const user = userStore.currentUser;

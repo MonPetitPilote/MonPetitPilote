@@ -6,6 +6,7 @@
       @open-connection-modal="isConnectionModalOpen = true"
       @open-rules-modal="isRulesModalOpen = true"
       @open-ranking-modal="isRankingModalOpen = true"
+      @open-feedback-modal="isFeedbackModalOpen = true"
       @vers-profil="workspaceProfileRef?.basculerVersProfil()"
     />
     <AnecdoteDuJour v-if="userStore.currentUser" />
@@ -28,7 +29,18 @@
       v-show="isRankingModalOpen"
       @close="isRankingModalOpen = false"
     />
+    <FeedbackModal
+      v-show="isFeedbackModalOpen"
+      @close="isFeedbackModalOpen = false"
+    />
+    <SiteFooter
+      @open-rules="isRulesModalOpen = true"
+      @open-ranking="isRankingModalOpen = true"
+      @open-league="isLeagueModalOpen = true"
+      @open-feedback="isFeedbackModalOpen = true"
+    />
     <DevelopmentBanner />
+    <ScrollToTop />
   </div>
 </template>
 
@@ -40,6 +52,7 @@ import { useUserStore } from "./stores";
 import AnecdoteDuJour from "./components/AnecdoteDuJour.vue";
 import ConnectionModal from "./components/ConnectionModal.vue";
 import DevelopmentBanner from "./components/DevelopmentBanner.vue";
+import FeedbackModal from "./components/FeedbackModal.vue";
 import FriendModal from "./components/FriendModal.vue";
 import LeagueModal from "./components/LeagueModal.vue";
 import Logo from "./components/Logo.vue";
@@ -47,6 +60,8 @@ import MainContent from "./components/MainContent.vue";
 import NotificationsComponent from "./components/NotificationsComponent.vue";
 import RankingModal from "./components/RankingModal.vue";
 import RulesModal from "./components/RulesModal.vue";
+import ScrollToTop from "./components/ScrollToTop.vue";
+import SiteFooter from "./components/SiteFooter.vue";
 import TopHeader from "./components/TopHeader.vue";
 import WorkspaceProfile from "./components/WorkspaceProfile.vue";
 
@@ -54,6 +69,7 @@ const isConnectionModalOpen = ref(false);
 const isLeagueModalOpen = ref(false);
 const isRulesModalOpen = ref(false);
 const isRankingModalOpen = ref(false);
+const isFeedbackModalOpen = ref(false);
 const workspaceProfileRef = ref<InstanceType<typeof WorkspaceProfile> | null>(null);
 
 const userStore = useUserStore();

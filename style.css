@@ -127,6 +127,33 @@ body {
     white-space: nowrap;
 }
 .btn-brand-orange { background: #ff8000; color: #111622; }
+.btn-brand-radio {
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    transition: all 0.2s ease;
+}
+.btn-brand-radio:hover {
+    background: #27354a;
+    color: #ff8000;
+    border-color: #ff8000;
+}
+.btn-brand-discord {
+    background: rgba(88, 101, 242, 0.18);
+    color: #c7d2fe;
+    border: 1px solid rgba(88, 101, 242, 0.45);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.btn-brand-discord:hover {
+    background: #5865f2;
+    color: #ffffff;
+    border-color: #5865f2;
+    box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+}
 
 /* Structure Page (PC / Tablette par défaut) */
 .main-layout { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
