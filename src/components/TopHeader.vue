@@ -23,16 +23,15 @@
       >
         📻 RADIO STAND
       </button>
-      <a
+      <button
         id="btn-discord-header"
-        :href="discordInviteUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="btn-brand-action btn-brand-discord"
+        type="button"
+        class="btn-brand-action btn-brand-radio btn-brand-discord"
         title="Rejoindre le serveur Discord officiel"
+        @click="ouvrirDiscord"
       >
         💬 DISCORD
-      </a>
+      </button>
     </div>
 
     <div id="bloc-auth-header" class="bloc-auth-header">
@@ -83,5 +82,9 @@ const pseudoAffiche = computed(() => {
 
 async function deconnexion() {
   await signOut(getAuth());
+}
+
+function ouvrirDiscord() {
+  window.open(discordInviteUrl, "_blank", "noopener,noreferrer");
 }
 </script>
