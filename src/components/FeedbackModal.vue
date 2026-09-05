@@ -219,71 +219,78 @@ async function envoyerFeedback() {
     navigateur: typeof navigator !== "undefined" ? navigator.userAgent : "inconnu"
   };
 
-  try {
-    // 1. Sauvegarde principale dans Firestore
-    const db = getFirestore();
-    await addDoc(collection(db, "feedbacks"), payload);
+  let aEteEnvoye = false;
 
-    // 2. Transfert automatique par Email à monpetitpilote@proton.me (via FormSubmit AJAX)
+  // 1. Notification Discord directe (prioritaire, fonctionne même sans compte connecté)
+  if (discordWebhookUrl) {
     try {
-      await fetch("https://formsubmit.co/ajax/monpetitpilote@proton.me", {
+      const resp = await fetch(discordWebhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          _subject: `[Radio Stand MPP] ${categorie.value.toUpperCase()} de ${payload.pseudo}`,
-          Pilote: payload.pseudo,
-          Email: payload.email,
-          Categorie: categorie.value,
-          Message: payload.message,
-          Date: new Date().toLocaleString("fr-FR"),
-          _template: "box"
+          username: "Radio Stand MPP",
+          embeds: [
+            {
+              title: `📻 Nouveau message Radio Stand : [${categorie.value.toUpperCase()}]`,
+              description: payload.message,
+              color: 16744192,
+              fields: [
+                { name: "👤 Pilote", value: payload.pseudo, inline: true },
+                { name: "📧 Email", value: payload.email, inline: true },
+                { name: "📂 Catégorie", value: payload.categorie, inline: true }
+              ],
+              footer: { text: "Mon Petit Pilote 2026 // Alertes Stand" },
+              timestamp: new Date().toISOString()
+            }
+          ]
         })
       });
-    } catch (mailErr) {
-      console.warn("Transfert email:", mailErr);
+      if (resp.ok) aEteEnvoye = true;
+    } catch (discordErr) {
+      console.warn("Notification Discord webhook:", discordErr);
     }
+  }
 
-    // 3. Notification Discord si un webhook est configuré
-    if (discordWebhookUrl) {
-      try {
-        await fetch(discordWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: "Radio Stand MPP",
-            embeds: [
-              {
-                title: `📻 Nouveau message Radio Stand : [${categorie.value.toUpperCase()}]`,
-                description: payload.message,
-                color: 16744192,
-                fields: [
-                  { name: "👤 Pilote", value: payload.pseudo, inline: true },
-                  { name: "📧 Email", value: payload.email, inline: true },
-                  { name: "📂 Catégorie", value: payload.categorie, inline: true }
-                ],
-                footer: { text: "Mon Petit Pilote 2026 // Alertes Stand" },
-                timestamp: new Date().toISOString()
-              }
-            ]
-          })
-        });
-      } catch (discordErr) {
-        console.warn("Notification Discord webhook:", discordErr);
-      }
-    }
+  // 2. Transfert automatique par Email à monpetitpilote@proton.me
+  try {
+    const emailResp = await fetch("https://formsubmit.co/ajax/monpetitpilote@proton.me", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        _subject: `[Radio Stand MPP] ${categorie.value.toUpperCase()} de ${payload.pseudo}`,
+        Pilote: payload.pseudo,
+        Email: payload.email,
+        Categorie: categorie.value,
+        Message: payload.message,
+        Date: new Date().toLocaleString("fr-FR"),
+        _template: "box"
+      })
+    });
+    if (emailResp.ok) aEteEnvoye = true;
+  } catch (mailErr) {
+    console.warn("Transfert email:", mailErr);
+  }
 
-    afficherNotification("📻 Message bien transmis à monpetitpilote@proton.me et aux ingénieurs du stand !", "succes");
+  // 3. Sauvegarde Firestore si les permissions le permettent (ex: utilisateur connecté)
+  try {
+    const db = getFirestore();
+    await addDoc(collection(db, "feedbacks"), payload);
+    aEteEnvoye = true;
+  } catch (dbErr) {
+    console.warn("Archivage Firestore (non bloquant):", dbErr);
+  }
+
+  if (aEteEnvoye) {
+    afficherNotification("📻 Message bien transmis à monpetitpilote@proton.me et sur Discord !", "succes");
     message.value = "";
     emit("close");
-  } catch (err: any) {
-    console.error("Erreur feedback:", err);
-    erreurMessage.value = "Impossible d'envoyer le message pour le moment. Réessaie dans un instant ou écris directement à monpetitpilote@proton.me.";
-  } finally {
-    isSending.value = false;
+  } else {
+    erreurMessage.value = "Impossible d'envoyer le message. Écris directement à monpetitpilote@proton.me ou sur Discord.";
   }
+  isSending.value = false;
 }
 </script>
 
