@@ -169,7 +169,7 @@ import { afficherNotification } from "../utils";
 const emit = defineEmits(["close"]);
 const userStore = useUserStore();
 
-const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/monpetitpilote";
+const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/gsQ5mgukFN";
 const discordWebhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL || "";
 
 const categories = [

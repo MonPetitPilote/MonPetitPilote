@@ -123,7 +123,7 @@
 <script setup lang="ts">
 defineEmits(["open-rules", "open-ranking", "open-league", "open-feedback"]);
 
-const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/monpetitpilote";
+const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/gsQ5mgukFN";
 </script>
 
 <style scoped>

@@ -73,7 +73,7 @@ defineEmits([
 
 const userStore = useUserStore();
 
-const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/monpetitpilote";
+const discordInviteUrl = import.meta.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/gsQ5mgukFN";
 
 const pseudoAffiche = computed(() => {
   const user = userStore.currentUser;
